@@ -1,0 +1,70 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK with version tag
+        id: rename
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          mv app/build/outputs/apk/release/app-release.apk \
+             app/build/outputs/apk/release/WallKraft-${VERSION}.apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: WallKraft ${{ github.ref_name }}
+          body: |
+            ## WallKraft ${{ github.ref_name }}
+
+            Native Kotlin + Jetpack Compose rewrite of the WallKraft wallpaper
+            app (Android).
+
+            ### Install
+            1. Download `WallKraft-${{ steps.rename.outputs.version }}.apk`
+            2. Open the file on your Android device
+            3. Allow "Install from unknown sources" if prompted
+
+            ### Features
+            - Browse the Wallhaven library with search and filters
+            - Staggered wallpaper grid with infinite scroll
+            - Detail view: download, set as wallpaper, share, open on wallhaven.cc
+            - Favorites (stored locally)
+            - Settings: API key, theme, default sorting
+
+            ### Notes
+            - Release APK is signed with the debug keystore (installable).
+            - arm64-only build.
+          files: |
+            app/build/outputs/apk/release/WallKraft-*.apk
