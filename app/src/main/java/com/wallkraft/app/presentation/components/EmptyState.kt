@@ -14,8 +14,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 
 @Composable
@@ -23,6 +26,7 @@ fun EmptyState(
     title: String,
     message: String,
     modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Outlined.ImageNotSupported,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
@@ -34,7 +38,7 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            imageVector = Icons.Outlined.ImageNotSupported,
+            imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.outline,
             modifier = Modifier.size(56.dp),
@@ -67,9 +71,9 @@ fun ErrorState(
     modifier: Modifier = Modifier,
 ) {
     EmptyState(
-        title = "Something went wrong",
+        title = stringResource(R.string.error_title),
         message = message,
-        actionLabel = "Try again",
+        actionLabel = stringResource(R.string.error_retry),
         onAction = onRetry,
         modifier = modifier,
     )

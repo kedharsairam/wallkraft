@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -19,6 +20,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 /**
  * The staggered wallpaper grid with infinite-scroll pagination.
  * Calls [onLoadMore] when the user scrolls near the end.
+ *
+ * [state] can be hoisted by the caller so the scroll position survives tab
+ * switches (each screen must pass its own).
  */
 @Composable
 fun WallpaperGrid(
@@ -27,8 +31,9 @@ fun WallpaperGrid(
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
     footer: @Composable () -> Unit = {},
+    state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
 ) {
-    val gridState = rememberLazyStaggeredGridState()
+    val gridState = state
 
     LaunchedEffect(gridState) {
         snapshotFlow {

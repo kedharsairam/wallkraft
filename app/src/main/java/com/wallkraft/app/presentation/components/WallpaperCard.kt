@@ -37,9 +37,13 @@ fun WallpaperCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Clamp the aspect ratio so extreme portrait/landscape images stay tappable.
-    val ratio = (wallpaper.dimensionX.toFloat() / wallpaper.dimensionY.toFloat())
-        .coerceIn(0.6f, 1.9f)
+    // Use the wallpaper's true aspect ratio so the full image always fits the
+    // tile — no cropping, no zooming. The generous clamp only guards against
+    // bad metadata (zero/negative dimensions) and covers every real Wallhaven
+    // ratio (down to 9:48 and up to 48:9).
+    val w = wallpaper.dimensionX.toFloat().takeIf { it > 0f } ?: 1f
+    val h = wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f
+    val ratio = (w / h).coerceIn(0.15f, 6f)
 
     Box(
         modifier = modifier
@@ -47,15 +51,19 @@ fun WallpaperCard(
             .clickable(onClick = onClick),
     ) {
         AsyncImage(
+            // Ratio-preserving thumbnail (`thumbs.original`, ~300px): tiny
+            // payload for a smooth grid and shows the full image in its true
+            // ratio. Never the full-resolution `path` — that stays on the
+            // detail screen. Null (no thumbs at all) shows the placeholder.
             model = wallpaper.thumbnail,
             contentDescription = wallpaper.resolution,
             contentScale = ContentScale.Crop,
-            placeholder = ColorPainter(KraftColors.SurfaceTertiaryLight),
+            placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(ratio)
-                .background(KraftColors.SurfaceTertiaryLight),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
         )
 
         // Bottom scrim with favorites count.

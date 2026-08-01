@@ -23,13 +23,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Order
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.domain.model.WallhavenFilters
+import com.wallkraft.app.util.displayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -52,29 +55,36 @@ fun FilterSheet(
                 .padding(bottom = KraftSpacing.Spacing24),
         ) {
             Text(
-                text = "Filters",
+                text = stringResource(R.string.filter_title),
                 style = MaterialTheme.typography.headlineSmall,
             )
             Spacer(Modifier.height(KraftSpacing.Spacing16))
 
-            SectionLabel("Categories")
+            SectionLabel(stringResource(R.string.filter_categories))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Category.entries.forEach { cat ->
                     FilterChip(
                         selected = cat in categories,
-                        onClick = { categories = categories.toggle(cat) },
-                        label = { Text(cat.value.replaceFirstChar { it.uppercase() }) },
+                        // Never allow deselecting the last category — an empty
+                        // mask ("000") silently returns zero results.
+                        onClick = { if (cat !in categories || categories.size > 1) categories = categories.toggle(cat) },
+                        label = { Text(cat.displayName()) },
                     )
                 }
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing16))
-            SectionLabel("Sort by")
+            SectionLabel(stringResource(R.string.filter_sort_by))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Sorting.entries.forEach { s ->
                     FilterChip(
                         selected = sorting == s,
-                        onClick = { sorting = s },
+                        // topRange only applies to Toplist; drop it when switching
+                        // so a stale range isn't sent with other sorts.
+                        onClick = {
+                            sorting = s
+                            if (s != Sorting.Toplist) topRange = null
+                        },
                         label = { Text(s.displayName()) },
                     )
                 }
@@ -82,11 +92,12 @@ fun FilterSheet(
 
             if (sorting == Sorting.Toplist) {
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
-                SectionLabel("Top of the day / week / ...")
+                SectionLabel(stringResource(R.string.filter_time_range))
                 FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                     TopRange.entries.forEach { r ->
                         FilterChip(
                             selected = topRange == r,
+                            // Tapping an active range clears it (back to all-time).
                             onClick = { topRange = if (topRange == r) null else r },
                             label = { Text(r.displayName()) },
                         )
@@ -95,13 +106,13 @@ fun FilterSheet(
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing16))
-            SectionLabel("Order")
+            SectionLabel(stringResource(R.string.filter_order))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Order.entries.forEach { o ->
                     FilterChip(
                         selected = order == o,
                         onClick = { order = o },
-                        label = { Text(o.value.replaceFirstChar { it.uppercase() }) },
+                        label = { Text(o.displayName()) },
                     )
                 }
             }
@@ -114,7 +125,7 @@ fun FilterSheet(
                             categories = categories,
                             sorting = sorting,
                             order = order,
-                            topRange = topRange,
+                            topRange = if (sorting == Sorting.Toplist) topRange else null,
                             ratio = initial.ratio,
                             query = initial.query,
                         ),
@@ -122,7 +133,7 @@ fun FilterSheet(
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Apply filters")
+                Text(stringResource(R.string.filter_apply))
             }
         }
     }
@@ -140,22 +151,3 @@ private fun SectionLabel(text: String) {
 
 private fun <T> Set<T>.toggle(value: T): Set<T> =
     if (value in this) this - value else this + value
-
-private fun Sorting.displayName(): String = when (this) {
-    Sorting.DateAdded -> "Date added"
-    Sorting.Relevance -> "Relevance"
-    Sorting.Random -> "Random"
-    Sorting.Views -> "Views"
-    Sorting.Favorites -> "Favorites"
-    Sorting.Toplist -> "Toplist"
-}
-
-private fun TopRange.displayName(): String = when (this) {
-    TopRange.Day1 -> "24h"
-    TopRange.Days3 -> "3 days"
-    TopRange.Week1 -> "1 week"
-    TopRange.Month1 -> "1 month"
-    TopRange.Months3 -> "3 months"
-    TopRange.Months6 -> "6 months"
-    TopRange.Year1 -> "1 year"
-}

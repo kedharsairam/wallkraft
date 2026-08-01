@@ -29,7 +29,12 @@ data class FavoriteEntity(
             id = id,
             url = url,
             path = path,
-            thumbs = Thumbs(large = thumbnailLarge, small = thumbnail),
+            thumbs = Thumbs(
+                large = thumbnailLarge,
+                // Empty string is the no-thumb sentinel (keeps the column
+                // non-null so Room schema stays at v1 — no migration needed).
+                original = thumbnail.ifEmpty { null },
+            ),
             dimensionX = dimensionX,
             dimensionY = dimensionY,
             ratio = ratio,
@@ -46,7 +51,10 @@ data class FavoriteEntity(
                 id = wallpaper.id,
                 url = wallpaper.url,
                 path = wallpaper.path,
-                thumbnail = wallpaper.thumbs.small ?: wallpaper.path,
+                // Never fall back to the full-resolution [path] here — the grid
+                // would download multi-megabyte originals. Empty string means
+                // "no thumbnail": the grid shows its placeholder instead.
+                thumbnail = wallpaper.thumbs.original ?: wallpaper.thumbs.small ?: "",
                 thumbnailLarge = wallpaper.thumbs.large,
                 dimensionX = wallpaper.dimensionX,
                 dimensionY = wallpaper.dimensionY,

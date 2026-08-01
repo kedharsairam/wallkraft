@@ -1,6 +1,7 @@
 package com.wallkraft.app
 
 import android.content.Context
+import android.content.res.Resources
 import androidx.room.Room
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.db.WallKraftDatabase
@@ -21,6 +22,9 @@ import java.util.concurrent.TimeUnit
 class AppContainer(context: Context) {
 
     private val appContext = context.applicationContext
+
+    /** Application resources, for localized messages in ViewModels. */
+    val resources: Resources get() = appContext.resources
 
     val json: Json = Json {
         ignoreUnknownKeys = true

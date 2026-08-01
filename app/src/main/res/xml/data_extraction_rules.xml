@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (API >= 31) data extraction rules.
+     Keep the API key (settings DataStore) off the device; favorites (Room)
+     may still back up. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="datastore/wallkraft_settings.preferences_pb" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="datastore/wallkraft_settings.preferences_pb" />
+    </device-transfer>
+</data-extraction-rules>

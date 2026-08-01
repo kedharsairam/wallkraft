@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact brand glyph for the splash screen. Kept within the central safe
+     zone (the system masks the splash icon to a circle). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Sun -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,38 m-9,0 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0" />
+    <!-- Back mountain -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.55"
+        android:pathData="M34,70 L50,54 L62,66 L72,58 L86,70 Z" />
+    <!-- Front mountain -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,70 L56,52 L72,70 Z" />
+</vector>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-Android 12 (API <= 30) auto-backup rules.
+     The settings DataStore holds the Wallhaven API key, so it must never
+     leave the device. Favorites (Room) stay backed up. -->
+<full-backup-content>
+    <exclude domain="file" path="datastore/wallkraft_settings.preferences_pb" />
+</full-backup-content>

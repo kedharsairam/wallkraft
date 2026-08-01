@@ -35,13 +35,30 @@ object KraftColors {
     val SurfaceTertiaryLight = Color(0xFFE5E5EA)
     val SurfaceTertiaryDark = Color(0xFF3A3A3C)
 
+    // -- Surface container levels (iOS grouped-table neutrals). Material3
+    // leaves these slots to a baseline *purple* palette unless we define them;
+    // the bottom bar, sheets, and chips must stay neutral gray. --
+    val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
+    val SurfaceContainerLowLight = Color(0xFFF2F2F7)
+    val SurfaceContainerLight = Color(0xFFEFEFF4)
+    val SurfaceContainerHighLight = Color(0xFFE5E5EA)
+    val SurfaceDimLight = Color(0xFFE5E5EA)
+    val SurfaceBrightLight = Color(0xFFFFFFFF)
+
+    val SurfaceContainerLowestDark = Color(0xFF0A0A0C)
+    val SurfaceContainerLowDark = Color(0xFF1C1C1E)
+    val SurfaceContainerDark = Color(0xFF2C2C2E)
+    val SurfaceContainerHighDark = Color(0xFF38383A)
+    val SurfaceDimDark = Color(0xFF141416)
+    val SurfaceBrightDark = Color(0xFF2C2C2E)
+
     // -- Text --
     val TextPrimaryLight = Color(0xFF000000)
     val TextPrimaryDark = Color(0xFFFFFFFF)
     val TextSecondaryLight = Color(0xFF3A3A3C)
-    val TextSecondaryDark = Color(0xFFEBEBF5)
+    val TextSecondaryDark = Color(0xFF8E8E93)
     val TextTertiaryLight = Color(0xFF8E8E93)
-    val TextTertiaryDark = Color(0xFFEBEBF5)
+    val TextTertiaryDark = Color(0xFF5E5E63)
 
     // -- Separators & Fills --
     val SeparatorLight = Color(0xFFC6C6C8)

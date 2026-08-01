@@ -1,4 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WallKraft</string>
+
+    <!-- Navigation -->
+    <string name="tab_browse">Browse</string>
+    <string name="tab_favorites">Favorites</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Browse -->
+    <string name="search_hint">Search wallpapers</string>
+    <string name="search_clear">Clear</string>
+    <string name="no_results_title">No wallpapers found</string>
+    <string name="no_results_hint_filters">Try adjusting your filters.</string>
+    <string name="no_results_hint_query">Nothing matched \"%1$s\". Try a different search.</string>
+
+    <!-- Filter sheet -->
+    <string name="filter_title">Filters</string>
+    <string name="filter_categories">Categories</string>
+    <string name="filter_sort_by">Sort by</string>
+    <string name="filter_time_range">Time range</string>
+    <string name="filter_order">Order</string>
+    <string name="filter_apply">Apply filters</string>
+    <string name="sorting_date_added">Date added</string>
+    <string name="sorting_relevance">Relevance</string>
+    <string name="sorting_random">Random</string>
+    <string name="sorting_views">Views</string>
+    <string name="sorting_favorites">Favorites</string>
+    <string name="sorting_toplist">Toplist</string>
+    <string name="top_range_1d">24h</string>
+    <string name="top_range_3d">3 days</string>
+    <string name="top_range_1w">1 week</string>
+    <string name="top_range_1m">1 month</string>
+    <string name="top_range_3m">3 months</string>
+    <string name="top_range_6m">6 months</string>
+    <string name="top_range_1y">1 year</string>
+    <string name="category_general">General</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_people">People</string>
+    <string name="order_desc">Desc</string>
+    <string name="order_asc">Asc</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="api_key_title">Wallhaven API key</string>
+    <string name="api_key_description">Optional. Unlocks higher rate limits and exclusive content with your account key.</string>
+    <string name="api_key_hint">Paste your API key</string>
+    <string name="appearance">Appearance</string>
+    <string name="default_sorting">Default sorting</string>
+    <string name="default_order">Default order</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="version_format">WallKraft v%1$s</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favorites</string>
+    <string name="no_favorites_title">No favorites yet</string>
+    <string name="no_favorites_message">Tap the heart on any wallpaper to save it here.</string>
+
+    <!-- Detail -->
+    <string name="wallpaper">Wallpaper</string>
+    <string name="back">Back</string>
+    <string name="view_fullscreen">View fullscreen</string>
+    <string name="share">Share</string>
+    <string name="open_on_wallhaven">Open on wallhaven.cc</string>
+    <string name="downloading">Downloading %1$s…</string>
+    <string name="wallpaper_set">Wallpaper set</string>
+    <string name="wallpaper_set_failed">Couldn\'t set wallpaper</string>
+    <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="download">Download</string>
+    <string name="set_as_wallpaper">Set as wallpaper</string>
+    <string name="download_notification_title">WallKraft — %1$s</string>
+    <string name="share_title">Share wallpaper</string>
+    <string name="favorites_format">%1$d ♥</string>
+
+    <!-- Error / empty states -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_retry">Try again</string>
+    <string name="error_rate_limited">Rate limit reached. Please wait a moment and try again.</string>
+    <string name="error_network">Something went wrong. Check your connection.</string>
+    <string name="error_generic">Something went wrong.</string>
+    <string name="error_invalid_query">That search couldn\'t be completed. Try adjusting it.</string>
+    <string name="error_invalid_key">Your API key was rejected. Check it in Settings.</string>
+    <string name="error_not_found">This wallpaper no longer exists.</string>
+    <string name="rate_limit_banner">Rate limit reached. Please wait a moment before browsing more.</string>
 </resources>

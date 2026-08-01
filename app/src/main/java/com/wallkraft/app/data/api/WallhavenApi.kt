@@ -23,11 +23,6 @@ private data class WallpaperEnvelope(
     @SerialName("data") val data: Wallpaper,
 )
 
-@Serializable
-private data class SuggestionsEnvelope(
-    @SerialName("suggestions") val suggestions: List<String> = emptyList(),
-)
-
 /**
  * Wallhaven API client with rate-limit tracking.
  *
@@ -75,27 +70,7 @@ class WallhavenApi(
         return execute<WallpaperEnvelope>(url.toString()).data
     }
 
-    /**
-     * Fetch search autocomplete suggestions. Non-critical: returns an empty
-     * list on any failure (rate limit, network, bad response).
-     */
-    suspend fun suggestions(query: String): List<String> {
-        if (query.isBlank()) return emptyList()
-        return try {
-            val url = baseUrl.toHttpUrl().newBuilder()
-                .addPathSegment("search")
-                .addPathSegment("suggestions")
-                .addQueryParameter("q", query.trim())
-                .build()
-            execute<SuggestionsEnvelope>(url.toString()).suggestions
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
     fun observeRateLimited(): Flow<Boolean> = RateLimitState.limited
-
-    fun rateLimitRemaining(): Int = RateLimitState.remaining.value
 
     private suspend inline fun <reified T> execute(url: String): T =
         withContext(Dispatchers.IO) {
@@ -117,7 +92,7 @@ class WallhavenApi(
                             json.decodeFromString<T>(body)
                         }
                         response.code == 429 -> throw WallpaperError.RateLimited
-                        else -> throw WallpaperError.Api("API error: ${response.code}")
+                        else -> throw WallpaperError.Api("API error: ${response.code}", code = response.code)
                     }
                 }
             } catch (e: WallpaperError) {
