@@ -7,13 +7,6 @@ enum class Category(val value: String) {
     People("people"),
 }
 
-/** Wallhaven purity levels. Bit values follow the API's purity mask. */
-enum class Purity(val value: String) {
-    Sfw("sfw"),
-    Sketchy("sketchy"),
-    Nsfw("nsfw"),
-}
-
 enum class Sorting(val value: String) {
     DateAdded("date_added"),
     Relevance("relevance"),
@@ -45,21 +38,15 @@ fun Set<Category>.toCategoryParam(): String = buildString {
     append(if (contains(Category.People)) '1' else '0')
 }
 
-fun Set<Purity>.toPurityParam(): String = buildString {
-    append(if (contains(Purity.Sfw)) '1' else '0')
-    append(if (contains(Purity.Sketchy)) '1' else '0')
-    append(if (contains(Purity.Nsfw)) '1' else '0')
-}
-
 /**
  * Search filters for the Wallhaven API.
  *
- * The default matches the Wallkraft Flutter behavior: all categories, SFW only,
- * sorted by newest first.
+ * The default matches the Wallkraft Flutter behavior: all categories, sorted
+ * by newest first. Purity is intentionally absent — Wallkraft is strictly
+ * SFW-only (enforced in the API client and the repository).
  */
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
-    val purity: Set<Purity> = setOf(Purity.Sfw),
     val sorting: Sorting = Sorting.DateAdded,
     val order: Order = Order.Desc,
     val topRange: TopRange? = null,

@@ -18,10 +18,23 @@ class WallpaperRepositoryImpl(
     override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> =
         try {
             val response = api.search(filters, page)
+            // Defense in depth: even though the API client only ever requests
+            // SFW (purity=100), never surface anything the API reports as
+            // sketchy or NSFW. Also dedupe by id — the Wallhaven search API
+            // can return the same wallpaper twice across pages, and the
+            // staggered grid keys items by id.
+            val sfwOnly = response.data
+                .filter { it.isSfw }
+                .distinctBy { it.id }
             snapshot.clear()
-            snapshot.addAll(response.data)
-            response.data.forEach { cacheById[it.id] = it }
-            Result.success(response)
+            snapshot.addAll(sfwOnly)
+            sfwOnly.forEach { cacheById[it.id] = it }
+            Result.success(
+                WallpaperResponse(
+                    data = sfwOnly,
+                    meta = response.meta,
+                ),
+            )
         } catch (e: WallpaperError) {
             Result.failure(e)
         }

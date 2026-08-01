@@ -4,7 +4,6 @@ import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.model.toCategoryParam
-import com.wallkraft.app.domain.model.toPurityParam
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperError
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +52,9 @@ class WallhavenApi(
             .addPathSegment("search")
             .apply {
                 addQueryParameter("categories", filters.categories.toCategoryParam())
-                addQueryParameter("purity", filters.purity.toPurityParam())
+                // Purity is hard-locked to SFW (100). Wallkraft never
+                // requests sketchy or NSFW content, by design.
+                addQueryParameter("purity", "100")
                 addQueryParameter("sorting", filters.sorting.value)
                 addQueryParameter("order", filters.order.value)
                 addQueryParameter("page", page.toString())

@@ -41,7 +41,6 @@ class BrowseViewModel(
                 it.copy(
                     filters = WallhavenFilters(
                         categories = settings.categories,
-                        purity = settings.purity,
                         sorting = settings.sorting,
                         order = settings.order,
                     ),
