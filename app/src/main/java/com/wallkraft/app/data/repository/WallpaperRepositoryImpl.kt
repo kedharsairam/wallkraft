@@ -13,7 +13,6 @@ class WallpaperRepositoryImpl(
 ) : WallpaperRepository {
 
     private val cacheById = mutableMapOf<String, Wallpaper>()
-    private val snapshot = mutableListOf<Wallpaper>()
 
     override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> =
         try {
@@ -26,8 +25,6 @@ class WallpaperRepositoryImpl(
             val sfwOnly = response.data
                 .filter { it.isSfw }
                 .distinctBy { it.id }
-            snapshot.clear()
-            snapshot.addAll(sfwOnly)
             sfwOnly.forEach { cacheById[it.id] = it }
             Result.success(
                 WallpaperResponse(
@@ -47,11 +44,5 @@ class WallpaperRepositoryImpl(
                 Result.failure(e)
             }
 
-    override fun cached(id: String): Wallpaper? = cacheById[id]
-
-    override fun cacheSnapshot(): List<Wallpaper> = snapshot.toList()
-
     override fun observeRateLimited(): Flow<Boolean> = api.observeRateLimited()
-
-    override fun rateLimitRemaining(): Int = api.rateLimitRemaining()
 }

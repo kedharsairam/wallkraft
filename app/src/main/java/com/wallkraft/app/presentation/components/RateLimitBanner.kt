@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
+import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
@@ -37,7 +39,7 @@ fun RateLimitBanner(modifier: Modifier = Modifier) {
             modifier = Modifier.size(20.dp),
         )
         Text(
-            text = "Rate limit reached. Please wait a moment before browsing more.",
+            text = stringResource(R.string.rate_limit_banner),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier.padding(start = KraftSpacing.Spacing12),

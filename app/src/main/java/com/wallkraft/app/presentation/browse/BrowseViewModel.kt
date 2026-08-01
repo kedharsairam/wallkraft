@@ -5,8 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
-import com.wallkraft.app.domain.repository.WallpaperError
 import com.wallkraft.app.domain.repository.WallpaperRepository
+import com.wallkraft.app.util.toUserMessage
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,10 +30,18 @@ data class BrowseUiState(
 class BrowseViewModel(
     private val repository: WallpaperRepository,
     settingsRepository: SettingsRepository,
+    private val errorMessage: (Throwable) -> String,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrowseUiState())
     val uiState: StateFlow<BrowseUiState> = _uiState.asStateFlow()
+
+    /**
+     * The single in-flight request. Starting a new first page cancels the
+     * previous one so a slow response for an older query/filter can never
+     * overwrite newer results (last-write-wins race).
+     */
+    private var loadJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -56,69 +65,92 @@ class BrowseViewModel(
     }
 
     fun search(newQuery: String) {
-        _uiState.update { it.copy(query = newQuery) }
+        _uiState.update {
+            it.copy(
+                query = newQuery,
+                filters = it.filters.copy(query = newQuery),
+                // A new query replaces the whole list: drop the old results so
+                // a failure shows the error state instead of silently keeping
+                // stale wallpapers from the previous search.
+                wallpapers = emptyList(),
+            )
+        }
         loadFirstPage()
     }
 
     fun setFilters(filters: WallhavenFilters) {
-        _uiState.update { it.copy(filters = filters.copy(query = it.query)) }
+        _uiState.update {
+            it.copy(
+                filters = filters.copy(query = it.query),
+                wallpapers = emptyList(),
+            )
+        }
         loadFirstPage()
     }
 
     fun retry() = loadFirstPage()
 
     fun loadFirstPage() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isInitialLoading = true, error = null) }
             val filters = _uiState.value.filters
-            repository.search(filters, 1)
-                .onSuccess { response ->
-                    _uiState.update {
-                        it.copy(
-                            wallpapers = response.data,
-                            isInitialLoading = false,
-                            isAppending = false,
-                            currentPage = response.meta.currentPage,
-                            lastPage = response.meta.lastPage,
-                            hasMore = response.meta.currentPage < response.meta.lastPage,
-                            error = null,
-                        )
+            try {
+                repository.search(filters, 1)
+                    .onSuccess { response ->
+                        _uiState.update {
+                            it.copy(
+                                wallpapers = response.data,
+                                isInitialLoading = false,
+                                isAppending = false,
+                                currentPage = response.meta.currentPage,
+                                lastPage = response.meta.lastPage,
+                                hasMore = response.meta.currentPage < response.meta.lastPage,
+                                error = null,
+                            )
+                        }
                     }
-                }
-                .onFailure { e ->
-                    _uiState.update {
-                        it.copy(isInitialLoading = false, error = e.toUserMessage())
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(isInitialLoading = false, error = errorMessage(e))
+                        }
                     }
-                }
+            } finally {
+                // Also runs when the job is cancelled by a newer search, so the
+                // UI never gets stuck on a spinner.
+                _uiState.update { it.copy(isInitialLoading = false, isAppending = false) }
+            }
         }
     }
 
     fun loadNextPage() {
         val state = _uiState.value
         if (state.isInitialLoading || state.isAppending || !state.hasMore) return
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isAppending = true) }
-            repository.search(state.filters, state.currentPage + 1)
-                .onSuccess { response ->
-                    _uiState.update { cur ->
-                        cur.copy(
-                            wallpapers = cur.wallpapers + response.data,
-                            isAppending = false,
-                            currentPage = response.meta.currentPage,
-                            lastPage = response.meta.lastPage,
-                            hasMore = response.meta.currentPage < response.meta.lastPage,
-                        )
+            try {
+                repository.search(state.filters, state.currentPage + 1)
+                    .onSuccess { response ->
+                        _uiState.update { cur ->
+                            cur.copy(
+                                // The Wallhaven API can return the same wallpaper on
+                                // different pages; dedupe at the accumulation point so
+                                // the grid's id keys never collide.
+                                wallpapers = (cur.wallpapers + response.data).distinctBy { it.id },
+                                isAppending = false,
+                                currentPage = response.meta.currentPage,
+                                lastPage = response.meta.lastPage,
+                                hasMore = response.meta.currentPage < response.meta.lastPage,
+                            )
+                        }
                     }
-                }
-                .onFailure {
-                    _uiState.update { it.copy(isAppending = false) }
-                }
+                    .onFailure {
+                        _uiState.update { it.copy(isAppending = false) }
+                    }
+            } finally {
+                _uiState.update { it.copy(isAppending = false) }
+            }
         }
     }
-}
-
-fun Throwable.toUserMessage(): String = when (this) {
-    is WallpaperError.RateLimited -> "Rate limit reached. Please wait a moment and try again."
-    is WallpaperError.Api -> message ?: "Something went wrong. Check your connection."
-    else -> message ?: "Something went wrong."
 }

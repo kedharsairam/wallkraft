@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 sealed class WallpaperError : Exception() {
     data object RateLimited : WallpaperError()
-    data class Api(override val message: String) : WallpaperError()
+    data class Api(override val message: String, val code: Int? = null) : WallpaperError()
 }
 
 /**
@@ -20,8 +20,5 @@ sealed class WallpaperError : Exception() {
 interface WallpaperRepository {
     suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse>
     suspend fun wallpaper(id: String): Result<Wallpaper>
-    fun cached(id: String): Wallpaper?
-    fun cacheSnapshot(): List<Wallpaper>
     fun observeRateLimited(): Flow<Boolean>
-    fun rateLimitRemaining(): Int
 }

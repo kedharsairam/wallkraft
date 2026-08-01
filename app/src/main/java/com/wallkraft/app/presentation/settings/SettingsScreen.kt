@@ -20,16 +20,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
+import com.wallkraft.app.BuildConfig
+import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Order
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
+import com.wallkraft.app.util.displayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -40,9 +47,10 @@ fun SettingsScreen(container: AppContainer) {
         },
     )
     val settings by viewModel.settings.collectAsState()
+    val apiKeyText by viewModel.apiKeyText.collectAsState()
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Settings") }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.settings_title)) }) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -51,35 +59,43 @@ fun SettingsScreen(container: AppContainer) {
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16),
         ) {
-            SectionTitle("Wallhaven API key")
+            SectionTitle(stringResource(R.string.api_key_title))
             Text(
-                text = "Optional. Unlocks higher rate limits and exclusive content with your account key.",
+                text = stringResource(R.string.api_key_description),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
             )
             OutlinedTextField(
-                value = settings.apiKey,
+                value = apiKeyText,
                 onValueChange = viewModel::setApiKey,
-                placeholder = { Text("Paste your API key") },
+                placeholder = { Text(stringResource(R.string.api_key_hint)) },
                 singleLine = true,
+                // API keys are case-sensitive alphanumerics: autocorrect and
+                // capitalization would silently mangle them (e.g. Gboard
+                // inserting punctuation), so lock the input to plain ASCII.
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Ascii,
+                ),
                 modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(Modifier.height(KraftSpacing.Spacing24))
-            SectionTitle("Appearance")
+            SectionTitle(stringResource(R.string.appearance))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 ThemeMode.entries.forEach { mode ->
                     FilterChip(
                         selected = settings.themeMode == mode,
                         onClick = { viewModel.setThemeMode(mode) },
-                        label = { Text(mode.name) },
+                        label = { Text(mode.displayName()) },
                     )
                 }
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing24))
-            SectionTitle("Default sorting")
+            SectionTitle(stringResource(R.string.default_sorting))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Sorting.entries.forEach { sorting ->
                     FilterChip(
@@ -91,20 +107,20 @@ fun SettingsScreen(container: AppContainer) {
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing24))
-            SectionTitle("Default order")
+            SectionTitle(stringResource(R.string.default_order))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Order.entries.forEach { order ->
                     FilterChip(
                         selected = settings.order == order,
                         onClick = { viewModel.setOrder(order) },
-                        label = { Text(order.name.replaceFirstChar { it.uppercase() }) },
+                        label = { Text(order.displayName()) },
                     )
                 }
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing32))
             Text(
-                text = "WallKraft v1.0.0 — Kotlin + Jetpack Compose",
+                text = stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -119,13 +135,4 @@ private fun SectionTitle(text: String) {
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
     )
-}
-
-private fun Sorting.displayName(): String = when (this) {
-    Sorting.DateAdded -> "Date added"
-    Sorting.Relevance -> "Relevance"
-    Sorting.Random -> "Random"
-    Sorting.Views -> "Views"
-    Sorting.Favorites -> "Favorites"
-    Sorting.Toplist -> "Toplist"
 }

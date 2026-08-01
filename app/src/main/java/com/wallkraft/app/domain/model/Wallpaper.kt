@@ -32,8 +32,13 @@ data class Wallpaper(
     @SerialName("purity") val purity: String = "sfw",
     @SerialName("tags") val tags: List<Tag> = emptyList(),
 ) {
-    val thumbnail: String get() = thumbs.small ?: path
-    val thumbnailLarge: String? get() = thumbs.large
+    // Wallhaven pre-crops `small`/`large` to fixed 3:2 / 16:9 ratios, which
+    // makes non-matching wallpapers look zoomed. `original` preserves the true
+    // aspect ratio, so the grid always shows the full image.
+    //
+    // The grid MUST never fall back to [path] — that's the full-resolution
+    // file (can be multi-megabyte) meant only for the detail screen.
+    val thumbnail: String? get() = thumbs.original ?: thumbs.large ?: thumbs.small
     val resolution: String get() = "${dimensionX}x$dimensionY"
 
     /** True when the API reports this wallpaper as safe-for-work. */

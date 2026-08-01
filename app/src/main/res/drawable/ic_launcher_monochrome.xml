@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single-color glyph for Android 13+ themed icons. The launcher tints it to
+     match the wallpaper/theme, so the bright blue background no longer clashes
+     with dark-mode launchers. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Sun -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,30 m-9,0 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0" />
+    <!-- Back mountain -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M14,76 L42,48 L58,64 L72,52 L94,76 Z" />
+    <!-- Front mountain -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M26,78 L50,54 L72,78 Z" />
+</vector>
