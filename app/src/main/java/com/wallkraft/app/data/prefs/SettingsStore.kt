@@ -10,7 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Order
-import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -30,7 +29,6 @@ class SettingsStore(private val context: Context) : SettingsRepository {
         val API_KEY = stringPreferencesKey("api_key")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val CATEGORIES = stringPreferencesKey("categories")
-        val PURITY = stringPreferencesKey("purity")
         val SORTING = stringPreferencesKey("sorting")
         val ORDER = stringPreferencesKey("order")
     }
@@ -49,7 +47,6 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             prefs[Keys.API_KEY] = updated.apiKey
             prefs[Keys.THEME_MODE] = updated.themeMode.name
             prefs[Keys.CATEGORIES] = updated.categories.joinToString(",") { it.name }
-            prefs[Keys.PURITY] = updated.purity.joinToString(",") { it.name }
             prefs[Keys.SORTING] = updated.sorting.name
             prefs[Keys.ORDER] = updated.order.name
         }
@@ -62,17 +59,11 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             ?.mapNotNull { runCatching { Category.valueOf(it) }.getOrNull() }
             ?.toSet()
             .orEmpty()
-        val purity = this[Keys.PURITY]
-            ?.split(",")
-            ?.mapNotNull { runCatching { Purity.valueOf(it) }.getOrNull() }
-            ?.toSet()
-            .orEmpty()
 
         return AppSettings(
             apiKey = this[Keys.API_KEY] ?: defaults.apiKey,
             themeMode = enumOr(Keys.THEME_MODE, ThemeMode.System),
             categories = categories.ifEmpty { defaults.categories },
-            purity = purity.ifEmpty { defaults.purity },
             sorting = enumOr(Keys.SORTING, Sorting.DateAdded),
             order = enumOr(Keys.ORDER, Order.Desc),
         )

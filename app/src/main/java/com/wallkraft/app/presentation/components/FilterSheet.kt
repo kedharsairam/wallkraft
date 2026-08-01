@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Order
-import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.domain.model.WallhavenFilters
@@ -40,7 +39,6 @@ fun FilterSheet(
     onDismiss: () -> Unit,
 ) {
     var categories by remember { mutableStateOf(initial.categories) }
-    var purity by remember { mutableStateOf(initial.purity) }
     var sorting by remember { mutableStateOf(initial.sorting) }
     var order by remember { mutableStateOf(initial.order) }
     var topRange by remember { mutableStateOf(initial.topRange) }
@@ -66,18 +64,6 @@ fun FilterSheet(
                         selected = cat in categories,
                         onClick = { categories = categories.toggle(cat) },
                         label = { Text(cat.value.replaceFirstChar { it.uppercase() }) },
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(KraftSpacing.Spacing16))
-            SectionLabel("Purity")
-            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                Purity.entries.forEach { p ->
-                    FilterChip(
-                        selected = p in purity,
-                        onClick = { purity = purity.toggle(p) },
-                        label = { Text(p.value.replaceFirstChar { it.uppercase() }) },
                     )
                 }
             }
@@ -126,7 +112,6 @@ fun FilterSheet(
                     onApply(
                         WallhavenFilters(
                             categories = categories,
-                            purity = purity,
                             sorting = sorting,
                             order = order,
                             topRange = topRange,

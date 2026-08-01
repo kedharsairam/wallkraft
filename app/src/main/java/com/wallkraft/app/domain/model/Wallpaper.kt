@@ -29,11 +29,15 @@ data class Wallpaper(
     @SerialName("file_size") val fileSize: Long = 0,
     @SerialName("favorites") val favorites: Int = 0,
     @SerialName("category") val category: String = "general",
+    @SerialName("purity") val purity: String = "sfw",
     @SerialName("tags") val tags: List<Tag> = emptyList(),
 ) {
     val thumbnail: String get() = thumbs.small ?: path
     val thumbnailLarge: String? get() = thumbs.large
     val resolution: String get() = "${dimensionX}x$dimensionY"
+
+    /** True when the API reports this wallpaper as safe-for-work. */
+    val isSfw: Boolean get() = purity == "sfw"
 
     fun fileSizeFormatted(): String =
         if (fileSize < 1024 * 1024) {

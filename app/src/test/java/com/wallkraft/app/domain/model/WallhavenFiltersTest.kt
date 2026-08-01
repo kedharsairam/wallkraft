@@ -16,14 +16,6 @@ class WallhavenFiltersTest {
     }
 
     @Test
-    fun purityMaskMatchesApiFormat() {
-        assertEquals("100", setOf(Purity.Sfw).toPurityParam())
-        assertEquals("110", setOf(Purity.Sfw, Purity.Sketchy).toPurityParam())
-        assertEquals("111", setOf(Purity.Sfw, Purity.Sketchy, Purity.Nsfw).toPurityParam())
-        assertEquals("001", setOf(Purity.Nsfw).toPurityParam())
-    }
-
-    @Test
     fun wallpaperFileSizeFormatting() {
         val small = Wallpaper(id = "a", fileSize = 512_000)
         assertEquals("500.0 KB", small.fileSizeFormatted())
