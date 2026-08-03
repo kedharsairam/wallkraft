@@ -1,5 +1,6 @@
 package com.wallkraft.app.data.repository
 
+import android.util.LruCache
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -12,7 +13,8 @@ class WallpaperRepositoryImpl(
     private val api: WallhavenApi,
 ) : WallpaperRepository {
 
-    private val cacheById = mutableMapOf<String, Wallpaper>()
+    /** Bounded in-memory cache — caps at 200 entries to prevent OOM on long sessions. */
+    private val cacheById = LruCache<String, Wallpaper>(200)
 
     override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> =
         try {
@@ -25,7 +27,7 @@ class WallpaperRepositoryImpl(
             val sfwOnly = response.data
                 .filter { it.isSfw }
                 .distinctBy { it.id }
-            sfwOnly.forEach { cacheById[it.id] = it }
+            sfwOnly.forEach { cacheById.put(it.id, it) }
             Result.success(
                 WallpaperResponse(
                     data = sfwOnly,
@@ -37,9 +39,9 @@ class WallpaperRepositoryImpl(
         }
 
     override suspend fun wallpaper(id: String): Result<Wallpaper> =
-        cacheById[id]?.let { Result.success(it) }
+        cacheById.get(id)?.let { Result.success(it) }
             ?: try {
-                Result.success(api.wallpaper(id).also { cacheById[id] = it })
+                Result.success(api.wallpaper(id).also { cacheById.put(id, it) })
             } catch (e: WallpaperError) {
                 Result.failure(e)
             }
