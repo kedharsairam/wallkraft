@@ -120,7 +120,7 @@ fun BrowseScreen(
                     // query (and Gboard loves to append punctuation).
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.None,
-                        autoCorrect = false,
+                        autoCorrectEnabled = false,
                         imeAction = ImeAction.Search,
                     ),
                     keyboardActions = KeyboardActions(

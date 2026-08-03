@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -151,7 +152,7 @@ fun DetailScreen(
                             Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                         }
                         IconButton(onClick = { WallpaperActions.openInBrowser(context, wallpaper) }) {
-                            Icon(Icons.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven))
+                            Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven))
                         }
                     }
                 },
