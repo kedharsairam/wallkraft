@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.FlowPreview
 
+@OptIn(FlowPreview::class)
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {

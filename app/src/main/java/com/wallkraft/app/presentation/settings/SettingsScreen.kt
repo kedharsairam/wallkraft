@@ -76,7 +76,7 @@ fun SettingsScreen(container: AppContainer) {
                 // inserting punctuation), so lock the input to plain ASCII.
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.None,
-                    autoCorrect = false,
+                    autoCorrectEnabled = false,
                     keyboardType = KeyboardType.Ascii,
                 ),
                 modifier = Modifier.fillMaxWidth(),
