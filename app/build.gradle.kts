@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +7,15 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
+
+// Release signing credentials. key.properties is gitignored and only exists on
+// the maintainer's machine — a fresh clone or CI without secrets falls back to
+// the debug keystore so builds still succeed.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val hasReleaseKey = keystoreProperties.isNotEmpty()
 
 android {
     namespace = "com.wallkraft.app"
@@ -18,6 +29,17 @@ android {
         versionName = "1.1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseKey) {
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,10 +48,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Sign with the debug keystore so CI-built release APKs are
-            // directly installable. Replace with a real signing config
-            // before publishing to the Play Store.
-            signingConfig = signingConfigs.getByName("debug")
+            // Real release key when key.properties exists; debug keystore
+            // otherwise (CI/fresh clones). Once the Play Store key is in use,
+            // this must never fall back to debug signing.
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
