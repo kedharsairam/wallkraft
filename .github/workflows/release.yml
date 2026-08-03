@@ -26,6 +26,26 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Restore release signing key
+        # Decode the keystore from a GitHub secret and write key.properties so
+        # assembleRelease signs with the real key. If the secrets are missing
+        # (e.g. a fork), the build falls back to the debug keystore.
+        env:
+          KEYSTORE_B64: ${{ secrets.WALLKRAFT_KEYSTORE_B64 }}
+          STORE_PW: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PW: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > wallkraft-release.keystore
+            {
+              echo "storeFile=wallkraft-release.keystore"
+              echo "storePassword=$STORE_PW"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PW"
+            } > key.properties
+          fi
+
       - name: Run unit tests
         run: ./gradlew test --no-daemon
 
@@ -64,7 +84,7 @@ jobs:
             - Settings: API key, theme, default sorting
 
             ### Notes
-            - Release APK is signed with the debug keystore (installable).
+            - Release APK is signed with the WallKraft release key.
             - arm64-only build.
           files: |
             app/build/outputs/apk/release/WallKraft-*.apk
