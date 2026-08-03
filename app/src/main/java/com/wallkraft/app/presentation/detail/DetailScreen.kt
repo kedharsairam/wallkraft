@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,10 +39,12 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -75,6 +76,7 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.WallpaperActions
+import com.wallkraft.app.util.WallpaperPosition
 import com.wallkraft.app.util.toUserMessage
 import com.wallkraft.app.util.wallpaperCategoryLabel
 import kotlinx.coroutines.delay
@@ -105,36 +107,33 @@ fun DetailScreen(
     val scope = rememberCoroutineScope()
     val wallpaper = uiState.wallpaper
     var isFullscreen by rememberSaveable { mutableStateOf(false) }
+    var showWallpaperPositionDialog by remember { mutableStateOf(false) }
+
+    // Resolve snackbar copy now — stringResource is composable and can't
+    // be called inside the action callbacks below.
+    val downloadingMsg = wallpaper?.let { stringResource(R.string.downloading, it.resolution) }
+    val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
+    val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
     // The fullscreen viewer takes over the entire screen and hides the
     // system bars. It reuses the same actions as the detail page below.
     if (isFullscreen && wallpaper != null) {
-        // Resolve snackbar copy now — stringResource is composable and can't
-        // be called inside the action callbacks below.
-        val downloadingMsg = stringResource(R.string.downloading, wallpaper.resolution)
-        val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
-        val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
         FullscreenViewer(
             wallpaper = wallpaper,
             isFavorite = uiState.isFavorite,
             onToggleFavorite = viewModel::toggleFavorite,
             onDownload = {
                 WallpaperActions.download(context, wallpaper)
-                scope.launch { snackbarHostState.showSnackbar(downloadingMsg) }
+                scope.launch { snackbarHostState.showSnackbar(downloadingMsg!!) }
             },
-            onSetWallpaper = {
-                scope.launch {
-                    val ok = WallpaperActions.setAsWallpaper(context, wallpaper, container.okHttpClient)
-                    snackbarHostState.showSnackbar(if (ok) wallpaperSetMsg else wallpaperSetFailedMsg)
-                }
-            },
-            onShare = { WallpaperActions.share(context, wallpaper) },
+            onSetWallpaper = { showWallpaperPositionDialog = true },
             onExit = { isFullscreen = false },
         )
         return
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = { Text(wallpaper?.resolution ?: stringResource(R.string.wallpaper)) },
@@ -147,9 +146,6 @@ fun DetailScreen(
                     if (wallpaper != null) {
                         IconButton(onClick = { isFullscreen = true }) {
                             Icon(Icons.Filled.Fullscreen, contentDescription = stringResource(R.string.view_fullscreen))
-                        }
-                        IconButton(onClick = { WallpaperActions.share(context, wallpaper) }) {
-                            Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share))
                         }
                         IconButton(onClick = { WallpaperActions.openInBrowser(context, wallpaper) }) {
                             Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven))
@@ -180,30 +176,38 @@ fun DetailScreen(
                         modifier = Modifier.padding(innerPadding),
                     )
                 } else {
-                    // Resolve snackbar copy here (not inside the action callbacks).
-                    val downloadingMsg = stringResource(R.string.downloading, wallpaper.resolution)
-                    val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
-                    val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
                     DetailContent(
                         wallpaper = wallpaper,
                         isFavorite = uiState.isFavorite,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onDownload = {
                             WallpaperActions.download(context, wallpaper)
-                            scope.launch { snackbarHostState.showSnackbar(downloadingMsg) }
+                            scope.launch { snackbarHostState.showSnackbar(downloadingMsg!!) }
                         },
-                        onSetWallpaper = {
-                            scope.launch {
-                                val ok = WallpaperActions.setAsWallpaper(context, wallpaper, container.okHttpClient)
-                                snackbarHostState.showSnackbar(if (ok) wallpaperSetMsg else wallpaperSetFailedMsg)
-                            }
-                        },
+                        onSetWallpaper = { showWallpaperPositionDialog = true },
                         onOpenFullscreen = { isFullscreen = true },
                         modifier = Modifier.padding(innerPadding),
                     )
                 }
             }
         }
+    }
+
+    if (showWallpaperPositionDialog && wallpaper != null) {
+        WallpaperPositionDialog(
+            onDismiss = { showWallpaperPositionDialog = false },
+            onSelect = { position ->
+                showWallpaperPositionDialog = false
+                scope.launch {
+                    val ok = WallpaperActions.setAsWallpaper(
+                        context, wallpaper, container.okHttpClient, position
+                    )
+                    snackbarHostState.showSnackbar(
+                        if (ok) wallpaperSetMsg else wallpaperSetFailedMsg
+                    )
+                }
+            },
+        )
     }
 }
 
@@ -239,7 +243,6 @@ private fun DetailContent(
                 ZoomableImage(
                     model = wallpaper.path,
                     contentDescription = wallpaper.resolution,
-                    imageRatio = ratio,
                     onTap = onOpenFullscreen,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -336,7 +339,6 @@ private fun FullscreenViewer(
     onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onSetWallpaper: () -> Unit,
-    onShare: () -> Unit,
     onExit: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -378,9 +380,6 @@ private fun FullscreenViewer(
         ZoomableImage(
             model = wallpaper.path,
             contentDescription = wallpaper.resolution,
-            imageRatio = wallpaper.dimensionX.toFloat().takeIf { it > 0f }?.div(
-                wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f,
-            ) ?: 0f,
             modifier = Modifier.fillMaxSize(),
             onTap = { controlsVisible = !controlsVisible },
         )
@@ -463,13 +462,57 @@ private fun FullscreenViewer(
                     ) {
                         Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.set_as_wallpaper), tint = Color.White)
                     }
-                    IconButton(
-                        onClick = onShare,
-                        modifier = Modifier.size(48.dp),
-                    ) {
-                        Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share), tint = Color.White)
-                    }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WallpaperPositionDialog(
+    onDismiss: () -> Unit,
+    onSelect: (WallpaperPosition) -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = KraftSpacing.Spacing16)
+                .padding(bottom = KraftSpacing.Spacing24),
+        ) {
+            Text(
+                text = stringResource(R.string.wallpaper_position_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Spacer(Modifier.height(KraftSpacing.Spacing16))
+            listOf(
+                WallpaperPosition.HOME to R.string.wallpaper_position_home,
+                WallpaperPosition.LOCK to R.string.wallpaper_position_lock,
+                WallpaperPosition.BOTH to R.string.wallpaper_position_both,
+            ).forEach { (position, labelRes) ->
+                TextButton(
+                    onClick = { onSelect(position) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = stringResource(labelRes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+            Spacer(Modifier.height(KraftSpacing.Spacing8))
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.cancel),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }

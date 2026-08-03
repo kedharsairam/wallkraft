@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,19 +46,12 @@ private const val ANIM_DURATION_MS = 220L
  *  - one- or two-finger pan while zoomed, clamped to the image bounds
  *  - double-tap to zoom in to the tapped point (animated) or back to fit
  *  - at 1x, single-finger drags pass through so the page scrolls normally
- *
- * [imageRatio] is the image's intrinsic width/height (0 = unknown). When
- * known, the image is drawn in a box sized to that ratio and centered, so the
- * scaled element IS the image content — letterbox bars stay outside it. This
- * keeps the zoom/pan math exact (a letterboxed image scaled inside a larger
- * layer made the anchored point drift and let content be panned out of view).
  */
 @Composable
 fun ZoomableImage(
     model: Any?,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    imageRatio: Float = 0f,
     onTap: () -> Unit = {},
 ) {
     var scale by remember { mutableFloatStateOf(MIN_SCALE) }
@@ -68,8 +60,6 @@ fun ZoomableImage(
     var viewportSize by remember { mutableStateOf(IntSize.Zero) }
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
-
-    val ratio = imageRatio.takeIf { it > 0f }?.coerceIn(0.15f, 6f)
 
     fun clamp(x: Float, y: Float, s: Float): Offset {
         // Bounds by the VIEWPORT, not the element. When the scaled image is
@@ -112,7 +102,7 @@ fun ZoomableImage(
             contentDescription = contentDescription,
             contentScale = ContentScale.Fit,
             modifier = Modifier
-                .then(if (ratio != null) Modifier.aspectRatio(ratio) else Modifier.fillMaxSize())
+                .fillMaxSize()
                 .onSizeChanged { elementSize = it }
                 .graphicsLayer {
                     // Scale around the top-left corner so the zoom-to-point math

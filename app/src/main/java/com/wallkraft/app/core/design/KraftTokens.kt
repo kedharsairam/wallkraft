@@ -78,6 +78,7 @@ object KraftSpacing {
     val Spacing32 = 32.dp
     val Spacing40 = 40.dp
     val Spacing48 = 48.dp
+    val Spacing56 = 56.dp
     val Spacing64 = 64.dp
 
     /** Screen edge padding on mobile. */

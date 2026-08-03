@@ -57,7 +57,7 @@ fun WallpaperGrid(
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         state = gridState,
-        contentPadding = PaddingValues(KraftSpacing.Spacing8),
+        contentPadding = PaddingValues(KraftSpacing.ScreenEdge),
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalItemSpacing = KraftSpacing.Spacing8,
         modifier = modifier.fillMaxSize(),
