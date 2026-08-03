@@ -23,3 +23,6 @@
 
 # Coil
 -dontwarn coil3.**
+
+# security-crypto / Tink — errorprone annotations are compile-only
+-dontwarn com.google.errorprone.annotations.**
