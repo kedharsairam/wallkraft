@@ -1,6 +1,5 @@
 package com.wallkraft.app.presentation.browse
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,18 +8,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,11 +46,13 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.FilterSheet
 import com.wallkraft.app.presentation.components.EmptyState
+import com.wallkraft.app.presentation.components.GridAppendFooter
 import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.util.toUserMessage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowseScreen(
     container: AppContainer,
@@ -146,40 +147,39 @@ fun BrowseScreen(
                 Spacer(Modifier.height(KraftSpacing.Spacing8))
             }
 
-            when {
-                uiState.isInitialLoading -> ShimmerGrid()
-                uiState.error != null && uiState.wallpapers.isEmpty() ->
-                    ErrorState(
-                        message = uiState.error ?: "",
-                        onRetry = viewModel::retry,
-                    )
-                uiState.wallpapers.isEmpty() ->
-                    EmptyState(
-                        title = stringResource(R.string.no_results_title),
-                        message = if (uiState.query.isBlank()) {
-                            stringResource(R.string.no_results_hint_filters)
-                        } else {
-                            stringResource(R.string.no_results_hint_query, uiState.query)
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = viewModel::refresh,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                when {
+                    uiState.isInitialLoading -> ShimmerGrid()
+                    uiState.error != null && uiState.wallpapers.isEmpty() ->
+                        ErrorState(
+                            message = uiState.error ?: "",
+                            onRetry = viewModel::retry,
+                        )
+                    uiState.wallpapers.isEmpty() ->
+                        EmptyState(
+                            title = stringResource(R.string.no_results_title),
+                            message = if (uiState.query.isBlank()) {
+                                stringResource(R.string.no_results_hint_filters)
+                            } else {
+                                stringResource(R.string.no_results_hint_query, uiState.query)
+                            },
+                        )
+                    else -> WallpaperGrid(
+                        wallpapers = uiState.wallpapers,
+                        onOpen = onOpenWallpaper,
+                        onLoadMore = viewModel::loadNextPage,
+                        state = gridState,
+                        footer = {
+                            if (uiState.isAppending) {
+                                GridAppendFooter()
+                            }
                         },
                     )
-                else -> WallpaperGrid(
-                    wallpapers = uiState.wallpapers,
-                    onOpen = onOpenWallpaper,
-                    onLoadMore = viewModel::loadNextPage,
-                    state = gridState,
-                    footer = {
-                        if (uiState.isAppending) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp),
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.height(24.dp).width(24.dp))
-                            }
-                        }
-                    },
-                )
+                }
             }
         }
     }

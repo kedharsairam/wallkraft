@@ -18,6 +18,7 @@ data class BrowseUiState(
     val wallpapers: List<Wallpaper> = emptyList(),
     val isInitialLoading: Boolean = true,
     val isAppending: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: String? = null,
     val filters: WallhavenFilters = WallhavenFilters(),
     val query: String = "",
@@ -89,6 +90,37 @@ class BrowseViewModel(
     }
 
     fun retry() = loadFirstPage()
+
+    /** Pull-to-refresh: re-fetch page 1 without clearing the list. */
+    fun refresh() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true, error = null) }
+            val filters = _uiState.value.filters
+            try {
+                repository.search(filters, 1)
+                    .onSuccess { response ->
+                        _uiState.update {
+                            it.copy(
+                                wallpapers = response.data,
+                                isRefreshing = false,
+                                currentPage = response.meta.currentPage,
+                                lastPage = response.meta.lastPage,
+                                hasMore = response.meta.currentPage < response.meta.lastPage,
+                                error = null,
+                            )
+                        }
+                    }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(isRefreshing = false, error = errorMessage(e))
+                        }
+                    }
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
+            }
+        }
+    }
 
     fun loadFirstPage() {
         loadJob?.cancel()

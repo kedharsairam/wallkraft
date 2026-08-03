@@ -37,13 +37,13 @@ jobs:
           KEY_PW: ${{ secrets.KEY_PASSWORD }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
+            echo "::add-mask::${KEYSTORE_B64}"
+            echo "::add-mask::${STORE_PW}"
+            echo "::add-mask::${KEY_ALIAS}"
+            echo "::add-mask::${KEY_PW}"
             echo "$KEYSTORE_B64" | base64 -d > wallkraft-release.keystore
-            {
-              echo "storeFile=wallkraft-release.keystore"
-              echo "storePassword=$STORE_PW"
-              echo "keyAlias=$KEY_ALIAS"
-              echo "keyPassword=$KEY_PW"
-            } > key.properties
+            printf 'storeFile=wallkraft-release.keystore\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$STORE_PW" "$KEY_ALIAS" "$KEY_PW" > key.properties
           fi
 
       - name: Run unit tests
@@ -60,6 +60,9 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           mv app/build/outputs/apk/release/app-release.apk \
              app/build/outputs/apk/release/WallKraft-${VERSION}.apk
+          SIZE=$(du -h app/build/outputs/apk/release/WallKraft-${VERSION}.apk | cut -f1)
+          echo "### APK Size: $SIZE" >> "$GITHUB_STEP_SUMMARY"
+          echo "File: WallKraft-${VERSION}.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

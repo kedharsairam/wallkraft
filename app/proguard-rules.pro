@@ -10,9 +10,12 @@
 -dontnote kotlinx.serialization.**
 -keepclassmembers class kotlinx.serialization.json.** { *** Companion; }
 -keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
--keep,includedescriptorclasses class com.wallkraft.app.**$$serializer { *; }
--keepclassmembers class com.wallkraft.app.** { *** Companion; }
--keepclasseswithmembers class com.wallkraft.app.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class com.wallkraft.app.data.api.**$$serializer { *; }
+-keepclassmembers class com.wallkraft.app.data.api.** { *** Companion; }
+-keepclasseswithmembers class com.wallkraft.app.data.api.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class com.wallkraft.app.domain.model.**$$serializer { *; }
+-keepclassmembers class com.wallkraft.app.domain.model.** { *** Companion; }
+-keepclasseswithmembers class com.wallkraft.app.domain.model.** { kotlinx.serialization.KSerializer serializer(...); }
 
 # Room
 -keep class * extends androidx.room.RoomDatabase { *; }

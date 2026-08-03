@@ -1,9 +1,11 @@
 package com.wallkraft.app.domain.model
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Locale
 
+@Immutable
 @Serializable
 data class Thumbs(
     @SerialName("large") val large: String? = null,
@@ -11,12 +13,14 @@ data class Thumbs(
     @SerialName("small") val small: String? = null,
 )
 
+@Immutable
 @Serializable
 data class Tag(
     @SerialName("id") val id: Int = 0,
     @SerialName("name") val name: String = "",
 )
 
+@Immutable
 @Serializable
 data class Wallpaper(
     @SerialName("id") val id: String,
@@ -52,6 +56,7 @@ data class Wallpaper(
         }
 }
 
+@Immutable
 @Serializable
 data class WallpaperMeta(
     @SerialName("current_page") val currentPage: Int = 1,
@@ -60,6 +65,7 @@ data class WallpaperMeta(
     @SerialName("total") val total: Int = 0,
 )
 
+@Immutable
 @Serializable
 data class WallpaperResponse(
     @SerialName("data") val data: List<Wallpaper> = emptyList(),

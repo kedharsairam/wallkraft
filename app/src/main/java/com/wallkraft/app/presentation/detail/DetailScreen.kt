@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,6 +61,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -173,27 +173,35 @@ fun DetailScreen(
                 modifier = Modifier.padding(innerPadding),
             )
             wallpaper != null -> {
-                // Resolve snackbar copy here (not inside the action callbacks).
-                val downloadingMsg = stringResource(R.string.downloading, wallpaper.resolution)
-                val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
-                val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
-                DetailContent(
-                    wallpaper = wallpaper,
-                    isFavorite = uiState.isFavorite,
-                    onToggleFavorite = viewModel::toggleFavorite,
-                    onDownload = {
-                        WallpaperActions.download(context, wallpaper)
-                        scope.launch { snackbarHostState.showSnackbar(downloadingMsg) }
-                    },
-                    onSetWallpaper = {
-                        scope.launch {
-                            val ok = WallpaperActions.setAsWallpaper(context, wallpaper, container.okHttpClient)
-                            snackbarHostState.showSnackbar(if (ok) wallpaperSetMsg else wallpaperSetFailedMsg)
-                        }
-                    },
-                    onOpenFullscreen = { isFullscreen = true },
-                    modifier = Modifier.padding(innerPadding),
-                )
+                if (wallpaper.path.isBlank()) {
+                    ErrorState(
+                        message = stringResource(R.string.wallpaper_set_failed),
+                        onRetry = viewModel::load,
+                        modifier = Modifier.padding(innerPadding),
+                    )
+                } else {
+                    // Resolve snackbar copy here (not inside the action callbacks).
+                    val downloadingMsg = stringResource(R.string.downloading, wallpaper.resolution)
+                    val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
+                    val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
+                    DetailContent(
+                        wallpaper = wallpaper,
+                        isFavorite = uiState.isFavorite,
+                        onToggleFavorite = viewModel::toggleFavorite,
+                        onDownload = {
+                            WallpaperActions.download(context, wallpaper)
+                            scope.launch { snackbarHostState.showSnackbar(downloadingMsg) }
+                        },
+                        onSetWallpaper = {
+                            scope.launch {
+                                val ok = WallpaperActions.setAsWallpaper(context, wallpaper, container.okHttpClient)
+                                snackbarHostState.showSnackbar(if (ok) wallpaperSetMsg else wallpaperSetFailedMsg)
+                            }
+                        },
+                        onOpenFullscreen = { isFullscreen = true },
+                        modifier = Modifier.padding(innerPadding),
+                    )
+                }
             }
         }
     }
@@ -247,7 +255,10 @@ private fun DetailContent(
                     .fillMaxWidth()
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
             ) {
-                FilledIconButton(onClick = onToggleFavorite) {
+                FilledIconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(48.dp),
+                ) {
                     Icon(
                         imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                         contentDescription = if (isFavorite) {
@@ -258,10 +269,16 @@ private fun DetailContent(
                         tint = if (isFavorite) KraftColors.AccentRed else MaterialTheme.colorScheme.onPrimary,
                     )
                 }
-                FilledIconButton(onClick = onDownload) {
+                FilledIconButton(
+                    onClick = onDownload,
+                    modifier = Modifier.size(48.dp),
+                ) {
                     Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.download))
                 }
-                FilledIconButton(onClick = onSetWallpaper) {
+                FilledIconButton(
+                    onClick = onSetWallpaper,
+                    modifier = Modifier.size(48.dp),
+                ) {
                     Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.set_as_wallpaper))
                 }
             }
@@ -389,7 +406,10 @@ private fun FullscreenViewer(
                         .statusBarsPadding()
                         .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing8),
                 ) {
-                    IconButton(onClick = onExit) {
+                    IconButton(
+                        onClick = onExit,
+                        modifier = Modifier.size(48.dp),
+                    ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
@@ -417,7 +437,10 @@ private fun FullscreenViewer(
                         .navigationBarsPadding()
                         .padding(vertical = KraftSpacing.Spacing16),
                 ) {
-                    IconButton(onClick = onToggleFavorite) {
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier.size(48.dp),
+                    ) {
                         Icon(
                             imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = if (isFavorite) {
@@ -428,13 +451,22 @@ private fun FullscreenViewer(
                             tint = if (isFavorite) KraftColors.AccentRed else Color.White,
                         )
                     }
-                    IconButton(onClick = onDownload) {
+                    IconButton(
+                        onClick = onDownload,
+                        modifier = Modifier.size(48.dp),
+                    ) {
                         Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.download), tint = Color.White)
                     }
-                    IconButton(onClick = onSetWallpaper) {
+                    IconButton(
+                        onClick = onSetWallpaper,
+                        modifier = Modifier.size(48.dp),
+                    ) {
                         Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.set_as_wallpaper), tint = Color.White)
                     }
-                    IconButton(onClick = onShare) {
+                    IconButton(
+                        onClick = onShare,
+                        modifier = Modifier.size(48.dp),
+                    ) {
                         Icon(Icons.Filled.Share, contentDescription = stringResource(R.string.share), tint = Color.White)
                     }
                 }

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Environment
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Wallpaper
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -42,7 +43,7 @@ object WallpaperActions {
         wallpaper: Wallpaper,
         client: OkHttpClient,
     ): Boolean = withContext(Dispatchers.IO) {
-        runCatching {
+        try {
             val request = Request.Builder().url(wallpaper.path).get().build()
             client.newCall(request).execute().use { response ->
                 check(response.isSuccessful) { "HTTP ${response.code}" }
@@ -55,7 +56,11 @@ object WallpaperActions {
                 )
             }
             true
-        }.getOrDefault(false)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun openInBrowser(context: Context, wallpaper: Wallpaper) {
