@@ -16,7 +16,7 @@ import okhttp3.Request
 
 /**
  * Side-effect actions for a wallpaper: download to the Downloads folder,
- * set as wallpaper, open in browser, and share.
+ * set as wallpaper (with position selection), and open in browser.
  */
 object WallpaperActions {
 
@@ -34,14 +34,16 @@ object WallpaperActions {
     }
 
     /**
-     * Downloads the full-resolution image and applies it to the home and lock
-     * screens. Suspends until done and returns true on success. Call from a
-     * lifecycle-aware scope so the work is cancelled if the screen leaves.
+     * Downloads the full-resolution image and applies it to the selected
+     * screen(s). [position] controls which screens receive the wallpaper:
+     * `WallpaperManager.FLAG_SYSTEM` for home, `FLAG_LOCK` for lock screen,
+     * or both OR'd together.
      */
     suspend fun setAsWallpaper(
         context: Context,
         wallpaper: Wallpaper,
         client: OkHttpClient,
+        position: WallpaperPosition = WallpaperPosition.BOTH,
     ): Boolean = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder().url(wallpaper.path).get().build()
@@ -52,7 +54,7 @@ object WallpaperActions {
                     stream,
                     null,
                     true,
-                    WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK,
+                    position.flags,
                 )
             }
             true
@@ -69,15 +71,11 @@ object WallpaperActions {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
+}
 
-    fun share(context: Context, wallpaper: Wallpaper) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "${wallpaper.resolution} — ${wallpaper.url}")
-        }
-        context.startActivity(
-            Intent.createChooser(intent, context.getString(R.string.share_title))
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
-    }
+/** Which screen(s) to apply a wallpaper to. */
+enum class WallpaperPosition(val flags: Int) {
+    HOME(WallpaperManager.FLAG_SYSTEM),
+    LOCK(WallpaperManager.FLAG_LOCK),
+    BOTH(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK),
 }

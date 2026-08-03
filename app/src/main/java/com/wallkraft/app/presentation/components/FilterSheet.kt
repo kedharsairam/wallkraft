@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Category
@@ -61,7 +60,7 @@ fun FilterSheet(
             Spacer(Modifier.height(KraftSpacing.Spacing16))
 
             SectionLabel(stringResource(R.string.filter_categories))
-            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                 Category.entries.forEach { cat ->
                     FilterChip(
                         selected = cat in categories,
@@ -75,7 +74,7 @@ fun FilterSheet(
 
             Spacer(Modifier.height(KraftSpacing.Spacing16))
             SectionLabel(stringResource(R.string.filter_sort_by))
-            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                 Sorting.entries.forEach { s ->
                     FilterChip(
                         selected = sorting == s,
@@ -93,7 +92,7 @@ fun FilterSheet(
             if (sorting == Sorting.Toplist) {
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
                 SectionLabel(stringResource(R.string.filter_time_range))
-                FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                     TopRange.entries.forEach { r ->
                         FilterChip(
                             selected = topRange == r,
@@ -107,7 +106,7 @@ fun FilterSheet(
 
             Spacer(Modifier.height(KraftSpacing.Spacing16))
             SectionLabel(stringResource(R.string.filter_order))
-            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                 Order.entries.forEach { o ->
                     FilterChip(
                         selected = order == o,

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-04
+
+### Added
+- **Downloads page** — new tab with `DownloadManager` integration: query, open, and remove downloaded wallpapers.
+- **Wallpaper position selection** — `WallpaperPositionDialog` (Home / Lock / Both) via bottom action sheet before setting wallpaper.
+- **Keyboard dismiss on scroll** — keyboard auto-hides when user starts scrolling the grid.
+
+### Changed
+- **Bottom tab bar redesigned** — outer `Scaffold(bottomBar)` for proper navigation bar inset handling; Apple-style tab bar with icon + label, 80dp height.
+- **Search bar Apple-style** — `BasicTextField` with custom decoration box, 40dp height, filled gray pill, no border. Text proportionally balanced with container.
+- **Search bar text** — placeholder and input use `labelMedium` (~13sp) for visual balance with tab bar labels.
+- **Grid edge padding** — increased from 8dp to 16dp (`ScreenEdge`) for proper breathing room.
+- **Wallpaper position dialog** — `AlertDialog` → `ModalBottomSheet` (Apple-style action sheet).
+- **FilterSheet spacing** — hardcoded `8.dp` values replaced with `KraftSpacing.Spacing8` token.
+- Domain models annotated with `@Immutable` — Compose can now skip recomposition when these pass through grids.
+
+### Fixed
+- **Bottom bar labels clipped** — navigation bar insets were being consumed by inner Scaffolds, leaving zero padding for the tab bar. Fixed by using outer `Scaffold(bottomBar)` and setting `contentWindowInsets = WindowInsets(0,0,0,0)` on all inner Scaffolds.
+- **Inner screen background mismatch** — all inner Scaffolds now use `containerColor = background` to eliminate color strip between outer and inner Scaffolds.
+- **ZoomableImage KDoc** — removed stale `[imageRatio]` parameter references.
+- **DetailScreen Scaffold** — added missing `containerColor = background` for consistency.
+
+### Removed
+- **Share feature** — removed share button from top bar and fullscreen viewer; removed `WallpaperActions.share()`.
+
+## [1.2.0] - 2026-08-04
+
 ### Fixed
 - **Critical:** CancellationException in `setAsWallpaper` — was silently swallowed, now properly re-thrown for structured concurrency.
 - **Critical:** Empty-URL crash when wallpaper path is blank — now shows error state instead of crashing.
@@ -27,9 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.editorconfig` for consistent formatting.
 - `@Immutable` annotations on domain models (`Wallpaper`, `Thumbs`, `Tag`, `WallpaperMeta`, `WallpaperResponse`) for Compose skip optimization.
 - `GridAppendFooter` extracted from inline lambda for better recomposition.
-
-### Changed
-- Domain models annotated with `@Immutable` — Compose can now skip recomposition when these pass through grids.
 
 ## [1.1.0] - 2026-08-03
 

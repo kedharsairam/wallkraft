@@ -5,6 +5,7 @@
     <!-- Navigation -->
     <string name="tab_browse">Browse</string>
     <string name="tab_favorites">Favorites</string>
+    <string name="tab_downloads">Downloads</string>
     <string name="tab_settings">Settings</string>
 
     <!-- Browse -->
@@ -62,7 +63,6 @@
     <string name="wallpaper">Wallpaper</string>
     <string name="back">Back</string>
     <string name="view_fullscreen">View fullscreen</string>
-    <string name="share">Share</string>
     <string name="open_on_wallhaven">Open on wallhaven.cc</string>
     <string name="downloading">Downloading %1$s…</string>
     <string name="wallpaper_set">Wallpaper set</string>
@@ -71,9 +71,22 @@
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="download">Download</string>
     <string name="set_as_wallpaper">Set as wallpaper</string>
+    <string name="wallpaper_position_title">Set wallpaper on</string>
+    <string name="wallpaper_position_home">Home screen</string>
+    <string name="wallpaper_position_lock">Lock screen</string>
+    <string name="wallpaper_position_both">Both screens</string>
     <string name="download_notification_title">WallKraft — %1$s</string>
-    <string name="share_title">Share wallpaper</string>
     <string name="favorites_format">%1$d ♥</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Downloads -->
+    <string name="downloads_title">Downloads</string>
+    <string name="downloads_empty">No downloads yet</string>
+    <string name="downloads_empty_hint">Downloaded wallpapers will appear here.</string>
+    <string name="downloads_remove">Remove</string>
+    <string name="downloads_remove_confirm">Remove this download?</string>
+    <string name="downloads_removed">Download removed</string>
+    <string name="downloads_open">Open</string>
 
     <!-- Error / empty states -->
     <string name="error_title">Something went wrong</string>
