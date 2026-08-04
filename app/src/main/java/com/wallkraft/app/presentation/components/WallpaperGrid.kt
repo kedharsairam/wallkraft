@@ -39,6 +39,7 @@ fun WallpaperGrid(
     modifier: Modifier = Modifier,
     footer: @Composable () -> Unit = {},
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
+    downloadedIds: Set<String> = emptySet(),
 ) {
     val gridState = state
 
@@ -66,6 +67,7 @@ fun WallpaperGrid(
             WallpaperCard(
                 wallpaper = wallpaper,
                 onClick = { onOpen(wallpaper.id) },
+                downloadedIds = downloadedIds,
             )
         }
         item(span = StaggeredGridItemSpan.FullLine) { footer() }

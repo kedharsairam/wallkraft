@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -44,16 +43,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import java.io.File
+import java.util.Locale
 
 data class DownloadEntry(
     val id: Long,
@@ -68,14 +70,22 @@ data class DownloadEntry(
 fun DownloadsScreen(
     container: com.wallkraft.app.AppContainer,
 ) {
-    // container is reserved for future use (e.g. repository access).
     val context = LocalContext.current
     var downloads by remember { mutableStateOf<List<DownloadEntry>>(emptyList()) }
     var showRemoveDialog by rememberSaveable { mutableStateOf(false) }
     var entryToRemove by remember { mutableStateOf<DownloadEntry?>(null) }
 
-    LaunchedEffect(Unit) {
-        downloads = queryDownloads(context)
+    // Refresh downloads every time the screen becomes visible (e.g. after
+    // downloading a wallpaper in the Detail screen and returning here).
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                downloads = queryDownloads(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        downloads = queryDownloads(context) // initial load
     }
 
     Scaffold(
@@ -239,21 +249,21 @@ private fun removeDownload(context: Context, entry: DownloadEntry) {
 }
 
 private fun openFile(context: Context, entry: DownloadEntry) {
-    val uri = entry.uri
-    val mime = context.contentResolver.getType(uri) ?: "image/*"
-    val intent = android.content.Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, mime)
-        flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+    try {
+        val uri = entry.uri
+        val mime = context.contentResolver.getType(uri) ?: "image/*"
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mime)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        }
+        context.startActivity(intent)
+    } catch (_: Exception) {
+        // No app can handle this file type — silently ignore.
     }
-    context.startActivity(intent)
 }
 
-private fun formatSize(bytes: Long): String {
-    val kb = bytes / 1024
-    val mb = kb / 1024
-    return when {
-        mb > 0 -> "${mb} MB"
-        kb > 0 -> "${kb} KB"
-        else -> "${bytes} B"
-    }
+private fun formatSize(bytes: Long): String = when {
+    bytes < 1024 -> "$bytes B"
+    bytes < 1024 * 1024 -> String.format(Locale.US, "%.1f KB", bytes / 1024.0)
+    else -> String.format(Locale.US, "%.1f MB", bytes / (1024.0 * 1024.0))
 }

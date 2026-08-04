@@ -104,7 +104,13 @@ class SettingsViewModel(
         // the main thread.
         val latest = _apiKeyText.value
         if (hasUserInput && latest != lastPersisted) {
-            appScope.launch { settingsRepository.update { it.copy(apiKey = latest) } }
+            appScope.launch {
+                settingsRepository.update { it.copy(apiKey = latest) }
+                // Cancel the scope after the flush completes so it doesn't leak.
+                appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
+            }
+        } else {
+            appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
         }
     }
 }

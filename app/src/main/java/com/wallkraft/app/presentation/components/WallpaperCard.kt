@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +37,7 @@ fun WallpaperCard(
     wallpaper: Wallpaper,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    downloadedIds: Set<String> = emptySet(),
 ) {
     // Use the wallpaper's true aspect ratio so the full image always fits the
     // tile — no cropping, no zooming. The generous clamp only guards against
@@ -103,6 +105,26 @@ fun WallpaperCard(
                 .clip(CircleShape)
                 .background(wallpaper.categoryColor()),
         )
+
+        // Downloaded indicator badge.
+        if (wallpaper.id in downloadedIds) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(KraftSpacing.Spacing4)
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(KraftColors.AccentGreen.copy(alpha = 0.85f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Download,
+                    contentDescription = "Downloaded",
+                    tint = Color.White,
+                    modifier = Modifier.size(12.dp),
+                )
+            }
+        }
     }
 }
 

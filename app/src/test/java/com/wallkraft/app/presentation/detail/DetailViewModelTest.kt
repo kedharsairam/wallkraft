@@ -118,6 +118,41 @@ class DetailViewModelTest {
         assertEquals(2, callCount)
     }
 
+    @Test
+    fun `initial state is loading`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { "error" }
+
+        // Before advancing, should be in loading state
+        assertTrue(vm.uiState.value.isLoading)
+    }
+
+    @Test
+    fun `isFavorite reflects repository state`() = runTest(dispatcher) {
+        val favRepo = FakeFavoritesRepository()
+        favRepo.addedIds.add("wp-1")
+        favRepo.emitFavorites()
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { id ->
+            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+        }
+        val vm = DetailViewModel("wp-1", repo, favRepo) { "error" }
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.isFavorite)
+    }
+
+    @Test
+    fun `load failure does not set wallpaper`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { Result.failure(Exception("not found")) }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { e -> e.message ?: "error" }
+        advanceUntilIdle()
+
+        assertNull(vm.uiState.value.wallpaper)
+        assertEquals("not found", vm.uiState.value.error)
+    }
+
     private class FakeWallpaperRepository : WallpaperRepository {
         var wallpaperResult: (String) -> Result<Wallpaper> = {
             Result.success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))

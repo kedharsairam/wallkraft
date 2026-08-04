@@ -59,6 +59,7 @@ import com.wallkraft.app.presentation.components.GridAppendFooter
 import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
+import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.toUserMessage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,13 @@ fun BrowseScreen(
     var searchText by remember { mutableStateOf(uiState.query) }
     var showFilters by remember { mutableStateOf(false) }
     val keyboard = LocalSoftwareKeyboardController.current
+    var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
+
+    // Refresh downloaded IDs when screen becomes visible.
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) {
+        downloadedIds = WallpaperActions.downloadedIds(context)
+    }
 
     // A new search or filter change replaces the whole list, so jump back to
     // the top instead of leaving the user staring at a stale scroll position.
@@ -217,6 +225,7 @@ fun BrowseScreen(
                         onOpen = onOpenWallpaper,
                         onLoadMore = viewModel::loadNextPage,
                         state = gridState,
+                        downloadedIds = downloadedIds,
                         footer = {
                             if (uiState.isAppending) {
                                 GridAppendFooter()
