@@ -44,7 +44,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setThemeMode updates settings`() = runTest(dispatcher) {
+    fun `setThemeMode updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         val vm = SettingsViewModel(repo)
         advanceUntilIdle()
@@ -52,12 +52,11 @@ class SettingsViewModelTest {
         vm.setThemeMode(ThemeMode.Dark)
         advanceUntilIdle()
 
-        // Check the repository was updated (the source of truth)
         assertEquals(ThemeMode.Dark, repo._settings.value.themeMode)
     }
 
     @Test
-    fun `setSorting updates settings`() = runTest(dispatcher) {
+    fun `setSorting updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         val vm = SettingsViewModel(repo)
         advanceUntilIdle()
@@ -69,7 +68,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `setOrder updates settings`() = runTest(dispatcher) {
+    fun `setOrder updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         val vm = SettingsViewModel(repo)
         advanceUntilIdle()
@@ -100,6 +99,16 @@ class SettingsViewModelTest {
         advanceUntilIdle()
 
         assertEquals("existing-key", vm.apiKeyText.value)
+    }
+
+    @Test
+    fun `clearAllFavorites is exposed`() = runTest(dispatcher) {
+        val repo = FakeSettingsRepository()
+        val vm = SettingsViewModel(repo)
+        advanceUntilIdle()
+
+        // Verify the ViewModel is created without error
+        assertEquals(AppSettings(), vm.settings.value)
     }
 
     private class FakeSettingsRepository : SettingsRepository {

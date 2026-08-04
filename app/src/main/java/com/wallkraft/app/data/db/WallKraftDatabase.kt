@@ -6,7 +6,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [FavoriteEntity::class],
     version = 1,
-    exportSchema = false,
+    exportSchema = true,
 )
 abstract class WallKraftDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao

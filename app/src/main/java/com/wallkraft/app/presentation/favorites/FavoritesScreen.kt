@@ -12,9 +12,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -23,6 +28,7 @@ import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
+import com.wallkraft.app.util.WallpaperActions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +43,11 @@ fun FavoritesScreen(
         },
     )
     val favorites by viewModel.favorites.collectAsState()
+    var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        downloadedIds = WallpaperActions.downloadedIds(context)
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -56,6 +67,7 @@ fun FavoritesScreen(
                     onOpen = onOpenWallpaper,
                     onLoadMore = {},
                     state = gridState,
+                    downloadedIds = downloadedIds,
                 )
             }
         }

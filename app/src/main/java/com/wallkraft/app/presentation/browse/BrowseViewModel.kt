@@ -177,8 +177,10 @@ class BrowseViewModel(
                             )
                         }
                     }
-                    .onFailure {
-                        _uiState.update { it.copy(isAppending = false) }
+                    .onFailure { e ->
+                        _uiState.update {
+                            it.copy(isAppending = false, error = errorMessage(e))
+                        }
                     }
             } finally {
                 _uiState.update { it.copy(isAppending = false) }

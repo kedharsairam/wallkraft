@@ -79,6 +79,91 @@ class BrowseViewModelTest {
         assertEquals(false, vm.uiState.value.isInitialLoading)
     }
 
+    @Test
+    fun `search failure sets error message`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.onSearch = { _, _ -> Result.failure(Exception("network")) }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { e -> e.message ?: "unknown" }
+
+        vm.search("cats")
+        advanceUntilIdle()
+
+        assertEquals("network", vm.uiState.value.error)
+        assertTrue(vm.uiState.value.wallpapers.isEmpty())
+    }
+
+    @Test
+    fun `loadNextPage appends results`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.onSearch = { filters, page ->
+            Result.success(
+                WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = page, lastPage = 2),
+                ),
+            )
+        }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+
+        vm.loadNextPage()
+        advanceUntilIdle()
+
+        assertEquals(2, vm.uiState.value.wallpapers.size)
+        assertEquals("wp-p2", vm.uiState.value.wallpapers[1].id)
+    }
+
+    @Test
+    fun `loadNextPage does nothing when already at last page`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.onSearch = { filters, page ->
+            Result.success(
+                WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = page, lastPage = 1),
+                ),
+            )
+        }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+
+        vm.loadNextPage()
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+    }
+
+    @Test
+    fun `loadNextPage failure does not crash`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        var callCount = 0
+        repo.onSearch = { filters, page ->
+            callCount++
+            if (callCount == 1) {
+                Result.success(
+                    WallpaperResponse(
+                        data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
+                        meta = WallpaperMeta(currentPage = 1, lastPage = 2),
+                    ),
+                )
+            } else {
+                Result.failure(Exception("network"))
+            }
+        }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { e -> e.message ?: "error" }
+        advanceUntilIdle()
+
+        vm.loadNextPage()
+        advanceUntilIdle()
+
+        // Should not crash, error message should be set
+        assertEquals("network", vm.uiState.value.error)
+    }
+
     private fun pageOf(id: String, filters: WallhavenFilters): WallpaperResponse =
         WallpaperResponse(
             data = listOf(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080)),

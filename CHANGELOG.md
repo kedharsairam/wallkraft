@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Downloaded indicator** — green badge on wallpapers that have been downloaded to the device, visible in Browse and Favorites grids.
+- **Unit tests** — 28 tests covering BrowseViewModel, FavoritesViewModel, SettingsViewModel, DetailViewModel, and FavoriteDao (Room).
+
+### Changed
+- **FullscreenViewer extracted** — immersive fullscreen viewer moved to its own file (`FullscreenViewer.kt`) for maintainability.
+- **Material3 NavigationBar** — replaced hand-built Row+Column bottom bar with `NavigationBar`+`NavigationBarItem` for screen reader semantics and accessibility.
+- **Wallpaper caching** — `setAsWallpaper()` checks Downloads folder and internal cache before re-downloading.
+- **Downloads content type** — file extension detected from URL instead of hardcoded `.jpg`.
+- **Room schema export** — enabled for database migration testing.
+
+### Fixed
+- **BrowseViewModel pagination error** — failures now surface to UI instead of being silently swallowed.
+- **SettingsViewModel scope leak** — `appScope` cancelled in `onCleared()`.
+- **ShimmerGrid allocation** — removed per-recomposition `Random`; uses precomputed heights.
+- **Downloads formatSize** — fixed truncation; proper locale formatting.
+
 ## [1.3.0] - 2026-08-04
 
 ### Added

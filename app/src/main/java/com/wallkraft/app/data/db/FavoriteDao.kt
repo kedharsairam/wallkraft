@@ -1,7 +1,6 @@
 package com.wallkraft.app.data.db
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -20,7 +19,4 @@ interface FavoriteDao {
 
     @Query("DELETE FROM favorites WHERE id = :id")
     suspend fun deleteById(id: String)
-
-    @Delete
-    suspend fun delete(favorite: FavoriteEntity)
 }

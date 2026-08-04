@@ -25,9 +25,9 @@ import androidx.compose.ui.draw.clip
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import androidx.compose.ui.unit.dp
-import kotlin.random.Random
 
-private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280)
+// Precomputed heights — deterministic pattern, no Random allocation per recomposition.
+private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 290, 340, 250, 310)
 
 /** Pulsing placeholder tiles shown while the first page loads. */
 @Composable
@@ -51,11 +51,10 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
     ) {
         items(12) { index ->
-            val seed = index * 7 + 3
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(placeholderHeights[Random(seed).nextInt(placeholderHeights.size)].dp)
+                    .height(placeholderHeights[index].dp)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
                     .alpha(alpha)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
