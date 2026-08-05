@@ -78,7 +78,7 @@ object KraftColorSchemes {
     )
 }
 
-/** Typography following the Kraft Apple-inspired scale. */
+/** Typography following the Kraft design scale. */
 object KraftTypography {
     val Typography = Typography(
         displayLarge = TextStyle(

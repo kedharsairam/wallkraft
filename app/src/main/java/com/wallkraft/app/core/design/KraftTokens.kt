@@ -7,7 +7,7 @@ import androidx.compose.ui.unit.sp
 /**
  * Design tokens for WallKraft.
  *
- * Follows the Apple-inspired Kraft Design Language from kraft-standards.
+ * Follows the Kraft Design Language from kraft-standards.
  * Every color, spacing, and size constant lives here — never hardcoded in composables.
  */
 object KraftColors {
@@ -71,7 +71,7 @@ object KraftSpacing {
     val Spacing4 = 4.dp
     val Spacing8 = 8.dp
     val Spacing12 = 12.dp
-    val Spacing14 = 14.dp // Text field horizontal padding (Apple HIG)
+    val Spacing14 = 14.dp // Text field horizontal padding
     val Spacing16 = 16.dp
     val Spacing20 = 20.dp
     val Spacing24 = 24.dp

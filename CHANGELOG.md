@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Wallpaper caching** — `setAsWallpaper()` checks Downloads folder and internal cache before re-downloading.
 - **Downloads content type** — file extension detected from URL instead of hardcoded `.jpg`.
 - **Room schema export** — enabled for database migration testing.
-- **Filter dropdown animation** — custom slide-in/fade transition replacing DropdownMenu for smoother, Apple-style dropdown feel.
+- **Filter dropdown animation** — custom slide-in/fade transition replacing DropdownMenu for smoother dropdown feel.
 
 ### Fixed
 - **Filter dropdown positioning** — menu now sits flush below the search bar instead of being offset by ~580px.
@@ -36,11 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Keyboard dismiss on scroll** — keyboard auto-hides when user starts scrolling the grid.
 
 ### Changed
-- **Bottom tab bar redesigned** — outer `Scaffold(bottomBar)` for proper navigation bar inset handling; Apple-style tab bar with icon + label, 80dp height.
-- **Search bar Apple-style** — `BasicTextField` with custom decoration box, 40dp height, filled gray pill, no border. Text proportionally balanced with container.
+- **Bottom tab bar redesigned** — outer `Scaffold(bottomBar)` for proper navigation bar inset handling; clean tab bar with icon + label, 80dp height.
+- **Search bar** — `BasicTextField` with custom decoration box, 40dp height, filled gray pill, no border. Text proportionally balanced with container.
 - **Search bar text** — placeholder and input use `labelMedium` (~13sp) for visual balance with tab bar labels.
 - **Grid edge padding** — increased from 8dp to 16dp (`ScreenEdge`) for proper breathing room.
-- **Wallpaper position dialog** — `AlertDialog` → `ModalBottomSheet` (Apple-style action sheet).
+- **Wallpaper position dialog** — `AlertDialog` → `ModalBottomSheet` (action sheet).
 - **FilterSheet spacing** — hardcoded `8.dp` values replaced with `KraftSpacing.Spacing8` token.
 - Domain models annotated with `@Immutable` — Compose can now skip recomposition when these pass through grids.
 
