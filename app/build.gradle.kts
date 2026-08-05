@@ -49,12 +49,9 @@ android {
                 "proguard-rules.pro"
             )
             // Real release key when key.properties exists; debug keystore
-            // otherwise (local dev only). In CI, missing secrets should fail
-            // the build rather than silently signing with a debug key.
+            // otherwise (local dev only).
             signingConfig = if (hasReleaseKey) {
                 signingConfigs.getByName("release")
-            } else if (System.getenv("CI") != null) {
-                error("Release signing key not found in CI. Check GitHub Secrets.")
             } else {
                 signingConfigs.getByName("debug")
             }
@@ -83,6 +80,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+// Fail CI builds that try to produce a release APK without a signing key.
+// This runs at execution time (not configuration time) so `test` and
+// `assembleDebug` are unaffected.
+gradle.taskGraph.whenReady {
+    if (System.getenv("CI") != null && !hasReleaseKey && hasTask(":app:assembleRelease")) {
+        error("Release signing key not found in CI. Check GitHub Secrets.")
     }
 }
 
