@@ -5,7 +5,7 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.0] - 2026-08-05
 
 ### Added
 - **Downloaded indicator** — green badge on wallpapers that have been downloaded to the device, visible in Browse and Favorites grids.
@@ -17,12 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Wallpaper caching** — `setAsWallpaper()` checks Downloads folder and internal cache before re-downloading.
 - **Downloads content type** — file extension detected from URL instead of hardcoded `.jpg`.
 - **Room schema export** — enabled for database migration testing.
+- **Filter dropdown animation** — custom slide-in/fade transition replacing DropdownMenu for smoother, Apple-style dropdown feel.
 
 ### Fixed
+- **Filter dropdown positioning** — menu now sits flush below the search bar instead of being offset by ~580px.
 - **BrowseViewModel pagination error** — failures now surface to UI instead of being silently swallowed.
 - **SettingsViewModel scope leak** — `appScope` cancelled in `onCleared()`.
 - **ShimmerGrid allocation** — removed per-recomposition `Random`; uses precomputed heights.
 - **Downloads formatSize** — fixed truncation; proper locale formatting.
+
+## [1.3.0] - 2026-08-04
 
 ## [1.3.0] - 2026-08-04
 

@@ -1,6 +1,8 @@
 package com.wallkraft.app
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
@@ -24,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -79,6 +82,7 @@ fun WallKraftNavHost(container: AppContainer) {
             if (!isDetail) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.height(88.dp),
                 ) {
                     tabs.forEach { tab ->
                         val selected =
@@ -119,6 +123,10 @@ fun WallKraftNavHost(container: AppContainer) {
             }
         },
     ) { innerPadding ->
+        // Only pass bottom padding (nav bar height) to screens.
+        // Top padding is handled by each screen's own statusBarsPadding().
+        val navBarPadding = innerPadding.calculateBottomPadding()
+
         NavHost(
             navController = navController,
             startDestination = Routes.BROWSE,
@@ -129,6 +137,7 @@ fun WallKraftNavHost(container: AppContainer) {
                     container = container,
                     onOpenWallpaper = { id -> navController.navigate(Routes.detail(id)) },
                     gridState = browseGridState,
+                    navBarPadding = navBarPadding,
                 )
             }
             composable(Routes.FAVORITES) {
@@ -136,13 +145,14 @@ fun WallKraftNavHost(container: AppContainer) {
                     container = container,
                     onOpenWallpaper = { id -> navController.navigate(Routes.detail(id)) },
                     gridState = favoritesGridState,
+                    navBarPadding = navBarPadding,
                 )
             }
             composable(Routes.DOWNLOADS) {
-                DownloadsScreen(container = container)
+                DownloadsScreen(container = container, navBarPadding = navBarPadding)
             }
             composable(Routes.SETTINGS) {
-                SettingsScreen(container = container)
+                SettingsScreen(container = container, navBarPadding = navBarPadding)
             }
             composable(
                 route = Routes.DETAIL,

@@ -8,9 +8,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +50,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -69,6 +73,7 @@ data class DownloadEntry(
 @Composable
 fun DownloadsScreen(
     container: com.wallkraft.app.AppContainer,
+    navBarPadding: Dp = 0.dp,
 ) {
     val context = LocalContext.current
     var downloads by remember { mutableStateOf<List<DownloadEntry>>(emptyList()) }
@@ -115,7 +120,12 @@ fun DownloadsScreen(
         } else {
             LazyColumn(
                 state = rememberLazyListState(),
-                contentPadding = innerPadding,
+                contentPadding = PaddingValues(
+                    start = KraftSpacing.Spacing16,
+                    top = innerPadding.calculateTopPadding(),
+                    end = KraftSpacing.Spacing16,
+                    bottom = innerPadding.calculateBottomPadding() + navBarPadding,
+                ),
                 verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 modifier = Modifier.fillMaxSize(),
             ) {
