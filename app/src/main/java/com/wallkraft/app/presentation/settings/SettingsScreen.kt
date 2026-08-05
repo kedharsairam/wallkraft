@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -41,7 +42,7 @@ import com.wallkraft.app.util.displayName
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen(container: AppContainer) {
+fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     val viewModel: SettingsViewModel = viewModel(
         factory = viewModelFactory {
             initializer { SettingsViewModel(container.settings) }
@@ -60,7 +61,11 @@ fun SettingsScreen(container: AppContainer) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16),
+                .padding(
+                    horizontal = KraftSpacing.Spacing16,
+                    vertical = KraftSpacing.Spacing16,
+                )
+                .padding(bottom = navBarPadding),
         ) {
             SectionTitle(stringResource(R.string.api_key_title))
             Text(

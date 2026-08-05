@@ -21,6 +21,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -36,6 +38,7 @@ fun FavoritesScreen(
     container: AppContainer,
     onOpenWallpaper: (String) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
+    navBarPadding: Dp = 0.dp,
 ) {
     val viewModel: FavoritesViewModel = viewModel(
         factory = viewModelFactory {
@@ -68,6 +71,7 @@ fun FavoritesScreen(
                     onLoadMore = {},
                     state = gridState,
                     downloadedIds = downloadedIds,
+                    modifier = Modifier.padding(bottom = navBarPadding),
                 )
             }
         }
