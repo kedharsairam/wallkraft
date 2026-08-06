@@ -5,41 +5,29 @@
     <!-- Navigation -->
     <string name="tab_browse">Browse</string>
     <string name="tab_favorites">Favorites</string>
-    <string name="tab_downloads">Downloads</string>
     <string name="tab_settings">Settings</string>
 
     <!-- Browse -->
     <string name="search_hint">Search wallpapers</string>
-    <string name="search_clear">Clear</string>
+    <string name="search_action">Search</string>
+    <string name="search_clear">Clear search</string>
     <string name="no_results_title">No wallpapers found</string>
     <string name="no_results_hint_filters">Try adjusting your filters.</string>
     <string name="no_results_hint_query">Nothing matched \"%1$s\". Try a different search.</string>
 
-    <!-- Filter sheet -->
-    <string name="filter_title">Filters</string>
-    <string name="filter_categories">Categories</string>
-    <string name="filter_sort_by">Sort by</string>
-    <string name="filter_time_range">Time range</string>
-    <string name="filter_order">Order</string>
-    <string name="filter_apply">Apply filters</string>
+    <!-- Filter dropdowns -->
+    <string name="filter_all">All</string>
     <string name="sorting_date_added">Date added</string>
     <string name="sorting_relevance">Relevance</string>
     <string name="sorting_random">Random</string>
     <string name="sorting_views">Views</string>
     <string name="sorting_favorites">Favorites</string>
-    <string name="sorting_toplist">Toplist</string>
-    <string name="top_range_1d">24h</string>
-    <string name="top_range_3d">3 days</string>
-    <string name="top_range_1w">1 week</string>
-    <string name="top_range_1m">1 month</string>
-    <string name="top_range_3m">3 months</string>
-    <string name="top_range_6m">6 months</string>
-    <string name="top_range_1y">1 year</string>
     <string name="category_general">General</string>
     <string name="category_anime">Anime</string>
     <string name="category_people">People</string>
-    <string name="order_desc">Desc</string>
-    <string name="order_asc">Asc</string>
+    <string name="orientation_both">Both</string>
+    <string name="orientation_portrait">Portrait</string>
+    <string name="orientation_landscape">Landscape</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -48,7 +36,7 @@
     <string name="api_key_hint">Paste your API key</string>
     <string name="appearance">Appearance</string>
     <string name="default_sorting">Default sorting</string>
-    <string name="default_order">Default order</string>
+    <string name="default_orientation">Default orientation</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
@@ -56,8 +44,12 @@
 
     <!-- Favorites -->
     <string name="favorites_title">Favorites</string>
+    <string name="favorites_all">All</string>
+    <string name="favorites_downloaded">Downloaded</string>
     <string name="no_favorites_title">No favorites yet</string>
     <string name="no_favorites_message">Tap the heart on any wallpaper to save it here.</string>
+    <string name="no_downloaded_title">Nothing downloaded</string>
+    <string name="no_downloaded_message">Downloaded wallpapers from your favorites will appear here.</string>
 
     <!-- Detail -->
     <string name="wallpaper">Wallpaper</string>
@@ -78,15 +70,6 @@
     <string name="download_notification_title">WallKraft — %1$s</string>
     <string name="favorites_format">%1$d ♥</string>
     <string name="cancel">Cancel</string>
-
-    <!-- Downloads -->
-    <string name="downloads_title">Downloads</string>
-    <string name="downloads_empty">No downloads yet</string>
-    <string name="downloads_empty_hint">Downloaded wallpapers will appear here.</string>
-    <string name="downloads_remove">Remove</string>
-    <string name="downloads_remove_confirm">Remove this download?</string>
-    <string name="downloads_removed">Download removed</string>
-    <string name="downloads_open">Open</string>
 
     <!-- Error / empty states -->
     <string name="error_title">Something went wrong</string>

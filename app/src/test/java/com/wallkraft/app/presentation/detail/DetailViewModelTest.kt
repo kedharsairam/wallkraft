@@ -42,7 +42,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.success(Wallpaper(id = id, dimensionX = 2560, dimensionY = 1440))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { "error" }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -56,7 +56,7 @@ class DetailViewModelTest {
     fun `load failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.failure(Exception("network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { e -> e.message ?: "unknown" }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> e.message ?: "unknown" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -72,11 +72,11 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo) { "error" }
+        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
 
-        assertFalse(vm.uiState.value.isFavorite)
-        vm.toggleFavorite()
+        assertFalse("wp-1" in vm.uiState.value.favoriteIds)
+        vm.toggleFavorite(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080))
         advanceUntilIdle()
 
         assertTrue(favRepo.isFavorite("wp-1"))
@@ -91,10 +91,10 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo) { "error" }
+        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
 
-        vm.toggleFavorite()
+        vm.toggleFavorite(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080))
         advanceUntilIdle()
 
         assertFalse(favRepo.isFavorite("wp-1"))
@@ -108,7 +108,7 @@ class DetailViewModelTest {
             callCount++
             Result.success(Wallpaper(id = "$id-$callCount", dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { "error" }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
         vm.load()
@@ -121,7 +121,7 @@ class DetailViewModelTest {
     @Test
     fun `initial state is loading`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { "error" }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
 
         // Before advancing, should be in loading state
         assertTrue(vm.uiState.value.isLoading)
@@ -136,17 +136,17 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo) { "error" }
+        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
 
-        assertTrue(vm.uiState.value.isFavorite)
+        assertTrue("wp-1" in vm.uiState.value.favoriteIds)
     }
 
     @Test
     fun `load failure does not set wallpaper`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.failure(Exception("not found")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository()) { e -> e.message ?: "error" }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> e.message ?: "error" })
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.wallpaper)

@@ -13,23 +13,17 @@ enum class Sorting(val value: String) {
     Random("random"),
     Views("views"),
     Favorites("favorites"),
-    Toplist("toplist"),
 }
 
-enum class Order(val value: String) {
-    Desc("desc"),
-    Asc("asc"),
-}
-
-/** Toplist time ranges (only meaningful when [Sorting.Toplist]). */
-enum class TopRange(val value: String) {
-    Day1("1d"),
-    Days3("3d"),
-    Week1("1w"),
-    Month1("1M"),
-    Months3("3M"),
-    Months6("6M"),
-    Year1("1y"),
+/**
+ * Image orientation filter. Maps to the Wallhaven `ratios` query parameter:
+ * [Both] omits the parameter (all orientations), [Portrait] and [Landscape]
+ * narrow the results to that orientation.
+ */
+enum class Orientation(val value: String) {
+    Both(""),
+    Portrait("portrait"),
+    Landscape("landscape"),
 }
 
 fun Set<Category>.toCategoryParam(): String = buildString {
@@ -48,8 +42,6 @@ fun Set<Category>.toCategoryParam(): String = buildString {
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
     val sorting: Sorting = Sorting.DateAdded,
-    val order: Order = Order.Desc,
-    val topRange: TopRange? = null,
-    val ratio: String? = null,
+    val orientation: Orientation = Orientation.Both,
     val query: String = "",
 )

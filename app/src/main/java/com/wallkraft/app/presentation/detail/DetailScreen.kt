@@ -1,21 +1,37 @@
 package com.wallkraft.app.presentation.detail
 
+import android.app.Activity
+import android.view.WindowManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,44 +39,54 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Wallpaper
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import coil3.compose.AsyncImage
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.WallpaperActions
@@ -68,6 +94,7 @@ import com.wallkraft.app.util.WallpaperPosition
 import com.wallkraft.app.util.toUserMessage
 import com.wallkraft.app.util.wallpaperCategoryLabel
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +102,11 @@ fun DetailScreen(
     container: AppContainer,
     wallpaperId: String,
     onBack: () -> Unit,
+    onTagClick: (String) -> Unit = {},
+    onZoomChanged: (Boolean) -> Unit = {},
+    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    previewThumb: String = "",
+    previewPath: String = "",
 ) {
     val viewModel: DetailViewModel = viewModel(
         factory = viewModelFactory {
@@ -84,6 +116,8 @@ fun DetailScreen(
                     wallpaperRepository = container.wallpaperRepository,
                     favoritesRepository = container.favoritesRepository,
                     errorMessage = { e -> e.toUserMessage(container.resources) },
+                    previewThumb = previewThumb.ifBlank { null },
+                    previewPath = previewPath.ifBlank { null },
                 )
             }
         },
@@ -93,101 +127,69 @@ fun DetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val wallpaper = uiState.wallpaper
-    var isFullscreen by rememberSaveable { mutableStateOf(false) }
-    var showWallpaperPositionDialog by remember { mutableStateOf(false) }
+    var setWallpaperTarget by remember { mutableStateOf<Wallpaper?>(null) }
 
     // Resolve snackbar copy now — stringResource is composable and can't
     // be called inside the action callbacks below.
-    val downloadingMsg = wallpaper?.let { stringResource(R.string.downloading, it.resolution) }
     val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
-    // The fullscreen viewer takes over the entire screen and hides the
-    // system bars. It reuses the same actions as the detail page below.
-    if (isFullscreen && wallpaper != null) {
-        FullscreenViewer(
-            wallpaper = wallpaper,
-            isFavorite = uiState.isFavorite,
-            onToggleFavorite = viewModel::toggleFavorite,
-            onDownload = {
-                WallpaperActions.download(context, wallpaper)
-                scope.launch { snackbarHostState.showSnackbar(downloadingMsg!!) }
-            },
-            onSetWallpaper = { showWallpaperPositionDialog = true },
-            onExit = { isFullscreen = false },
-        )
-        return
-    }
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = { Text(wallpaper?.resolution ?: stringResource(R.string.wallpaper)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
-                    }
-                },
-                actions = {
-                    if (wallpaper != null) {
-                        IconButton(onClick = { isFullscreen = true }) {
-                            Icon(Icons.Filled.Fullscreen, contentDescription = stringResource(R.string.view_fullscreen))
-                        }
-                        IconButton(onClick = { WallpaperActions.openInBrowser(context, wallpaper) }) {
-                            Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven))
-                        }
-                    }
-                },
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-    ) { innerPadding ->
+    Box(modifier = Modifier.fillMaxSize()) {
         when {
-            uiState.isLoading -> Box(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentAlignment = Alignment.Center,
-            ) {
+            uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
             uiState.error != null && wallpaper == null -> ErrorState(
                 message = uiState.error ?: "",
                 onRetry = viewModel::load,
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier.fillMaxSize(),
             )
             wallpaper != null -> {
                 if (wallpaper.path.isBlank()) {
                     ErrorState(
                         message = stringResource(R.string.wallpaper_set_failed),
                         onRetry = viewModel::load,
-                        modifier = Modifier.padding(innerPadding),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 } else {
                     DetailContent(
                         wallpaper = wallpaper,
-                        isFavorite = uiState.isFavorite,
-                        onToggleFavorite = viewModel::toggleFavorite,
+                        isFavorite = wallpaper.id in uiState.favoriteIds,
+                        onToggleFavorite = { viewModel.toggleFavorite(wallpaper) },
                         onDownload = {
                             WallpaperActions.download(context, wallpaper)
-                            scope.launch { snackbarHostState.showSnackbar(downloadingMsg!!) }
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.downloading, wallpaper.resolution),
+                                )
+                            }
                         },
-                        onSetWallpaper = { showWallpaperPositionDialog = true },
-                        onOpenFullscreen = { isFullscreen = true },
-                        modifier = Modifier.padding(innerPadding),
+                        onSetWallpaper = { setWallpaperTarget = wallpaper },
+                        onBack = onBack,
+                        onTagClick = onTagClick,
+                        onZoomChanged = onZoomChanged,
+                        navBarPadding = navBarPadding,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter),
+        )
     }
 
-    if (showWallpaperPositionDialog && wallpaper != null) {
+    val setTarget = setWallpaperTarget
+    if (setTarget != null) {
         WallpaperPositionDialog(
-            onDismiss = { showWallpaperPositionDialog = false },
+            onDismiss = { setWallpaperTarget = null },
             onSelect = { position ->
-                showWallpaperPositionDialog = false
+                setWallpaperTarget = null
                 scope.launch {
                     val ok = WallpaperActions.setAsWallpaper(
-                        context, wallpaper, container.okHttpClient, position
+                        context, setTarget, container.okHttpClient, position
                     )
                     snackbarHostState.showSnackbar(
                         if (ok) wallpaperSetMsg else wallpaperSetFailedMsg
@@ -198,119 +200,436 @@ fun DetailScreen(
     }
 }
 
+/**
+ * A single full-bleed surface in the Instagram-reels style. The wallpaper
+ * fills the entire screen, dead center. A top bar (back + open) floats at the
+ * top; a vertical stack of action buttons (favorite, download, set wallpaper)
+ * floats on the right edge; and a bottom overlay shows metadata + clickable
+ * tags. All chrome fades away while zoomed.
+ *
+ * Pinch-to-zoom and double-tap work in place — no separate screen. The first
+ * double-tap fills the image top-to-bottom exactly, the second zooms further,
+ * the third returns.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DetailContent(
-    wallpaper: com.wallkraft.app.domain.model.Wallpaper,
+    wallpaper: Wallpaper,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onSetWallpaper: () -> Unit,
-    onOpenFullscreen: () -> Unit,
+    onBack: () -> Unit,
+    onTagClick: (String) -> Unit,
+    onZoomChanged: (Boolean) -> Unit,
+    navBarPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
 ) {
-    // Same clamp as the grid tiles: guards against bad metadata (zero/negative
-    // dimensions), which would otherwise produce aspectRatio(Infinity) and a
-    // crash or a zero-height image.
+    val context = LocalContext.current
+    var isZoomed by remember { mutableStateOf(false) }
+
+    // Hide the system bars while zoomed so the image is truly edge-to-edge.
+    val window = (context as? Activity)?.window
+    if (window != null) {
+        val controller = remember(window) { WindowInsetsControllerCompat(window, window.decorView) }
+        DisposableEffect(controller, isZoomed) {
+            if (isZoomed) controller.hide(WindowInsetsCompat.Type.systemBars())
+            else controller.show(WindowInsetsCompat.Type.systemBars())
+            onDispose { controller.show(WindowInsetsCompat.Type.systemBars()) }
+        }
+        DisposableEffect(window, isZoomed) {
+            if (isZoomed) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            onDispose { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
+        }
+    }
+
     val w = wallpaper.dimensionX.toFloat().takeIf { it > 0f } ?: 1f
     val h = wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f
-    val ratio = (w / h).coerceIn(0.15f, 6f)
+    val aspect = w / h
 
-    LazyColumn(
-        state = rememberLazyListState(),
-        modifier = modifier.fillMaxSize(),
-    ) {
-        item {
+    BoxWithConstraints(modifier = modifier.background(Color.Black)) {
+        val viewW = maxWidth.value
+        val viewH = maxHeight.value
+        // Exact fill scale: at 1x the image (ContentScale.Fit) shows at
+        // min(viewW/aspect, viewH) tall; scaling by this makes its height
+        // exactly the viewport height — top-to-bottom, never beyond.
+        val fillScale = if (aspect <= 0f) 1f else {
+            val displayedH = min(viewW / aspect, viewH)
+            (viewH / displayedH).coerceAtLeast(1f).coerceAtMost(8f)
+        }
+        // First double-tap must always produce a visible zoom. If the image is
+        // smaller than the screen (landscape), fill it top-to-bottom exactly.
+        // If it already fills the screen (portrait), zoom in 2x instead — a
+        // fill scale of 1.0 would otherwise make the first double-tap a no-op.
+        val firstLevel = if (fillScale > 1.05f) fillScale else 2f
+        // Second double-tap = 1:1 native resolution: scale the image so each
+        // image pixel maps to one screen pixel. The image is displayed at
+        // `displayedH` tall at 1x (fit); to show it at its real pixel height
+        // we scale by nativeH / displayedH. Clamped so it always zooms deeper
+        // than the fill level (never a no-op or a zoom-out).
+        val displayedH = if (aspect <= 0f) viewH else min(viewW / aspect, viewH)
+        val resolutionLevel = if (aspect <= 0f || displayedH <= 0f) {
+            (firstLevel * 2f).coerceAtMost(8f)
+        } else {
+            (h / displayedH).coerceIn(firstLevel * 1.2f, 8f)
+        }
+        val zoomLevels = remember(viewW, viewH, resolutionLevel) {
+            listOf(firstLevel, resolutionLevel, 1f)
+        }
+
+        // -- No hero transition: the detail opens instantly showing the
+        // thumbnail, and the full-res image loads right away behind a subtle
+        // top loading bar. Simple and predictable — no animation to get wrong.
+        var fullResLoaded by remember { mutableStateOf(false) }
+        val heroScope = rememberCoroutineScope()
+        // Determinate progress 0f..1f. Coil doesn't expose real download
+        // progress, so we animate it smoothly toward 1 and snap to 1 the
+        // instant the full-res image is ready — a clean left-to-right fill.
+        val fullResProgress = remember { Animatable(0f) }
+        LaunchedEffect(Unit) {
+            fullResProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(1500, easing = LinearEasing),
+            )
+        }
+
+        ZoomableImage(
+            model = wallpaper.path,
+            placeholderModel = wallpaper.thumbnail,
+            contentDescription = wallpaper.resolution,
+            zoomLevels = zoomLevels,
+            onZoomChanged = { newScale ->
+                val zoomed = newScale > 1.01f
+                isZoomed = zoomed
+                onZoomChanged(zoomed)
+            },
+            onLoaded = {
+                fullResLoaded = true
+                heroScope.launch { fullResProgress.snapTo(1f) }
+            },
+            loadFullRes = true,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        // Subtle loading bar at the very top while the full-res image loads.
+        // Determinate: fills left-to-right from 0 to 100, then fades out.
+        AnimatedVisibility(
+            visible = !fullResLoaded && !isZoomed,
+            enter = fadeIn(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
+        ) {
+            LinearProgressIndicator(
+                progress = { fullResProgress.value },
+                modifier = Modifier.fillMaxWidth().height(2.dp),
+                color = KraftColors.AccentGreen,
+                trackColor = Color.Transparent,
+            )
+        }
+
+        // Top bar — back + open. Fades away when zoomed.
+        AnimatedVisibility(
+            visible = !isZoomed,
+            enter = fadeIn(animationSpec = tween(250)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
+        ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(KraftSpacing.Spacing16)
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(KraftRadius.Large)),
+                modifier = Modifier.fillMaxWidth()
+                    .background(Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent)))
+                    .statusBarsPadding(),
             ) {
-                ZoomableImage(
-                    model = wallpaper.path,
-                    contentDescription = wallpaper.resolution,
-                    onTap = onOpenFullscreen,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(ratio),
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
+                    }
+                    Spacer(Modifier.weight(1f))
+                    IconButton(onClick = { WallpaperActions.openInBrowser(context, wallpaper) }) {
+                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven), tint = Color.White)
+                    }
+                }
+            }
+        }
+
+        // Invisible measurement pass. These sit at the top-start corner, are
+        // fully transparent, and their chips are non-clickable, so they never
+        // intercept touches — they exist only to size the bottom panel.
+        var collapsedContentHeight by remember { mutableStateOf(0) }
+        var fullContentHeight by remember { mutableStateOf(0) }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .alpha(0f)
+                .onSizeChanged { collapsedContentHeight = it.height },
+        ) {
+            DetailPanelContent(
+                wallpaper = wallpaper,
+                onTagClick = onTagClick,
+                clickable = false,
+                collapsed = true,
+                bottomPadding = navBarPadding,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = maxHeight)
+                .alpha(0f)
+                .onSizeChanged { fullContentHeight = it.height },
+        ) {
+            DetailPanelContent(
+                wallpaper = wallpaper,
+                onTagClick = onTagClick,
+                clickable = false,
+                collapsed = false,
+                bottomPadding = navBarPadding,
+            )
+        }
+
+        val density = LocalDensity.current
+        val collapsedHeightPx = collapsedContentHeight.toFloat()
+        val maxPanelHeightPx = min(fullContentHeight.toFloat(), maxHeight.value)
+
+        // Two-state panel: collapsed (metadata + one truncated tag line with an
+        // inline "...") or expanded (all tag chips). Swipe up to expand, swipe
+        // down to collapse. While dragging the panel follows the finger; on
+        // release it settles to whichever state is closer.
+        var expanded by remember(wallpaper.id) { mutableStateOf(false) }
+        val panelHeight = remember(wallpaper.id) { Animatable(0f) }
+        // Drag offset in px, tracked synchronously so the release decision is
+        // correct even though the Animatable settles asynchronously.
+        var dragOffsetPx by remember(wallpaper.id) { mutableStateOf(0f) }
+        // Displayed height = settled height + live drag offset, clamped.
+        val displayedHeightPx = (panelHeight.value + dragOffsetPx)
+            .coerceIn(collapsedHeightPx, maxPanelHeightPx)
+        val scope = rememberCoroutineScope()
+
+        // Settle the panel to the target on first layout only.
+        LaunchedEffect(collapsedHeightPx, wallpaper.id) {
+            if (collapsedHeightPx > 0f && panelHeight.value == 0f) {
+                panelHeight.snapTo(collapsedHeightPx)
+            }
+        }
+
+        // Right-edge vertical action stack (favorite, download, set wallpaper),
+        // like Instagram reels. Floats just above the collapsed panel and hides
+        // while the panel is expanded. Fades away when zoomed.
+        AnimatedVisibility(
+            visible = !isZoomed && !expanded,
+            enter = fadeIn(animationSpec = tween(250)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = KraftSpacing.Spacing12)
+                .padding(bottom = with(density) { panelHeight.value.toDp() } + KraftSpacing.Spacing16),
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
+            ) {
+                ReelsActionButton(
+                    onClick = onToggleFavorite,
+                    icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    tint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                )
+                ReelsActionButton(
+                    onClick = onDownload,
+                    icon = Icons.Filled.Download,
+                    contentDescription = stringResource(R.string.download),
+                )
+                ReelsActionButton(
+                    onClick = onSetWallpaper,
+                    icon = Icons.Filled.Wallpaper,
+                    contentDescription = stringResource(R.string.set_as_wallpaper),
                 )
             }
         }
 
-        item {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+        // Bottom panel — metadata + tags. Collapsed by default showing the
+        // metadata and a single truncated tag line ending in "...". Swipe up
+        // to expand and reveal every tag chip; swipe down to collapse.
+        // Fades away while zoomed, and sits above the bottom nav bar.
+        AnimatedVisibility(
+            visible = !isZoomed,
+            enter = fadeIn(animationSpec = tween(250)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+        ) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
+                    .height(with(density) { panelHeight.value.toDp() })
+                    .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
+                    .background(Color.Black.copy(alpha = 0.75f))
+                    .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
+                        detectVerticalDragGestures(
+                            onDragStart = {
+                                // Freeze the settled height so the offset is relative
+                                // to it; cancel any in-flight settle animation.
+                                scope.launch { panelHeight.stop() }
+                            },
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume()
+                                // dragAmount is negative when dragging up; subtract so
+                                // pulling up grows the panel.
+                                dragOffsetPx -= dragAmount
+                            },
+                            onDragEnd = {
+                                val midpoint = (collapsedHeightPx + maxPanelHeightPx) / 2f
+                                val currentPx = (panelHeight.value + dragOffsetPx)
+                                    .coerceIn(collapsedHeightPx, maxPanelHeightPx)
+                                expanded = currentPx > midpoint
+                                scope.launch {
+                                    panelHeight.animateTo(
+                                        targetValue = if (expanded) maxPanelHeightPx else collapsedHeightPx,
+                                        animationSpec = tween(300),
+                                    )
+                                }
+                                dragOffsetPx = 0f
+                            },
+                        )
+                    },
             ) {
-                FilledIconButton(
-                    onClick = onToggleFavorite,
-                    modifier = Modifier.size(48.dp),
-                ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (isFavorite) {
-                            stringResource(R.string.remove_from_favorites)
-                        } else {
-                            stringResource(R.string.add_to_favorites)
-                        },
-                        tint = if (isFavorite) KraftColors.AccentRed else MaterialTheme.colorScheme.onPrimary,
+                // Crossfade between the collapsed preview and the full chip list so
+                // the content switch doesn't pop while the height animates.
+                Crossfade(
+                    targetState = expanded,
+                    animationSpec = tween(200),
+                    modifier = Modifier.align(Alignment.TopStart),
+                ) { isExpanded ->
+                    DetailPanelContent(
+                        wallpaper = wallpaper,
+                        onTagClick = onTagClick,
+                        clickable = true,
+                        collapsed = !isExpanded,
+                        bottomPadding = navBarPadding,
                     )
-                }
-                FilledIconButton(
-                    onClick = onDownload,
-                    modifier = Modifier.size(48.dp),
-                ) {
-                    Icon(Icons.Filled.Download, contentDescription = stringResource(R.string.download))
-                }
-                FilledIconButton(
-                    onClick = onSetWallpaper,
-                    modifier = Modifier.size(48.dp),
-                ) {
-                    Icon(Icons.Filled.Wallpaper, contentDescription = stringResource(R.string.set_as_wallpaper))
-                }
-            }
-        }
-
-        item {
-            Column(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16)) {
-                Text(wallpaper.resolution, style = MaterialTheme.typography.headlineSmall)
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                ) {
-                    InfoChip(wallpaper.ratio)
-                    InfoChip(wallpaper.fileSizeFormatted())
-                    InfoChip(stringResource(R.string.favorites_format, wallpaper.favorites))
-                    InfoChip(wallpaperCategoryLabel(wallpaper.category))
-                }
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
-                if (wallpaper.tags.isNotEmpty()) {
-                    Text(
-                        text = wallpaper.tags.joinToString("  ·  ") { "#${it.name}" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(KraftSpacing.Spacing24))
                 }
             }
         }
     }
 }
 
+/** A circular, semi-transparent action button for the right-edge stack. */
 @Composable
-private fun InfoChip(text: String) {
+private fun ReelsActionButton(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    contentDescription: String?,
+    tint: Color = Color.White,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.35f))
+            .clickable(onClick = onClick),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+/**
+ * A clickable tag chip — tapping it opens the tag-filtered grid. Uses the
+ * accent blue treatment (tinted fill + border) so tags read as interactive.
+ * Pass `clickable = false` for the invisible measurement pass.
+ */
+@Composable
+private fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean = true) {
+    val shape = RoundedCornerShape(KraftRadius.Small)
     Text(
-        text = text,
+        text = "#$name",
         style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = Color.White,
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(KraftRadius.Small))
+            .clip(shape)
+            .background(KraftColors.AccentBlue.copy(alpha = 0.25f))
+            .border(
+                border = BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = 0.55f)),
+                shape = shape,
+            )
+            .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
     )
+}
+
+/** The two metadata lines shown at the top of the bottom panel. */
+@Composable
+private fun DetailPanelMetadata(wallpaper: Wallpaper) {
+    Column {
+        Text(
+            text = "${wallpaper.resolution}  ·  ${wallpaper.fileSizeFormatted()}",
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+        )
+        Spacer(Modifier.height(KraftSpacing.Spacing4))
+        Text(
+            text = "${wallpaperCategoryLabel(wallpaper.category)}  ·  ${stringResource(R.string.favorites_format, wallpaper.favorites)}",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.White.copy(alpha = 0.8f),
+        )
+    }
+}
+
+/**
+ * The bottom-panel content: metadata + tags.
+ *
+ * `collapsed = true` shows the metadata plus a preview of the first few tag
+ * chips with an inline "…" after them — the same chip design as the expanded
+ * state, just truncated. `collapsed = false` shows every tag as a clickable
+ * chip, flowing vertically (FlowRow, no horizontal scroll). `clickable =
+ * false` disables chip taps for the invisible measurement pass.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun DetailPanelContent(
+    wallpaper: Wallpaper,
+    onTagClick: (String) -> Unit,
+    clickable: Boolean = true,
+    collapsed: Boolean = false,
+    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = KraftSpacing.Spacing16)
+            .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
+    ) {
+        DetailPanelMetadata(wallpaper = wallpaper)
+        if (wallpaper.tags.isNotEmpty()) {
+            Spacer(Modifier.height(KraftSpacing.Spacing12))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            ) {
+                val visibleTags = if (collapsed) wallpaper.tags.take(3) else wallpaper.tags
+                visibleTags.forEach { tag ->
+                    DetailTagChip(name = tag.name, onClick = { onTagClick(tag.name) }, clickable = clickable)
+                }
+                if (collapsed && wallpaper.tags.size > visibleTags.size) {
+                    Text(
+                        text = "...",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
+                    )
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

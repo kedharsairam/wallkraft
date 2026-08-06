@@ -10,8 +10,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,9 +30,13 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.util.lerp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.size.Size
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -44,15 +50,32 @@ private const val ANIM_DURATION_MS = 220L
  *  - pinch-to-zoom (always works, even starting from 1x), zooming toward the
  *    pinch centroid
  *  - one- or two-finger pan while zoomed, clamped to the image bounds
- *  - double-tap to zoom in to the tapped point (animated) or back to fit
+ *  - double-tap cycles through [zoomLevels] (animated), anchoring each step at
+ *    the tapped point; the last level is always 1x (fit), so the cycle returns
+ *    to the original position
  *  - at 1x, single-finger drags pass through so the page scrolls normally
+ *
+ * [onZoomChanged] reports the current scale so callers can hide chrome (bars,
+ * labels) while the image is zoomed in.
+ *
+ * Progressive loading: [placeholderModel] (the small thumbnail) renders
+ * immediately, and [model] (the full-resolution file) is decoded at its
+ * original size and crossfades in on top once loaded. This shows a sharp
+ * preview instantly and swaps in the crisp full-res image without a flash.
  */
 @Composable
 fun ZoomableImage(
     model: Any?,
     contentDescription: String?,
     modifier: Modifier = Modifier,
-    onTap: () -> Unit = {},
+    placeholderModel: Any? = null,
+onTap: () -> Unit = {},
+    onZoomChanged: (Float) -> Unit = {},
+    onLoaded: () -> Unit = {},
+    // When false, only the placeholder (thumbnail) is rendered and the
+    // full-res image is NOT loaded. Set to true to start loading full-res.
+    loadFullRes: Boolean = true,
+    zoomLevels: List<Float> = listOf(DOUBLE_TAP_SCALE, MIN_SCALE),
 ) {
     var scale by remember { mutableFloatStateOf(MIN_SCALE) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -60,6 +83,11 @@ fun ZoomableImage(
     var viewportSize by remember { mutableStateOf(IntSize.Zero) }
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
+    // Index into [zoomLevels] of the current scale. Starts at the last entry
+    // (1x / fit) so the first double-tap advances to the first zoom level.
+    var zoomIndex by remember(zoomLevels) { mutableIntStateOf(zoomLevels.lastIndex) }
+
+    LaunchedEffect(scale) { onZoomChanged(scale) }
 
     fun clamp(x: Float, y: Float, s: Float): Offset {
         // Bounds by the VIEWPORT, not the element. When the scaled image is
@@ -91,16 +119,26 @@ fun ZoomableImage(
         }
     }
 
+    val context = LocalContext.current
+    // Full-res request decoded at original size so zooming stays crisp (Coil
+    // otherwise downsamples to the viewport, making zoom blurry).
+    val fullRequest = remember(model) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .size(Size.ORIGINAL)
+            // No crossfade: the thumbnail is already showing the same image, so
+            // the full-res pops in cleanly. A crossfade here reads as a flash.
+            .crossfade(false)
+            .build()
+    }
+
     Box(
         modifier = modifier
             .clipToBounds()
             .onSizeChanged { viewportSize = it },
         contentAlignment = Alignment.Center,
     ) {
-        AsyncImage(
-            model = model,
-            contentDescription = contentDescription,
-            contentScale = ContentScale.Fit,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .onSizeChanged { elementSize = it }
@@ -113,7 +151,34 @@ fun ZoomableImage(
                     scaleY = scale
                     translationX = offset.x
                     translationY = offset.y
-                }
+                },
+        ) {
+            // Thumbnail layer — shows instantly as a crisp preview.
+            if (placeholderModel != null) {
+                AsyncImage(
+                    model = placeholderModel,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+            // Full-resolution layer — fades in over the thumbnail once loaded.
+            // Only rendered once loadFullRes is true, so the full-res image is
+            // not requested during the hero fly-in (avoids a flash while the
+            // page is still opening).
+            if (loadFullRes) {
+                AsyncImage(
+                    model = fullRequest,
+                    contentDescription = contentDescription,
+                    contentScale = ContentScale.Fit,
+                    onSuccess = { onLoaded() },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .pointerInput(Unit) {
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false)
@@ -130,14 +195,14 @@ fun ZoomableImage(
                                 val centroid = event.calculateCentroid()
 
                                 // Always pan: single-finger drag, two-finger drag,
-                                // or fingers drifting during a pinch. Amplify by the
-                                // current zoom so the image responds consistently at
-                                // every level: at 8x the visible content is 1/8 of
-                                // the image, so a 1:1 screen-pixel pan would need ~7
-                                // full-screen drags to traverse it. Panning in image
-                                // space (offset += pan * scale) keeps it responsive.
-                                var newX = offset.x + pan.x * scale
-                                var newY = offset.y + pan.y * scale
+                                // or fingers drifting during a pinch. Pan 1:1 with
+                                // the finger (offset += pan) so the image tracks the
+                                // pointer exactly at every zoom level. Scaling the
+                                // pan by the zoom made the image outrun the finger
+                                // (it felt like it was accelerating), which is
+                                // disorienting and hard to control.
+                                var newX = offset.x + pan.x
+                                var newY = offset.y + pan.y
 
                                 // Only zoom when it's a real pinch (>2% change per
                                 // event). Without this threshold, tiny distance
@@ -160,18 +225,30 @@ fun ZoomableImage(
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onDoubleTap = { tapped ->
-                            if (scale > 1f) {
-                                // Animate back to fit.
+                            // Advance through the zoom cycle. The last level is
+                            // always 1x, so the cycle returns to fit.
+                            zoomIndex = (zoomIndex + 1) % zoomLevels.size
+                            val targetScale = zoomLevels[zoomIndex].coerceIn(MIN_SCALE, MAX_SCALE)
+                            if (targetScale <= MIN_SCALE) {
                                 animateTo(MIN_SCALE, Offset.Zero)
+                            } else if (zoomIndex == 0) {
+                                // First level = "fit to screen". Center the image
+                                // in the viewport regardless of where the user
+                                // tapped, so it fills symmetrically top-to-bottom.
+                                val target = Offset(
+                                    (viewportSize.width - viewportSize.width * targetScale) / 2f,
+                                    (viewportSize.height - viewportSize.height * targetScale) / 2f,
+                                )
+                                animateTo(targetScale, target)
                             } else {
-                                // Zoom in, anchoring the tapped point.
-                                val k = DOUBLE_TAP_SCALE / scale
+                                // Deeper zoom levels anchor at the tapped point.
+                                val k = targetScale / scale
                                 val target = clamp(
                                     tapped.x + (offset.x - tapped.x) * k,
                                     tapped.y + (offset.y - tapped.y) * k,
-                                    DOUBLE_TAP_SCALE,
+                                    targetScale,
                                 )
-                                animateTo(DOUBLE_TAP_SCALE, target)
+                                animateTo(targetScale, target)
                             }
                         },
                         onTap = { onTap() },

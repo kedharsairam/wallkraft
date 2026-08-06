@@ -5,6 +5,23 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-07
+
+### Added
+- **Tag browsing** — tapping a tag on the detail screen opens a dedicated grid of wallpapers sharing that tag.
+- **Instant detail preview** — the grid passes its thumbnail and full-res path to the detail screen so the image renders immediately while full metadata loads in the background.
+- **Orientation filter** — replaced the old sort order/toplist options with a Portrait / Landscape / Both orientation filter (maps to Wallhaven's `ratios` parameter).
+- **Smooth fling & prefetching** — custom fling behavior and a debounced image prefetch keep the browse grid scrolling smoothly.
+
+### Changed
+- **Browse screen rewritten** — inline filter dropdown (replaces the old FilterSheet), smoother grid, lighter tiles.
+- **Detail screen rewritten** — removed the hero transition; uniform fade/scale open-close animation; determinate top loading bar; zoom now hides the bottom bar for an edge-to-edge view.
+- **Grid tiles simplified** — removed the category dot and favorites overlay for faster rendering.
+- **Downloads tab removed** — the Downloads screen is no longer part of the app.
+
+### Fixed
+- **Unit tests updated** for the removed `Order`/`Toplist`/`TopRange` enums and the new `Orientation` filter.
+
 ## [1.4.0] - 2026-08-05
 
 ### Added

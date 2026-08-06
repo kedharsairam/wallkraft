@@ -16,13 +16,21 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import coil3.ImageLoader
+import coil3.request.ImageRequest
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+
+/** How many tiles ahead of the viewport to prefetch into the image cache. */
+private const val PREFETCH_AHEAD = 4
 
 /**
  * The staggered wallpaper grid with infinite-scroll pagination.
@@ -34,7 +42,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun WallpaperGrid(
     wallpapers: List<Wallpaper>,
-    onOpen: (String) -> Unit,
+    onOpen: (Wallpaper) -> Unit,
     onLoadMore: () -> Unit,
     modifier: Modifier = Modifier,
     footer: @Composable () -> Unit = {},
@@ -42,6 +50,15 @@ fun WallpaperGrid(
     downloadedIds: Set<String> = emptySet(),
 ) {
     val gridState = state
+
+    val context = LocalContext.current
+    val gridImageLoader = GridImageLoader.get()
+        ?: ImageLoader.Builder(context.applicationContext).build()
+
+    // Lower fling friction than the platform default so a swipe glides further
+    // and coasts to a stop — the "smooth, glides for longer" feel of the
+    // reference app instead of the default's quick, grippy stop.
+    val flingBehavior = remember(gridState) { SmoothFlingBehavior() }
 
     LaunchedEffect(gridState) {
         snapshotFlow {
@@ -51,7 +68,36 @@ fun WallpaperGrid(
         }
             .distinctUntilChanged()
             .collect { (lastVisible, total) ->
-                if (total > 0 && lastVisible >= total - 6) onLoadMore()
+                // Preload the next page well before the end (20 items out) so
+                // the slow Wallhaven API has time to respond before the user
+                // actually reaches the bottom — no visible wait at the end.
+                if (total > 0 && lastVisible >= total - 20) onLoadMore()
+            }
+    }
+
+    // Prefetch a few thumbnails ahead of the viewport so tiles are already in
+    // the memory cache when they scroll into view. Debounced so it only runs
+    // after the user pauses scrolling — prefetching on every scroll frame would
+    // flood Coil's shared queue and make the tiles that actually need to load
+    // wait behind the prefetch jobs (slower loading).
+    LaunchedEffect(gridState, wallpapers) {
+        snapshotFlow {
+            gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+        }
+            .distinctUntilChanged()
+            .debounce(150)
+            .collect { lastVisible ->
+                if (lastVisible < 0) return@collect
+                val start = lastVisible + 1
+                val end = minOf(start + PREFETCH_AHEAD, wallpapers.size)
+                for (i in start until end) {
+                    val url = wallpapers[i].thumbnail ?: continue
+                    // enqueue with no target = prefetch into the cache without
+                    // drawing, so the tile is ready when it scrolls into view.
+                    gridImageLoader.enqueue(
+                        ImageRequest.Builder(context).data(url).build(),
+                    )
+                }
             }
     }
 
@@ -66,12 +112,13 @@ fun WallpaperGrid(
         ),
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalItemSpacing = KraftSpacing.Spacing8,
+        flingBehavior = flingBehavior,
         modifier = modifier.fillMaxSize(),
     ) {
         items(wallpapers, key = { it.id }) { wallpaper ->
             WallpaperCard(
                 wallpaper = wallpaper,
-                onClick = { onOpen(wallpaper.id) },
+                onClick = { onOpen(wallpaper) },
                 downloadedIds = downloadedIds,
             )
         }
