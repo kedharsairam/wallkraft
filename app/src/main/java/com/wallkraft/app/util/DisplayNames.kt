@@ -4,10 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Category
-import com.wallkraft.app.domain.model.Order
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
-import com.wallkraft.app.domain.model.TopRange
 
 /** Localized user-facing names. The enums keep their raw wire values for the API. */
 
@@ -19,20 +18,15 @@ fun Sorting.displayName(): String = stringResource(
         Sorting.Random -> R.string.sorting_random
         Sorting.Views -> R.string.sorting_views
         Sorting.Favorites -> R.string.sorting_favorites
-        Sorting.Toplist -> R.string.sorting_toplist
     },
 )
 
 @Composable
-fun TopRange.displayName(): String = stringResource(
+fun Orientation.displayName(): String = stringResource(
     when (this) {
-        TopRange.Day1 -> R.string.top_range_1d
-        TopRange.Days3 -> R.string.top_range_3d
-        TopRange.Week1 -> R.string.top_range_1w
-        TopRange.Month1 -> R.string.top_range_1m
-        TopRange.Months3 -> R.string.top_range_3m
-        TopRange.Months6 -> R.string.top_range_6m
-        TopRange.Year1 -> R.string.top_range_1y
+        Orientation.Both -> R.string.orientation_both
+        Orientation.Portrait -> R.string.orientation_portrait
+        Orientation.Landscape -> R.string.orientation_landscape
     },
 )
 
@@ -42,14 +36,6 @@ fun Category.displayName(): String = stringResource(
         Category.General -> R.string.category_general
         Category.Anime -> R.string.category_anime
         Category.People -> R.string.category_people
-    },
-)
-
-@Composable
-fun Order.displayName(): String = stringResource(
-    when (this) {
-        Order.Desc -> R.string.order_desc
-        Order.Asc -> R.string.order_asc
     },
 )
 

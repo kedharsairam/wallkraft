@@ -24,10 +24,13 @@ class WallpaperRepositoryImpl(
             // sketchy or NSFW. Also dedupe by id — the Wallhaven search API
             // can return the same wallpaper twice across pages, and the
             // staggered grid keys items by id.
+            //
+            // Search results are NOT cached here: the search endpoint omits
+            // tags, and a cached tagless copy would shadow the full wallpaper
+            // returned by wallpaper(id), hiding tags on the detail screen.
             val sfwOnly = response.data
                 .filter { it.isSfw }
                 .distinctBy { it.id }
-            sfwOnly.forEach { cacheById.put(it.id, it) }
             Result.success(
                 WallpaperResponse(
                     data = sfwOnly,

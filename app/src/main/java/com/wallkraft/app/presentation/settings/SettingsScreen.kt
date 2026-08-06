@@ -35,7 +35,7 @@ import com.wallkraft.app.AppContainer
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.domain.model.Order
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.util.displayName
@@ -115,13 +115,13 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
             }
 
             Spacer(Modifier.height(KraftSpacing.Spacing24))
-            SectionTitle(stringResource(R.string.default_order))
+            SectionTitle(stringResource(R.string.default_orientation))
             FlowRow(horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
-                Order.entries.forEach { order ->
+                Orientation.entries.forEach { orientation ->
                     FilterChip(
-                        selected = settings.order == order,
-                        onClick = { viewModel.setOrder(order) },
-                        label = { Text(order.displayName()) },
+                        selected = settings.orientation == orientation,
+                        onClick = { viewModel.setOrientation(orientation) },
+                        label = { Text(orientation.displayName()) },
                     )
                 }
             }

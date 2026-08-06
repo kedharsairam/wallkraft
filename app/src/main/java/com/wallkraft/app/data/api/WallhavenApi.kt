@@ -1,5 +1,6 @@
 package com.wallkraft.app.data.api
 
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
@@ -49,13 +50,17 @@ class WallhavenApi(
                 addQueryParameter("categories", filters.categories.toCategoryParam())
                 // Purity is hard-locked to SFW (100). Wallkraft never
                 // requests sketchy or NSFW content, by design.
+                addQueryParameter("categories", filters.categories.toCategoryParam())
+                // Purity is hard-locked to SFW (100). Wallkraft never
+                // requests sketchy or NSFW content, by design.
                 addQueryParameter("purity", "100")
                 addQueryParameter("sorting", filters.sorting.value)
-                addQueryParameter("order", filters.order.value)
                 addQueryParameter("page", page.toString())
                 if (filters.query.isNotBlank()) addQueryParameter("q", filters.query)
-                filters.topRange?.let { addQueryParameter("topRange", it.value) }
-                filters.ratio?.let { addQueryParameter("ratios", it) }
+                // Orientation maps to the `ratios` param; Both omits it.
+                if (filters.orientation != Orientation.Both) {
+                    addQueryParameter("ratios", filters.orientation.value)
+                }
             }
             .build()
         return execute(url.toString())

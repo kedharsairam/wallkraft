@@ -9,7 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Category
-import com.wallkraft.app.domain.model.Order
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -32,7 +32,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val CATEGORIES = stringPreferencesKey("categories")
         val SORTING = stringPreferencesKey("sorting")
-        val ORDER = stringPreferencesKey("order")
+        val ORIENTATION = stringPreferencesKey("orientation")
     }
 
     override val settings: Flow<AppSettings> = combine(
@@ -62,7 +62,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             prefs[Keys.THEME_MODE] = updated.themeMode.name
             prefs[Keys.CATEGORIES] = updated.categories.joinToString(",") { it.name }
             prefs[Keys.SORTING] = updated.sorting.name
-            prefs[Keys.ORDER] = updated.order.name
+            prefs[Keys.ORIENTATION] = updated.orientation.name
         }
     }
 
@@ -79,7 +79,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             themeMode = enumOr(Keys.THEME_MODE, ThemeMode.System),
             categories = categories.ifEmpty { defaults.categories },
             sorting = enumOr(Keys.SORTING, Sorting.DateAdded),
-            order = enumOr(Keys.ORDER, Order.Desc),
+            orientation = enumOr(Keys.ORIENTATION, Orientation.Both),
         )
     }
 

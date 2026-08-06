@@ -1,20 +1,11 @@
 package com.wallkraft.app.presentation.browse
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,21 +13,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,13 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -77,10 +69,10 @@ import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Category
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.Order
-import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.domain.model.WallhavenFilters
+import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.displayName
 import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.toUserMessage
@@ -89,7 +81,7 @@ import com.wallkraft.app.util.toUserMessage
 @Composable
 fun BrowseScreen(
     container: AppContainer,
-    onOpenWallpaper: (String) -> Unit,
+    onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
@@ -106,7 +98,6 @@ fun BrowseScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     var searchText by remember { mutableStateOf(uiState.query) }
-    var showFilters by remember { mutableStateOf(false) }
     val keyboard = LocalSoftwareKeyboardController.current
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
 
@@ -138,22 +129,25 @@ fun BrowseScreen(
             .collect { scrolling -> if (scrolling) keyboard?.hide() }
     }
 
-    // The filter menu overlay lives outside the Scaffold so it can cover the
-    // full screen (scrim + slide-in panel). The Scaffold handles the topBar and
-    // content; the overlay is layered on top via a Box wrapper.
-    Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            topBar = {
-                // One compact bar: the search field and filter button in a single
-                // row. Search is the primary action, so it owns the full width.
+    // Dropdown expansion state for the three filter buttons.
+    var categoriesExpanded by remember { mutableStateOf(false) }
+    var sortExpanded by remember { mutableStateOf(false) }
+    var orientationExpanded by remember { mutableStateOf(false) }
+
+    val filters = uiState.filters
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            Column {
+                // Search row: field (with magnifier + clear) + physical search button.
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing8),
+                        .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
                 ) {
                     BasicTextField(
                         value = searchText,
@@ -176,328 +170,253 @@ fun BrowseScreen(
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .weight(1f)
-                            .height(40.dp)
+                            .height(44.dp)
                             .clip(RoundedCornerShapeDp)
                             .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                         decorationBox = { innerTextField ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = KraftSpacing.Spacing12),
                             ) {
                                 Icon(
-                                    Icons.Filled.Search,
+                                    imageVector = Icons.Filled.Search,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(18.dp),
                                 )
-                                Box(modifier = Modifier.weight(1f).padding(start = KraftSpacing.Spacing8)) {
+                                Spacer(Modifier.width(KraftSpacing.Spacing8))
+                                Box(
+                                    contentAlignment = Alignment.CenterStart,
+                                    modifier = Modifier.weight(1f),
+                                ) {
                                     if (searchText.isEmpty()) {
                                         Text(
                                             text = stringResource(R.string.search_hint),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
                                         )
                                     }
                                     innerTextField()
                                 }
                                 if (searchText.isNotEmpty()) {
                                     IconButton(
-                                        onClick = { searchText = ""; viewModel.search("") },
-                                        modifier = Modifier.size(32.dp),
+                                        onClick = { searchText = "" },
+                                        modifier = Modifier.size(28.dp),
                                     ) {
                                         Icon(
-                                            Icons.Filled.Close,
+                                            imageVector = Icons.Filled.Close,
                                             contentDescription = stringResource(R.string.search_clear),
-                                            modifier = Modifier.size(16.dp),
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp),
                                         )
                                     }
                                 }
                             }
                         },
                     )
-                    IconButton(onClick = { showFilters = !showFilters }) {
-                        Icon(Icons.Filled.Tune, contentDescription = stringResource(R.string.filter_title))
+                    Spacer(Modifier.width(KraftSpacing.Spacing8))
+                    Button(
+                        onClick = {
+                            keyboard?.hide()
+                            viewModel.search(searchText)
+                        },
+                        modifier = Modifier.height(44.dp),
+                    ) {
+                        Text(stringResource(R.string.search_action))
                     }
                 }
-            },
-        ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.rateLimited) {
-                        RateLimitBanner(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16))
-                        Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    }
 
-                    PullToRefreshBox(
-                        isRefreshing = uiState.isRefreshing,
-                        onRefresh = viewModel::refresh,
-        modifier = Modifier
-            .fillMaxSize()
-            .clipToBounds(),
+                // Filter dropdown row: Categories, Sort, Orientation.
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing4),
+                ) {
+                    FilterDropdownButton(
+                        label = categoriesLabel(filters.categories),
+                        expanded = categoriesExpanded,
+                        onExpandedChange = { categoriesExpanded = it },
+                        modifier = Modifier.weight(1f),
                     ) {
-                        when {
-                            uiState.isInitialLoading -> ShimmerGrid()
-                            uiState.error != null && uiState.wallpapers.isEmpty() ->
-                                ErrorState(
-                                    message = uiState.error ?: "",
-                                    onRetry = viewModel::retry,
-                                )
-                            uiState.wallpapers.isEmpty() ->
-                                EmptyState(
-                                    title = stringResource(R.string.no_results_title),
-                                    message = if (uiState.query.isBlank()) {
-                                        stringResource(R.string.no_results_hint_filters)
-                                    } else {
-                                        stringResource(R.string.no_results_hint_query, uiState.query)
-                                    },
-                                )
-                            else -> WallpaperGrid(
-                                wallpapers = uiState.wallpapers,
-                                onOpen = onOpenWallpaper,
-                                onLoadMore = viewModel::loadNextPage,
-                                state = gridState,
-                                downloadedIds = downloadedIds,
-                                modifier = Modifier.padding(bottom = navBarPadding),
-                                footer = {
-                                    if (uiState.isAppending) {
-                                        GridAppendFooter()
+                        Category.entries.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat.displayName()) },
+                                leadingIcon = {
+                                    if (cat in filters.categories) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
                                     }
+                                },
+                                onClick = {
+                                    val current = filters.categories
+                                    val updated = if (cat in current) {
+                                        // Never allow deselecting the last category —
+                                        // an empty mask ("000") returns zero results.
+                                        if (current.size > 1) current - cat else current
+                                    } else {
+                                        current + cat
+                                    }
+                                    viewModel.setFilters(filters.copy(categories = updated))
+                                },
+                            )
+                        }
+                    }
+                    FilterDropdownButton(
+                        label = filters.sorting.displayName(),
+                        expanded = sortExpanded,
+                        onExpandedChange = { sortExpanded = it },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Sorting.entries.forEach { s ->
+                            DropdownMenuItem(
+                                text = { Text(s.displayName()) },
+                                leadingIcon = {
+                                    if (filters.sorting == s) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
+                                    }
+                                },
+                                onClick = {
+                                    viewModel.setFilters(filters.copy(sorting = s))
+                                    sortExpanded = false
+                                },
+                            )
+                        }
+                    }
+                    FilterDropdownButton(
+                        label = filters.orientation.displayName(),
+                        expanded = orientationExpanded,
+                        onExpandedChange = { orientationExpanded = it },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Orientation.entries.forEach { o ->
+                            DropdownMenuItem(
+                                text = { Text(o.displayName()) },
+                                leadingIcon = {
+                                    if (filters.orientation == o) {
+                                        Icon(Icons.Filled.Check, contentDescription = null)
+                                    }
+                                },
+                                onClick = {
+                                    viewModel.setFilters(filters.copy(orientation = o))
+                                    orientationExpanded = false
                                 },
                             )
                         }
                     }
                 }
 
-                // Filter overlay: scrim + slide-in panel, layered on top of content.
-                FilterDropdownMenu(
-                    expanded = showFilters,
-                    onDismiss = { showFilters = false },
-                    initial = uiState.filters,
-                    onApply = { filters ->
-                        showFilters = false
-                        viewModel.setFilters(filters)
-                    },
+                // Hairline separator so the header reads as a distinct surface
+                // above the scrolling grid.
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                 )
+            }
+        },
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (uiState.rateLimited) {
+                    RateLimitBanner(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16))
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
+
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = viewModel::refresh,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clipToBounds(),
+                ) {
+                    when {
+                        uiState.isInitialLoading -> ShimmerGrid()
+                        uiState.error != null && uiState.wallpapers.isEmpty() ->
+                            ErrorState(
+                                message = uiState.error ?: "",
+                                onRetry = viewModel::retry,
+                            )
+                        uiState.wallpapers.isEmpty() ->
+                            EmptyState(
+                                title = stringResource(R.string.no_results_title),
+                                message = if (uiState.query.isBlank()) {
+                                    stringResource(R.string.no_results_hint_filters)
+                                } else {
+                                    stringResource(R.string.no_results_hint_query, uiState.query)
+                                },
+                            )
+                        else -> WallpaperGrid(
+                            wallpapers = uiState.wallpapers,
+                            onOpen = onOpenWallpaper,
+                            onLoadMore = viewModel::loadNextPage,
+                            state = gridState,
+                            downloadedIds = downloadedIds,
+                            footer = {
+                                if (uiState.isAppending) GridAppendFooter()
+                            },
+                            modifier = Modifier.padding(bottom = navBarPadding),
+                        )
+                    }
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * A compact dropdown button for the filter row: a label + chevron that opens a
+ * [DropdownMenu] anchored beneath it. The label always shows the current value
+ * so the user knows what filter is applied at a glance.
+ */
 @Composable
-private fun FilterDropdownMenu(
+private fun FilterDropdownButton(
+    label: String,
     expanded: Boolean,
-    onDismiss: () -> Unit,
-    initial: WallhavenFilters,
-    onApply: (WallhavenFilters) -> Unit,
+    onExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    var categories by remember { mutableStateOf(initial.categories) }
-    var sorting by remember { mutableStateOf(initial.sorting) }
-    var order by remember { mutableStateOf(initial.order) }
-    var topRange by remember { mutableStateOf(initial.topRange) }
-
-    val chipBorder = FilterChipDefaults.filterChipBorder(
-        enabled = true,
-        selected = false,
-        borderColor = MaterialTheme.colorScheme.outlineVariant,
-        selectedBorderColor = Color.Transparent,
-        borderWidth = 1.dp,
-        selectedBorderWidth = 0.dp,
-    )
-
-    // Scrim + menu panel combined in a single overlay.
-    // Scrim fades in/out. Menu slides down from the top edge (clipped).
-    AnimatedVisibility(
-        visible = expanded,
-        enter = fadeIn(animationSpec = tween(250)),
-        exit = fadeOut(animationSpec = tween(200)),
-    ) {
-        // Scrim
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onDismiss,
-                ),
-        )
-    }
-
-    AnimatedVisibility(
-        visible = expanded,
-        enter = slideInVertically(
-            initialOffsetY = { -it / 6 },
-            animationSpec = tween(300, easing = FastOutSlowInEasing),
-        ) + fadeIn(animationSpec = tween(250)),
-        exit = slideOutVertically(
-            targetOffsetY = { -it / 6 },
-            animationSpec = tween(250, easing = FastOutSlowInEasing),
-        ) + fadeOut(animationSpec = tween(200)),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
+    Box(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .shadow(8.dp, RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large))
-                .clip(RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large))
-                .background(MaterialTheme.colorScheme.surfaceContainer),
+                .clip(RoundedCornerShape(KraftRadius.Standard))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .clickable { onExpandedChange(!expanded) }
+                .padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing8),
         ) {
-            Column(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing14)) {
-                // Header
-                Text(
-                    text = stringResource(R.string.filter_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing14))
-
-                // Categories
-                Text(
-                    stringResource(R.string.filter_categories),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
-                ) {
-                    Category.entries.forEach { cat ->
-                        FilterChip(
-                            selected = cat in categories,
-                            onClick = { if (cat !in categories || categories.size > 1) categories = categories.toggle(cat) },
-                            label = { Text(cat.displayName(), style = MaterialTheme.typography.labelSmall) },
-                            border = chipBorder,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                labelColor = MaterialTheme.colorScheme.onSurface,
-                            ),
-                        )
-                    }
-                }
-
-                // Sort By
-                Spacer(Modifier.height(KraftSpacing.Spacing14))
-                Text(
-                    stringResource(R.string.filter_sort_by),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
-                ) {
-                    Sorting.entries.forEach { s ->
-                        FilterChip(
-                            selected = sorting == s,
-                            onClick = { sorting = s; if (s != Sorting.Toplist) topRange = null },
-                            label = { Text(s.displayName(), style = MaterialTheme.typography.labelSmall) },
-                            border = chipBorder,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                labelColor = MaterialTheme.colorScheme.onSurface,
-                            ),
-                        )
-                    }
-                }
-
-                // Top Range (only if Toplist selected)
-                if (sorting == Sorting.Toplist) {
-                    Spacer(Modifier.height(KraftSpacing.Spacing14))
-                    Text(
-                        stringResource(R.string.filter_time_range),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.height(KraftSpacing.Spacing4))
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                        verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
-                    ) {
-                        TopRange.entries.forEach { r ->
-                            FilterChip(
-                                selected = topRange == r,
-                                onClick = { topRange = if (topRange == r) null else r },
-                                label = { Text(r.displayName(), style = MaterialTheme.typography.labelSmall) },
-                                border = chipBorder,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    labelColor = MaterialTheme.colorScheme.onSurface,
-                                ),
-                            )
-                        }
-                    }
-                }
-
-                // Order
-                Spacer(Modifier.height(KraftSpacing.Spacing14))
-                Text(
-                    stringResource(R.string.filter_order),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
-                ) {
-                    Order.entries.forEach { o ->
-                        FilterChip(
-                            selected = order == o,
-                            onClick = { order = o },
-                            label = { Text(o.displayName(), style = MaterialTheme.typography.labelSmall) },
-                            border = chipBorder,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                labelColor = MaterialTheme.colorScheme.onSurface,
-                            ),
-                        )
-                    }
-                }
-
-                // Apply button
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
-                Button(
-                    onClick = {
-                        onApply(
-                            WallhavenFilters(
-                                categories = categories,
-                                sorting = sorting,
-                                order = order,
-                                topRange = if (sorting == Sorting.Toplist) topRange else null,
-                                ratio = initial.ratio,
-                                query = initial.query,
-                            ),
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    shape = RoundedCornerShape(KraftRadius.Standard),
-                ) {
-                    Text(
-                        stringResource(R.string.filter_apply),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) },
+        ) {
+            content()
         }
     }
 }
 
-private fun <T> Set<T>.toggle(value: T): Set<T> =
-    if (value in this) this - value else this + value
+/** Compact label for the categories dropdown: "All", a single name, or "X +N". */
+@Composable
+private fun categoriesLabel(categories: Set<Category>): String = when {
+    categories.size == Category.entries.size -> stringResource(R.string.filter_all)
+    categories.size == 1 -> categories.first().displayName()
+    else -> "${categories.first().displayName()} +${categories.size - 1}"
+}
 
 private val RoundedCornerShapeDp = androidx.compose.foundation.shape.RoundedCornerShape(KraftRadius.Standard)

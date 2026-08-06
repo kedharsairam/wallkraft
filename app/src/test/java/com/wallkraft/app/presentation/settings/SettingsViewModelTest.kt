@@ -1,7 +1,6 @@
 package com.wallkraft.app.presentation.settings
 
 import com.wallkraft.app.domain.model.AppSettings
-import com.wallkraft.app.domain.model.Order
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -61,22 +60,10 @@ class SettingsViewModelTest {
         val vm = SettingsViewModel(repo)
         advanceUntilIdle()
 
-        vm.setSorting(Sorting.Toplist)
+        vm.setSorting(Sorting.Views)
         advanceUntilIdle()
 
-        assertEquals(Sorting.Toplist, repo._settings.value.sorting)
-    }
-
-    @Test
-    fun `setOrder updates repository`() = runTest(dispatcher) {
-        val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
-        advanceUntilIdle()
-
-        vm.setOrder(Order.Asc)
-        advanceUntilIdle()
-
-        assertEquals(Order.Asc, repo._settings.value.order)
+        assertEquals(Sorting.Views, repo._settings.value.sorting)
     }
 
     @Test
