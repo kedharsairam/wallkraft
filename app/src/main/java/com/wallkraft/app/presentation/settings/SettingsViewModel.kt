@@ -97,6 +97,10 @@ class SettingsViewModel(
         viewModelScope.launch { settingsRepository.update { it.copy(orientation = orientation) } }
     }
 
+    fun setDataSaverMode(enabled: Boolean) {
+        viewModelScope.launch { settingsRepository.update { it.copy(dataSaverMode = enabled) } }
+    }
+
     override fun onCleared() {
         // If the user typed and navigated away inside the 500ms debounce
         // window, the pending write was cancelled. Flush the latest value on

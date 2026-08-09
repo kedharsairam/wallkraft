@@ -46,7 +46,11 @@ data class FavoriteEntity(
     }
 
     companion object {
-        fun fromWallpaper(wallpaper: Wallpaper, addedAt: Long, json: Json): FavoriteEntity =
+        fun fromWallpaper(
+            wallpaper: Wallpaper,
+            addedAt: Long,
+            json: Json,
+        ): FavoriteEntity =
             FavoriteEntity(
                 id = wallpaper.id,
                 url = wallpaper.url,

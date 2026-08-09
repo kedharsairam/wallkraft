@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,20 +48,20 @@ import androidx.navigation.navArgument
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.detail.DetailScreen
+import com.wallkraft.app.presentation.downloads.DownloadsScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
 import com.wallkraft.app.presentation.settings.SettingsScreen
-import com.wallkraft.app.presentation.tag.TagScreen
 
 object Routes {
-    const val BROWSE = "browse"
+    const val BROWSE = "browse?query={query}"
     const val FAVORITES = "favorites"
+    const val DOWNLOADS = "downloads"
     const val SETTINGS = "settings"
     const val DETAIL = "detail/{id}?thumb={thumb}&path={path}"
-    const val TAG = "tagged/{tag}"
 
+    fun browse(query: String = "") = "browse?query=${Uri.encode(query)}"
     fun detail(id: String, thumb: String? = null, path: String? = null) =
         "detail/$id?thumb=${Uri.encode(thumb ?: "")}&path=${Uri.encode(path ?: "")}"
-    fun tagged(tag: String) = "tagged/${Uri.encode(tag)}"
 }
 
 private data class Tab(
@@ -72,6 +74,7 @@ private data class Tab(
 private val tabs = listOf(
     Tab(Routes.BROWSE, R.string.tab_browse, Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
     Tab(Routes.FAVORITES, R.string.tab_favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
+    Tab(Routes.DOWNLOADS, R.string.tab_downloads, Icons.Filled.Download, Icons.Outlined.Download),
     Tab(Routes.SETTINGS, R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 )
 
@@ -82,7 +85,6 @@ fun WallKraftNavHost(container: AppContainer) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val isDetail = currentDestination?.route == Routes.DETAIL
-    val isTag = currentDestination?.route == Routes.TAG
 
     // The detail screen reports its zoom state up here so the bottom bar can
     // hide while the user is zoomed in — giving a clean, edge-to-edge view.
@@ -112,20 +114,22 @@ fun WallKraftNavHost(container: AppContainer) {
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                if (isDetail || isTag) {
-                                    // We're on a pushed screen (detail/tag). Navigate to
+                                // The Browse route carries an optional query; the
+                                // tab always navigates to the plain (no-query) version.
+                                val route = if (tab.route == Routes.BROWSE) Routes.browse() else tab.route
+                                if (isDetail) {
+                                    // We're on the pushed detail screen. Navigate to
                                     // the tab WITHOUT popping the back stack, so the
                                     // current image stays beneath and back returns to it.
-                                    navController.navigate(tab.route) {
+                                    navController.navigate(route) {
                                         launchSingleTop = true
                                     }
                                 } else {
-                                    navController.navigate(tab.route) {
+                                    navController.navigate(route) {
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
                                         launchSingleTop = true
-                                        restoreState = true
                                     }
                                 }
                             },
@@ -163,12 +167,19 @@ fun WallKraftNavHost(container: AppContainer) {
             startDestination = Routes.BROWSE,
             modifier = Modifier.fillMaxSize(),
         ) {
-            composable(Routes.BROWSE) {
+            composable(
+                route = Routes.BROWSE,
+                arguments = listOf(navArgument("query") { type = NavType.StringType; defaultValue = "" }),
+            ) { entry ->
+                val query = entry.arguments?.getString("query").orEmpty()
                 BrowseScreen(
                     container = container,
                     onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
-                    gridState = browseGridState,
+                    // The tab hoists its grid state so it survives tab switches;
+                    // a tag-as-browse entry passes null and gets its own state.
+                    gridState = if (query.isBlank()) browseGridState else null,
                     navBarPadding = navBarPadding,
+                    initialQuery = query,
                 )
             }
             composable(Routes.FAVORITES) {
@@ -176,6 +187,12 @@ fun WallKraftNavHost(container: AppContainer) {
                     container = container,
                     onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                     gridState = favoritesGridState,
+                    navBarPadding = navBarPadding,
+                )
+            }
+            composable(Routes.DOWNLOADS) {
+                DownloadsScreen(
+                    onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                     navBarPadding = navBarPadding,
                 )
             }
@@ -212,20 +229,8 @@ fun WallKraftNavHost(container: AppContainer) {
                     previewThumb = entry.arguments?.getString("thumb").orEmpty(),
                     previewPath = entry.arguments?.getString("path").orEmpty(),
                     onBack = { navController.popBackStack() },
-                    onTagClick = { tag -> navController.navigate(Routes.tagged(tag)) },
+                    onTagClick = { tag -> navController.navigate(Routes.browse(tag)) },
                     onZoomChanged = { zoomed -> detailZoomed = zoomed },
-                    navBarPadding = navBarPadding,
-                )
-            }
-            composable(
-                route = Routes.TAG,
-                arguments = listOf(navArgument("tag") { type = NavType.StringType }),
-            ) { entry ->
-                TagScreen(
-                    container = container,
-                    tag = entry.arguments?.getString("tag").orEmpty(),
-                    onBack = { navController.popBackStack() },
-                    onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                     navBarPadding = navBarPadding,
                 )
             }

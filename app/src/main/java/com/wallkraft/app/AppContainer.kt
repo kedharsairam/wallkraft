@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.room.Room
 import com.wallkraft.app.data.api.WallhavenApi
+import com.wallkraft.app.data.cache.FavoriteImageStore
+import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.data.db.WallKraftDatabase
 import com.wallkraft.app.data.prefs.SettingsStore
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
@@ -13,6 +15,7 @@ import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
@@ -45,16 +48,33 @@ class AppContainer(context: Context) {
         WallhavenApi(okHttpClient, json, settings)
     }
 
+    /** File-backed cache of search responses (30-min TTL, offline fallback). */
+    val searchCache: SearchResponseCache by lazy {
+        SearchResponseCache(
+            directory = File(appContext.cacheDir, "search_cache"),
+            json = json,
+        )
+    }
+
     val wallpaperRepository: WallpaperRepository by lazy {
-        WallpaperRepositoryImpl(wallhavenApi)
+        WallpaperRepositoryImpl(wallhavenApi, searchCache)
     }
 
     private val database: WallKraftDatabase by lazy {
         Room.databaseBuilder(appContext, WallKraftDatabase::class.java, "wallkraft.db")
+            .addMigrations(WallKraftDatabase.MIGRATION_1_2, WallKraftDatabase.MIGRATION_2_3)
             .build()
     }
 
     val favoritesRepository: FavoritesRepository by lazy {
         FavoritesRepositoryImpl(database.favoriteDao(), json)
+    }
+
+    /** Non-evictable offline storage for favorite full-res images. */
+    val favoriteImageStore: FavoriteImageStore by lazy {
+        FavoriteImageStore(
+            directory = File(appContext.filesDir, "favorites"),
+            client = okHttpClient,
+        )
     }
 }

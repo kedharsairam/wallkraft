@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,13 +17,17 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -34,6 +39,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
@@ -101,6 +107,37 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     )
                 }
             }
+
+            Spacer(Modifier.height(KraftSpacing.Spacing24))
+            // iOS-style toggle row: label on the left, switch on the right,
+            // description as a footnote below.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.data_saver_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = settings.dataSaverMode,
+                    onCheckedChange = viewModel::setDataSaverMode,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.White,
+                        checkedTrackColor = KraftColors.AccentGreen,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                    ),
+                )
+            }
+            Text(
+                text = stringResource(R.string.data_saver_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = KraftSpacing.Spacing4),
+            )
 
             Spacer(Modifier.height(KraftSpacing.Spacing24))
             SectionTitle(stringResource(R.string.default_sorting))

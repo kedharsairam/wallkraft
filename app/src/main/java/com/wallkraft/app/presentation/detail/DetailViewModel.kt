@@ -57,7 +57,11 @@ class DetailViewModel(
         }
         viewModelScope.launch {
             favoritesRepository.observeAll().collect { favorites ->
-                _uiState.update { it.copy(favoriteIds = favorites.map { f -> f.wallpaper.id }.toSet()) }
+                _uiState.update {
+                    it.copy(
+                        favoriteIds = favorites.map { f -> f.wallpaper.id }.toSet(),
+                    )
+                }
             }
         }
         load()

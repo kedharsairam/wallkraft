@@ -16,16 +16,20 @@ import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.presentation.components.GridImageLoader
+import com.wallkraft.app.presentation.components.ImageCache
 
 @Composable
 fun WallKraftApp(container: AppContainer) {
     // Crossfade every image load (grid tiles, detail, fullscreen) instead of
     // snapping from the placeholder to the loaded bitmap. Configured once on
     // the singleton loader so every AsyncImage gets it for free. The OkHttp
-    // network fetcher is still auto-registered via ServiceLoader.
+    // network fetcher is still auto-registered via ServiceLoader. Caches are
+    // tuned and shared (see ImageCache) so images stay fast and small.
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .crossfade(true)
+            .memoryCache { ImageCache.memoryCache(context) }
+            .diskCache { ImageCache.diskCache(context) }
             .build()
     }
 

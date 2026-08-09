@@ -22,7 +22,13 @@ class FavoritesRepositoryImpl(
     override suspend fun isFavorite(id: String): Boolean = dao.exists(id)
 
     override suspend fun add(wallpaper: Wallpaper) {
-        dao.upsert(FavoriteEntity.fromWallpaper(wallpaper, System.currentTimeMillis(), json))
+        dao.upsert(
+            FavoriteEntity.fromWallpaper(
+                wallpaper,
+                System.currentTimeMillis(),
+                json,
+            ),
+        )
     }
 
     override suspend fun remove(id: String) {
