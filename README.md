@@ -1,29 +1,38 @@
 # WallKraft
 
-A clean, fast wallpaper browsing app for Android powered by the [Wallhaven](https://wallhaven.cc) API.
+A clean, fast, and private wallpaper browsing app for Android, powered by the [Wallhaven](https://wallhaven.cc) API.
+
+Built with Kotlin and Jetpack Compose. No ads, no analytics, no trackers — your data stays on your device.
 
 ## Features
 
 - **Browse** — infinite-scroll staggered grid of wallpapers from Wallhaven
-- **Search & Filter** — text search with category, sort, order, and top-range filters
-- **Detail View** — tap any wallpaper for full-resolution view with zoom & pan
-- **Set as Wallpaper** — apply to home screen, lock screen, or both
-- **Favorites** — save wallpapers locally with Room database
-- **Downloads** — track and manage downloaded wallpapers
-- **Fullscreen Viewer** — immersive fullscreen with gesture controls
-- **Pull to Refresh** — refresh the current feed with a pull gesture
-- **Dark Mode** — full dark theme support
+- **Search & Filter** — text search with category, sort, and orientation filters
+- **Detail View** — full-resolution view with pinch-to-zoom and pan
+- **Set as Wallpaper** — crop and position the image, then apply to home, lock, or both screens
+- **Favorites** — save wallpapers locally; full-res copies are stored for offline viewing
+- **Downloads** — track downloaded files, open their location, and delete them — including **batch select & delete**
+- **Share** — share the actual image file with any app
+- **Data Saver** — optional mode that defers full-resolution downloads until you zoom
+- **Offline-first** — search results and favorites are cached so the app keeps working without a connection
+- **Fullscreen Viewer** — immersive viewing with gesture controls
+- **Pull to Refresh** — refresh the feed with a pull gesture
+- **Dark Mode** — follows your system theme (light, dark, or system)
+- **Localized** — English and Hindi
 
 ## Tech Stack
 
-- **Language:** Kotlin
-- **UI:** Jetpack Compose + Material3
-- **Navigation:** Compose Navigation
-- **Networking:** Retrofit + OkHttp
-- **Image Loading:** Coil
-- **Database:** Room
-- **Architecture:** MVVM with Repository pattern
-- **DI:** Manual dependency injection (AppContainer)
+| Layer | Choice |
+|---|---|
+| Language | Kotlin |
+| UI | Jetpack Compose + Material 3 |
+| Navigation | Compose Navigation |
+| Networking | OkHttp + kotlinx.serialization |
+| Image loading | Coil 3 |
+| Database | Room (with migrations) |
+| Preferences | DataStore + EncryptedSharedPreferences |
+| Architecture | MVVM with Repository pattern |
+| DI | Manual (AppContainer) |
 
 ## Build
 
@@ -33,6 +42,9 @@ A clean, fast wallpaper browsing app for Android powered by the [Wallhaven](http
 
 # Release build (requires signing config)
 ./gradlew assembleRelease
+
+# Unit tests
+./gradlew test
 ```
 
 The debug APK is output to `app/build/outputs/apk/debug/app-debug.apk`.
@@ -42,30 +54,39 @@ The debug APK is output to `app/build/outputs/apk/debug/app-debug.apk`.
 ```
 app/src/main/java/com/wallkraft/app/
 ├── core/design/          # Design tokens, theme, colors, typography
-├── data/                 # API service, database, repository implementations
-├── domain/               # Models, repository interfaces, use cases
-├── presentation/         # Screens, ViewModels, components
+├── data/                 # API, database, cache, preferences, repositories
+│   ├── api/              # Wallhaven API client
+│   ├── cache/            # Search response + favorite image caching
+│   ├── db/               # Room database (favorites)
+│   ├── prefs/            # DataStore-backed settings
+│   └── repository/       # Repository implementations
+├── domain/               # Models and repository interfaces
+├── presentation/         # Screens, ViewModels, shared components
 │   ├── browse/           # Browse screen + ViewModel
-│   ├── detail/           # Detail screen + FullscreenViewer
-│   ├── downloads/        # Downloads screen
+│   ├── detail/           # Detail screen + fullscreen viewer
+│   ├── downloads/        # Downloads library + batch delete
 │   ├── favorites/        # Favorites screen + ViewModel
-│   └── settings/         # Settings screen + ViewModel
-└── util/                 # Helpers (WallpaperActions, extensions)
+│   ├── settings/         # Settings screen + ViewModel
+│   ├── common/           # Shared ViewModel logic
+│   └── components/       # Reusable UI components
+└── util/                 # Helpers (WallpaperActions, formatting)
 ```
-
-## Testing
-
-```bash
-./gradlew test
-```
-
-Unit tests cover BrowseViewModel, FavoritesViewModel, SettingsViewModel, DetailViewModel, and FavoriteDao.
 
 ## Requirements
 
 - Android 8.0 (API 26) or higher
-- Internet connection (for Wallhaven API)
+- Internet connection for the Wallhaven API (cached content works offline)
+
+## Privacy
+
+WallKraft is private by default:
+
+- No accounts, no ads, no analytics, no trackers
+- Your Wallhaven API key (optional) is stored only on your device
+- Favorites and downloads are stored locally and never leave your phone
+
+See [docs/privacy-policy.md](docs/privacy-policy.md) for details.
 
 ## License
 
-Private — All rights reserved.
+[MIT](LICENSE)

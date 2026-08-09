@@ -3,7 +3,7 @@
 ## App name
 WallKraft
 
-## Short description (≤ 80 chars)
+## Short description (<= 80 chars)
 Millions of Wallhaven wallpapers. Search, filter, and set them in one tap.
 
 ## Full description
@@ -14,14 +14,16 @@ wallpaper library.
 **Browse & search**
 - Staggered grid of millions of wallpapers with infinite scroll
 - Search by tags and keywords
-- Filter by category (general, anime, people), sort order, time range, and ratio
+- Filter by category (general, anime, people), sort order, and orientation
 - Strictly SFW by design — sketchy and NSFW content is never requested or shown
 
 **View & use**
 - Detail view with download, set-as-wallpaper (home + lock screen), share, and
   open-on-wallhaven
+- Crop and position the wallpaper before applying it
 - Immersive fullscreen viewer with pinch-to-zoom and pan
-- Add wallpapers to your local Favorites collection
+- Add wallpapers to your local Favorites collection (viewable offline)
+- Manage your downloads, including batch select and delete
 
 **Private by default**
 - No account, no sign-up, no ads, no analytics, no trackers
@@ -42,7 +44,7 @@ Everyone
 wallpaper, wallhaven, backgrounds, 4k, hd, nature, anime, minimalist, personalization
 
 ## Contact email
-(enter your developer email here)
+kedharsairam@users.noreply.github.com
 
 ## Privacy policy URL
 https://gist.github.com/kedharsairam/26d2ea413af5e5f40636b6dd744bda0f
