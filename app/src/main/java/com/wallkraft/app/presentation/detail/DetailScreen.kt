@@ -270,7 +270,10 @@ val setTarget = setWallpaperTarget
                 // silent no-op while the network does its thing.
                 Dialog(
                     onDismissRequest = { setWallpaperTarget = null },
-                    properties = DialogProperties(usePlatformDefaultWidth = false),
+                    properties = DialogProperties(
+                        usePlatformDefaultWidth = false,
+                        decorFitsSystemWindows = false,
+                    ),
                 ) {
                     Box(
                         modifier = Modifier

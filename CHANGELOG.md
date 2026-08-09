@@ -5,6 +5,14 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-08-10
+
+### Fixed
+- **Crop dialog image off-center** — the dialog window is full-screen but its content is inset below the status bar, so the crop surface rendered ~121px lower than it should. The image surface is now offset back up by the status bar height, centering the wallpaper on the visible screen and making the crop match what the user sees.
+- **Double-tap fill in crop dialog** — double-tapping now zooms the image to fill the screen top-to-bottom (edge-to-edge, behind the system bars) and toggles back to the centered fit, mirroring the detail screen behavior.
+- **Crop dialog title clipped into the status bar** — the status-bar offset is applied only to the image surface, so the title and controls stay below the status bar.
+- **Crop dialog bottom buttons at the screen edge** — bottom padding now accounts for both the navigation bar and the status bar inset, keeping the buttons above the gesture nav bar.
+
 ## [1.6.0] - 2026-08-09
 
 ### Added
