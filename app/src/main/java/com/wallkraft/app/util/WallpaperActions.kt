@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import coil3.imageLoader
 import com.wallkraft.app.R
@@ -137,6 +138,7 @@ object WallpaperActions {
             scanDownloadsDirectory(context)
         }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun queryMediaStoreDownloads(context: Context): List<DownloadedFile> {
         val collection = MediaStore.Downloads.EXTERNAL_CONTENT_URI
         val projection = arrayOf(
