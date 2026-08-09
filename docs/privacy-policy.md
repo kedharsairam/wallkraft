@@ -1,6 +1,6 @@
 # WallKraft Privacy Policy
 
-**Effective date:** (enter date)
+**Effective date:** August 9, 2026
 
 WallKraft is a wallpaper browsing app. Your privacy is the default: the app
 does not have accounts, does not show ads, and does not use analytics or
@@ -41,4 +41,4 @@ If this policy changes, the updated version will be posted on this page.
 
 ## Contact
 
-For any privacy questions, contact: (enter your email)
+For any privacy questions, contact: kedharsairam@users.noreply.github.com
