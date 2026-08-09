@@ -1,10 +1,15 @@
 package com.wallkraft.app.presentation.components
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,24 +36,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.util.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -79,10 +92,45 @@ fun WallpaperCropDialog(
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
+    val scope = rememberCoroutineScope()
+    var animJob by remember { mutableStateOf<Job?>(null) }
+
+    // The dialog window extends behind the navigation bar but does not dispatch
+    // the nav-bar inset to its content (navigationBarsPadding() reads 0 here).
+    // Read the real insets from the activity window, which is edge-to-edge and
+    // reports them correctly, and pad the bottom controls explicitly.
+    //
+    // The dialog content is also offset below the status bar (the window is
+    // full-screen but the content is inset by the decor), so the crop surface
+    // would be shifted down on screen. Offset the image surface back up by the
+    // status bar height so the image centers on the visible screen and the crop
+    // matches what the user sees. The controls stay in the dialog's own frame,
+    // so the bottom padding must include the status bar height too.
+    val density = LocalDensity.current
+    val context = LocalContext.current
+    val statusTopPx = remember {
+        val activity = context.findActivity()
+        activity?.window?.decorView
+            ?.let { ViewCompat.getRootWindowInsets(it) }
+            ?.getInsets(WindowInsetsCompat.Type.statusBars())
+            ?.top ?: 0
+    }
+    val navBottomPx = remember {
+        val activity = context.findActivity()
+        activity?.window?.decorView
+            ?.let { ViewCompat.getRootWindowInsets(it) }
+            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+            ?.bottom ?: 0
+    }
+    val statusTop = with(density) { statusTopPx.toDp() }
+    val bottomPadding = with(density) { (navBottomPx + statusTopPx).toDp() }
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        ),
     ) {
         val bmp = bitmap
         if (bmp == null) {
@@ -125,6 +173,35 @@ fun WallpaperCropDialog(
                 frameWpx / bmp.width,
                 frameHpx / bmp.height,
             )
+            // The minimum zoom where the image covers the whole frame — for a
+            // landscape wallpaper that's top-to-bottom fill (height matches the
+            // screen, width overflows), for portrait it's left-to-right fill.
+            // At this level one axis is exactly flush, so that axis can't pan
+            // (nothing beyond it) while the other still can.
+            val fillZoom = kotlin.math.max(
+                frameWpx / (bmp.width * fitScale),
+                frameHpx / (bmp.height * fitScale),
+            ).coerceIn(1f, MAX_CROP_ZOOM)
+
+            fun animateTo(targetZoom: Float, targetPanX: Float, targetPanY: Float) {
+                animJob?.cancel()
+                val startZoom = zoom
+                val startPanX = panX
+                val startPanY = panY
+                animJob = scope.launch {
+                    val startTime = withFrameNanos { it }
+                    while (true) {
+                        val now = withFrameNanos { it }
+                        val t = ((now - startTime) / 1_000_000L).toFloat() / ANIM_DURATION_MS.toFloat()
+                        val eased = FastOutSlowInEasing.transform(t.coerceIn(0f, 1f))
+                        zoom = lerp(startZoom, targetZoom, eased)
+                        panX = lerp(startPanX, targetPanX, eased)
+                        panY = lerp(startPanY, targetPanY, eased)
+                        if (t >= 1f) break
+                    }
+                }
+            }
+
             val scaledW = bmp.width * fitScale * zoom
             val scaledH = bmp.height * fitScale * zoom
             val centerX = frameWpx / 2f + panX
@@ -139,7 +216,8 @@ fun WallpaperCropDialog(
                 scaledW = scaledW.toInt(),
                 scaledH = scaledH.toInt(),
                 onTransform = { pan, gestureZoom ->
-                    val newZoom = (zoom * gestureZoom).coerceIn(1f, 8f)
+                    animJob?.cancel()
+                    val newZoom = (zoom * gestureZoom).coerceIn(1f, MAX_CROP_ZOOM)
                     // Keep the pinch centered: scale the existing pan about the
                     // gesture centroid, then add the drag delta.
                     panX = (panX - pan.centroidX) * (newZoom / zoom) + pan.centroidX + pan.offsetX
@@ -151,7 +229,18 @@ fun WallpaperCropDialog(
                     panX = panX.coerceIn(-maxPanX, maxPanX)
                     panY = panY.coerceIn(-maxPanY, maxPanY)
                 },
-                modifier = Modifier.fillMaxSize(),
+                onDoubleTap = {
+                    // Toggle: at fit → zoom to fill-frame (centered); zoomed →
+                    // return to fit. Mirrors the detail screen's first double-tap.
+                    if (zoom <= 1.01f) {
+                        animateTo(fillZoom, 0f, 0f)
+                    } else {
+                        animateTo(1f, 0f, 0f)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = -statusTop),
             )
 
             // Top bar: title + hint.
@@ -180,7 +269,7 @@ fun WallpaperCropDialog(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .navigationBarsPadding()
+                    .padding(bottom = bottomPadding)
                     .padding(KraftSpacing.Spacing16),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -231,7 +320,7 @@ fun WallpaperCropDialog(
     }
 }
 
-/** Draws the cropped image region and forwards pan/zoom gestures. */
+/** Draws the cropped image region and forwards pan/zoom/double-tap gestures. */
 @Composable
 private fun CanvasCropSurface(
     bitmap: Bitmap,
@@ -240,17 +329,24 @@ private fun CanvasCropSurface(
     scaledW: Int,
     scaledH: Int,
     onTransform: (PanZoom, Float) -> Unit,
+    onDoubleTap: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     androidx.compose.foundation.Canvas(
-        modifier = modifier.pointerInput(Unit) {
-            detectTransformGestures { centroid, pan, gestureZoom, _ ->
-                onTransform(
-                    PanZoom(centroid.x, centroid.y, pan.x, pan.y),
-                    gestureZoom,
-                )
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTransformGestures { centroid, pan, gestureZoom, _ ->
+                    onTransform(
+                        PanZoom(centroid.x, centroid.y, pan.x, pan.y),
+                        gestureZoom,
+                    )
+                }
             }
-        },
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onDoubleTap = { onDoubleTap() },
+                )
+            },
     ) {
         drawImage(
             image = bitmap.asImageBitmap(),
@@ -290,3 +386,12 @@ private fun decodeBounded(file: File): Bitmap? {
 }
 
 private const val MAX_DECODE_DIM = 4096
+private const val MAX_CROP_ZOOM = 8f
+private const val ANIM_DURATION_MS = 220L
+
+/** Walks up the context chain to the owning [Activity], if any. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
