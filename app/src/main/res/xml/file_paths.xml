@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Favorite wallpapers stored in the app-private files dir. -->
+    <files-path name="favorites" path="favorites/" />
+    <!-- Temp files for sharing / wallpaper set, in the evictable cache. -->
+    <cache-path name="shared" path="shared/" />
+</paths>

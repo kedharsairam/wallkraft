@@ -5,6 +5,31 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-08-09
+
+### Added
+- **Downloads tab restored** — a proper file library: lists downloaded wallpapers with size, opens the file location, and deletes files. Replaces the removed v1.5.0 tab.
+- **Batch delete** — select multiple (or all) downloads and delete them with a single confirmation instead of confirming each file.
+- **Share** — share the actual image file (offline favorite copy, else downloaded to cache) via a new `FileProvider`, falling back to the wallhaven.cc URL.
+- **Set wallpaper with crop & position** — full-screen crop dialog with pinch-zoom and drag to frame the visible region, position chips (home / lock / both), then crops to screen resolution and applies via `WallpaperManager`.
+- **Data saver mode** — opt-in Settings toggle. When ON, the detail screen shows the thumbnail instantly and defers the full-res download until you zoom; local files (offline favorites) still load immediately. Grid tap-to-prefetch is gated too.
+- **Offline favorites** — full-res image downloaded to app-private storage when favorited, deleted on unfavorite; favorites viewable with no internet.
+- **Search response caching** — file-backed, 30-minute TTL, bounded (100 entries), offline fallback; returning to a visited Browse screen is instant and works offline.
+- **Shared image cache** — Coil disk cache (512 MB) shared between grid and detail loaders so thumbnails fetched by the grid are reused by detail (and vice-versa).
+- **Network retry with backoff** — transient failures (network errors + 5xx) retried up to 3 times with exponential backoff; never retries rate-limit, client errors, or parse failures.
+- **Haptics** — subtle vibration on favorite toggle, download, and successful wallpaper set.
+- **Hindi localization** — `values-hi/strings.xml` with all strings translated, proving the i18n architecture.
+
+### Changed
+- **Tag browsing reworked** — tapping a tag now opens the Browse screen pre-filtered to that tag (shared `WallpaperListViewModel`), replacing the dedicated Tag screen.
+- **Pull-to-refresh fixed** — `search()` gained a `forceRefresh` param that bypasses the cache, and `refresh()` enforces a minimum 500ms so the spinner always animates away.
+- **Accessibility** — all icons have content descriptions, touch targets are 48dp, hardcoded strings moved to resources.
+
+### Fixed
+- **Blank Downloads/Favorites content** — the inner screens ignored the Scaffold's `innerPadding`, so the list was laid out behind the opaque top bar. Now padded correctly.
+- **Duplicate `categories` query parameter** in the Wallhaven API search call.
+- **Unit tests updated** — 29 tests covering the new data saver setting and reworked Browse flow.
+
 ## [1.5.0] - 2026-08-07
 
 ### Added

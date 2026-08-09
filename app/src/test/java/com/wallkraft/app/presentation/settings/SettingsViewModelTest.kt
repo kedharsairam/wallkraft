@@ -1,6 +1,7 @@
 package com.wallkraft.app.presentation.settings
 
 import com.wallkraft.app.domain.model.AppSettings
+import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -89,13 +90,36 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `clearAllFavorites is exposed`() = runTest(dispatcher) {
+    fun `setOrientation updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         val vm = SettingsViewModel(repo)
         advanceUntilIdle()
 
-        // Verify the ViewModel is created without error
-        assertEquals(AppSettings(), vm.settings.value)
+        vm.setOrientation(Orientation.Portrait)
+        advanceUntilIdle()
+
+        assertEquals(Orientation.Portrait, repo._settings.value.orientation)
+    }
+
+    @Test
+    fun `setDataSaverMode updates repository`() = runTest(dispatcher) {
+        val repo = FakeSettingsRepository()
+        val vm = SettingsViewModel(repo)
+        advanceUntilIdle()
+
+        vm.setDataSaverMode(true)
+        advanceUntilIdle()
+
+        assertEquals(true, repo._settings.value.dataSaverMode)
+    }
+
+    @Test
+    fun `dataSaverMode defaults to off`() = runTest(dispatcher) {
+        val repo = FakeSettingsRepository()
+        val vm = SettingsViewModel(repo)
+        advanceUntilIdle()
+
+        assertEquals(false, vm.settings.value.dataSaverMode)
     }
 
     private class FakeSettingsRepository : SettingsRepository {

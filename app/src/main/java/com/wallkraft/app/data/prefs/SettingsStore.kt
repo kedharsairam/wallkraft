@@ -3,6 +3,7 @@ package com.wallkraft.app.data.prefs
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -33,6 +34,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
         val CATEGORIES = stringPreferencesKey("categories")
         val SORTING = stringPreferencesKey("sorting")
         val ORIENTATION = stringPreferencesKey("orientation")
+        val DATA_SAVER_MODE = booleanPreferencesKey("data_saver_mode")
     }
 
     override val settings: Flow<AppSettings> = combine(
@@ -63,6 +65,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             prefs[Keys.CATEGORIES] = updated.categories.joinToString(",") { it.name }
             prefs[Keys.SORTING] = updated.sorting.name
             prefs[Keys.ORIENTATION] = updated.orientation.name
+            prefs[Keys.DATA_SAVER_MODE] = updated.dataSaverMode
         }
     }
 
@@ -80,6 +83,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             categories = categories.ifEmpty { defaults.categories },
             sorting = enumOr(Keys.SORTING, Sorting.DateAdded),
             orientation = enumOr(Keys.ORIENTATION, Orientation.Both),
+            dataSaverMode = this[Keys.DATA_SAVER_MODE] ?: defaults.dataSaverMode,
         )
     }
 

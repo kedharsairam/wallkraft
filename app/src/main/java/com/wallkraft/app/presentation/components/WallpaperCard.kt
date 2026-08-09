@@ -22,9 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -93,7 +95,7 @@ fun WallpaperCard(
             ) {
                 Icon(
                     imageVector = Icons.Filled.Download,
-                    contentDescription = "Downloaded",
+                    contentDescription = stringResource(R.string.favorites_downloaded),
                     tint = Color.White,
                     modifier = Modifier.size(12.dp),
                 )

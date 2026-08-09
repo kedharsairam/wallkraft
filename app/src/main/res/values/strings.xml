@@ -5,6 +5,7 @@
     <!-- Navigation -->
     <string name="tab_browse">Browse</string>
     <string name="tab_favorites">Favorites</string>
+    <string name="tab_downloads">Downloads</string>
     <string name="tab_settings">Settings</string>
 
     <!-- Browse -->
@@ -35,6 +36,9 @@
     <string name="api_key_description">Optional. Unlocks higher rate limits and exclusive content with your account key.</string>
     <string name="api_key_hint">Paste your API key</string>
     <string name="appearance">Appearance</string>
+    <string name="data_saver_title">Data saver</string>
+    <string name="data_saver_description">Load full-resolution images only when you zoom, set, or share. Saves mobile data.</string>
+    <string name="loading_full_resolution">Loading full resolution…</string>
     <string name="default_sorting">Default sorting</string>
     <string name="default_orientation">Default orientation</string>
     <string name="theme_system">System</string>
@@ -44,12 +48,27 @@
 
     <!-- Favorites -->
     <string name="favorites_title">Favorites</string>
-    <string name="favorites_all">All</string>
-    <string name="favorites_downloaded">Downloaded</string>
     <string name="no_favorites_title">No favorites yet</string>
     <string name="no_favorites_message">Tap the heart on any wallpaper to save it here.</string>
-    <string name="no_downloaded_title">Nothing downloaded</string>
-    <string name="no_downloaded_message">Downloaded wallpapers from your favorites will appear here.</string>
+    <string name="favorites_downloaded">Downloaded</string>
+    <string name="open_location">Open location</string>
+
+    <!-- Downloads -->
+    <string name="downloads_title">Downloads</string>
+    <string name="no_downloads_title">Nothing downloaded</string>
+    <string name="no_downloads_message">Wallpapers you download will appear here.</string>
+    <string name="delete">Delete</string>
+    <string name="delete_confirm_title">Delete download?</string>
+    <string name="delete_confirm_message">This removes the file from your device. The wallpaper stays on wallhaven.cc.</string>
+
+    <!-- Downloads selection -->
+    <string name="select">Select</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="selected">Selected</string>
+    <string name="delete_selected_title">Delete %1$d downloads?</string>
+    <string name="delete_selected_message">This removes %1$d files from your device. The wallpapers stay on wallhaven.cc.</string>
 
     <!-- Detail -->
     <string name="wallpaper">Wallpaper</string>
@@ -62,6 +81,7 @@
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="download">Download</string>
+    <string name="share">Share</string>
     <string name="set_as_wallpaper">Set as wallpaper</string>
     <string name="wallpaper_position_title">Set wallpaper on</string>
     <string name="wallpaper_position_home">Home screen</string>
@@ -70,6 +90,8 @@
     <string name="download_notification_title">WallKraft — %1$s</string>
     <string name="favorites_format">%1$d ♥</string>
     <string name="cancel">Cancel</string>
+    <string name="crop_hint">Pinch to zoom, drag to position</string>
+    <string name="crop_load_failed">Couldn\'t load the image</string>
 
     <!-- Error / empty states -->
     <string name="error_title">Something went wrong</string>

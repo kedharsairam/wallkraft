@@ -48,6 +48,9 @@ fun WallpaperGrid(
     footer: @Composable () -> Unit = {},
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     downloadedIds: Set<String> = emptySet(),
+    // When false (data saver on), tapping a tile does NOT prefetch the
+    // full-res image — the detail screen defers it until the user zooms.
+    prefetchFullRes: Boolean = true,
 ) {
     val gridState = state
 
@@ -118,7 +121,23 @@ fun WallpaperGrid(
         items(wallpapers, key = { it.id }) { wallpaper ->
             WallpaperCard(
                 wallpaper = wallpaper,
-                onClick = { onOpen(wallpaper) },
+                onClick = {
+                    // Warm the full-res image before the detail screen opens so
+                    // it appears instantly (the detail screen already seeds a
+                    // preview from the thumbnail; this gets the full-res into
+                    // the cache ahead of time). enqueue with no target = fetch
+                    // into the cache without drawing. Skipped in data saver
+                    // mode — the detail screen defers the download instead.
+                    if (prefetchFullRes) {
+                        val fullUrl = wallpaper.path ?: wallpaper.thumbnail
+                        if (fullUrl != null) {
+                            gridImageLoader.enqueue(
+                                ImageRequest.Builder(context).data(fullUrl).build(),
+                            )
+                        }
+                    }
+                    onOpen(wallpaper)
+                },
                 downloadedIds = downloadedIds,
             )
         }

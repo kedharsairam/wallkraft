@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -39,18 +40,19 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -70,11 +72,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -88,11 +94,13 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ErrorState
+import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.WallpaperPosition
 import com.wallkraft.app.util.toUserMessage
 import com.wallkraft.app.util.wallpaperCategoryLabel
+import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
@@ -126,8 +134,19 @@ fun DetailScreen(
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
     val wallpaper = uiState.wallpaper
     var setWallpaperTarget by remember { mutableStateOf<Wallpaper?>(null) }
+
+    // Data saver: when enabled, the full-res image is deferred until the user
+    // zooms (or the image is already local — favorites cost zero data). The
+    // thumbnail still renders instantly, so the screen never feels slow.
+    // Read once (null until known) so the full-res decision is never made
+    // against the default value — that would start a download we don't want.
+    var dataSaverEnabled by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) {
+        dataSaverEnabled = container.settings.current().dataSaverMode
+    }
 
     // Resolve snackbar copy now — stringResource is composable and can't
     // be called inside the action callbacks below.
@@ -155,8 +174,28 @@ fun DetailScreen(
                     DetailContent(
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
-                        onToggleFavorite = { viewModel.toggleFavorite(wallpaper) },
+                        dataSaverEnabled = dataSaverEnabled,
+                        // Prefer the locally-cached favorite copy when it exists
+                        // so the image loads instantly and works offline; fall
+                        // back to the network URL otherwise.
+                        imageModel = container.favoriteImageStore.fileFor(wallpaper.id) ?: wallpaper.path,
+                        onToggleFavorite = {
+                            // Subtle tick so the action feels acknowledged.
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            val wasFavorite = wallpaper.id in uiState.favoriteIds
+                            viewModel.toggleFavorite(wallpaper)
+                            // Keep favorites viewable offline: download the
+                            // full-res into the private store on favorite,
+                            // remove it on unfavorite. Fire-and-forget so the
+                            // toggle never waits on the network.
+                            if (wasFavorite) {
+                                container.favoriteImageStore.delete(wallpaper.id)
+                            } else {
+                                scope.launch { container.favoriteImageStore.save(wallpaper) }
+                            }
+                        },
                         onDownload = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             WallpaperActions.download(context, wallpaper)
                             scope.launch {
                                 snackbarHostState.showSnackbar(
@@ -165,6 +204,17 @@ fun DetailScreen(
                             }
                         },
                         onSetWallpaper = { setWallpaperTarget = wallpaper },
+                        onShare = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            scope.launch {
+                                WallpaperActions.share(
+                                    context,
+                                    wallpaper,
+                                    container.okHttpClient,
+                                    container.favoriteImageStore.fileFor(wallpaper.id),
+                                )
+                            }
+                        },
                         onBack = onBack,
                         onTagClick = onTagClick,
                         onZoomChanged = onZoomChanged,
@@ -181,22 +231,65 @@ fun DetailScreen(
         )
     }
 
-    val setTarget = setWallpaperTarget
+val setTarget = setWallpaperTarget
     if (setTarget != null) {
-        WallpaperPositionDialog(
-            onDismiss = { setWallpaperTarget = null },
-            onSelect = { position ->
-                setWallpaperTarget = null
-                scope.launch {
-                    val ok = WallpaperActions.setAsWallpaper(
-                        context, setTarget, container.okHttpClient, position
-                    )
-                    snackbarHostState.showSnackbar(
-                        if (ok) wallpaperSetMsg else wallpaperSetFailedMsg
-                    )
+        // Resolve a local image file (offline favorite copy, else download to
+        // cache) so the crop dialog can decode it. Show the crop dialog once
+        // it's ready; surface an error if the image can't be obtained.
+        var resolvedFile by remember(setTarget) { mutableStateOf<File?>(null) }
+        var resolving by remember(setTarget) { mutableStateOf(true) }
+        LaunchedEffect(setTarget) {
+            resolving = true
+            resolvedFile = WallpaperActions.imageFile(
+                context,
+                setTarget,
+                container.okHttpClient,
+                container.favoriteImageStore.fileFor(setTarget.id),
+            )
+            resolving = false
+        }
+        val file = resolvedFile
+        when {
+            file != null -> WallpaperCropDialog(
+                imageFile = file,
+                onDismiss = { setWallpaperTarget = null },
+                onConfirm = { cropped, position ->
+                    setWallpaperTarget = null
+                    scope.launch {
+                        val ok = WallpaperActions.setAsWallpaper(context, cropped, position)
+                        if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        snackbarHostState.showSnackbar(
+                            if (ok) wallpaperSetMsg else wallpaperSetFailedMsg
+                        )
+                    }
+                },
+            )
+            resolving -> {
+                // Still resolving the image (downloading a non-favorite's
+                // full-res into cache). Show a spinner so the tap isn't a
+                // silent no-op while the network does its thing.
+                Dialog(
+                    onDismissRequest = { setWallpaperTarget = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
-            },
-        )
+            }
+            else -> {
+                // Resolution finished but no file — show the failure and close.
+                LaunchedEffect(Unit) {
+                    setWallpaperTarget = null
+                    snackbarHostState.showSnackbar(wallpaperSetFailedMsg)
+                }
+            }
+        }
     }
 }
 
@@ -216,9 +309,12 @@ fun DetailScreen(
 private fun DetailContent(
     wallpaper: Wallpaper,
     isFavorite: Boolean,
+    dataSaverEnabled: Boolean?,
+    imageModel: Any,
     onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onSetWallpaper: () -> Unit,
+    onShare: () -> Unit,
     onBack: () -> Unit,
     onTagClick: (String) -> Unit,
     onZoomChanged: (Boolean) -> Unit,
@@ -283,24 +379,42 @@ private fun DetailContent(
         // top loading bar. Simple and predictable — no animation to get wrong.
         var fullResLoaded by remember { mutableStateOf(false) }
         val heroScope = rememberCoroutineScope()
+        // Data saver defers the full-res download until the user zooms (the
+        // moment they actually need the detail). A local file — like the
+        // offline favorite copy — costs zero data, so it loads immediately.
+        // Keyed on [imageModel] and [dataSaverEnabled] so it flips to true if
+        // a local copy appears while the screen is open (e.g. favoriting
+        // mid-view). While the setting is still unknown (null) we defer —
+        // never start a download against the default.
+        var fullResRequested by remember(imageModel, dataSaverEnabled) {
+            mutableStateOf(dataSaverEnabled == false || imageModel is File)
+        }
         // Determinate progress 0f..1f. Coil doesn't expose real download
         // progress, so we animate it smoothly toward 1 and snap to 1 the
         // instant the full-res image is ready — a clean left-to-right fill.
+        // Keyed on [fullResRequested] so the bar restarts from 0 when data
+        // saver defers the load until the user zooms.
         val fullResProgress = remember { Animatable(0f) }
-        LaunchedEffect(Unit) {
-            fullResProgress.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(1500, easing = LinearEasing),
-            )
+        LaunchedEffect(fullResRequested) {
+            if (fullResRequested) {
+                fullResProgress.snapTo(0f)
+                fullResProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(1500, easing = LinearEasing),
+                )
+            }
         }
 
         ZoomableImage(
-            model = wallpaper.path,
+            model = imageModel,
             placeholderModel = wallpaper.thumbnail,
             contentDescription = wallpaper.resolution,
             zoomLevels = zoomLevels,
             onZoomChanged = { newScale ->
                 val zoomed = newScale > 1.01f
+                // First zoom is the user asking for detail — request the
+                // full-res image now (data saver). Harmless when already on.
+                if (zoomed) fullResRequested = true
                 isZoomed = zoomed
                 onZoomChanged(zoomed)
             },
@@ -308,14 +422,16 @@ private fun DetailContent(
                 fullResLoaded = true
                 heroScope.launch { fullResProgress.snapTo(1f) }
             },
-            loadFullRes = true,
+            loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
         )
 
         // Subtle loading bar at the very top while the full-res image loads.
         // Determinate: fills left-to-right from 0 to 100, then fades out.
+        // Only shown when the full-res is actually being requested — in data
+        // saver mode that's once the user zooms, not on open.
         AnimatedVisibility(
-            visible = !fullResLoaded && !isZoomed,
+            visible = fullResRequested && !fullResLoaded && !isZoomed,
             enter = fadeIn(animationSpec = tween(200)),
             exit = fadeOut(animationSpec = tween(200)),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
@@ -326,6 +442,38 @@ private fun DetailContent(
                 color = KraftColors.AccentGreen,
                 trackColor = Color.Transparent,
             )
+        }
+
+        // Data saver: while zoomed before the full-res has arrived, show a
+        // small "loading full resolution" pill so the blurry thumbnail never
+        // reads as a broken image. Fades out the instant the image is ready.
+        AnimatedVisibility(
+            visible = isZoomed && fullResRequested && !fullResLoaded,
+            enter = fadeIn(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(200)),
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = KraftSpacing.Spacing24),
+        ) {
+            Surface(
+                shape = RoundedCornerShape(KraftRadius.Small),
+                color = Color.Black.copy(alpha = 0.6f),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing8),
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp,
+                        color = Color.White,
+                    )
+                    Spacer(Modifier.width(KraftSpacing.Spacing8))
+                    Text(
+                        text = stringResource(R.string.loading_full_resolution),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                    )
+                }
+            }
         }
 
         // Top bar — back + open. Fades away when zoomed.
@@ -445,6 +593,11 @@ private fun DetailContent(
                     onClick = onSetWallpaper,
                     icon = Icons.Filled.Wallpaper,
                     contentDescription = stringResource(R.string.set_as_wallpaper),
+                )
+                ReelsActionButton(
+                    onClick = onShare,
+                    icon = Icons.Filled.Share,
+                    contentDescription = stringResource(R.string.share),
                 )
             }
         }
@@ -627,56 +780,6 @@ private fun DetailPanelContent(
                         modifier = Modifier.padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
                     )
                 }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun WallpaperPositionDialog(
-    onDismiss: () -> Unit,
-    onSelect: (WallpaperPosition) -> Unit,
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = KraftSpacing.Spacing16)
-                .padding(bottom = KraftSpacing.Spacing24),
-        ) {
-            Text(
-                text = stringResource(R.string.wallpaper_position_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Spacer(Modifier.height(KraftSpacing.Spacing16))
-            listOf(
-                WallpaperPosition.HOME to R.string.wallpaper_position_home,
-                WallpaperPosition.LOCK to R.string.wallpaper_position_lock,
-                WallpaperPosition.BOTH to R.string.wallpaper_position_both,
-            ).forEach { (position, labelRes) ->
-                TextButton(
-                    onClick = { onSelect(position) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = stringResource(labelRes),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-            }
-            Spacer(Modifier.height(KraftSpacing.Spacing8))
-            TextButton(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = stringResource(R.string.cancel),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         }
     }

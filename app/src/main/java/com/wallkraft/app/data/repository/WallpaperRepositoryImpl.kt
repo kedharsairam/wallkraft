@@ -2,6 +2,7 @@ package com.wallkraft.app.data.repository
 
 import android.util.LruCache
 import com.wallkraft.app.data.api.WallhavenApi
+import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
@@ -11,33 +12,49 @@ import kotlinx.coroutines.flow.Flow
 
 class WallpaperRepositoryImpl(
     private val api: WallhavenApi,
+    private val searchCache: SearchResponseCache,
 ) : WallpaperRepository {
 
     /** Bounded in-memory cache — caps at 200 entries to prevent OOM on long sessions. */
     private val cacheById = LruCache<String, Wallpaper>(200)
 
-    override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> =
+    override suspend fun search(
+        filters: WallhavenFilters,
+        page: Int,
+        forceRefresh: Boolean,
+    ): Result<WallpaperResponse> =
         try {
+            // 1. Fresh cache hit → instant, no network round-trip. Returning to
+            //    a screen you already visited is immediate. Skipped on a forced
+            //    refresh, which must return live data from the server.
+            if (!forceRefresh && searchCache.isFresh(filters, page)) {
+                searchCache.get(filters, page)?.let { return Result.success(it) }
+            }
+
+            // 2. Network fetch.
             val response = api.search(filters, page)
             // Defense in depth: even though the API client only ever requests
             // SFW (purity=100), never surface anything the API reports as
             // sketchy or NSFW. Also dedupe by id — the Wallhaven search API
             // can return the same wallpaper twice across pages, and the
             // staggered grid keys items by id.
-            //
-            // Search results are NOT cached here: the search endpoint omits
-            // tags, and a cached tagless copy would shadow the full wallpaper
-            // returned by wallpaper(id), hiding tags on the detail screen.
             val sfwOnly = response.data
                 .filter { it.isSfw }
                 .distinctBy { it.id }
-            Result.success(
-                WallpaperResponse(
-                    data = sfwOnly,
-                    meta = response.meta,
-                ),
+            val processed = WallpaperResponse(
+                data = sfwOnly,
+                meta = response.meta,
             )
+            searchCache.put(filters, page, processed)
+            Result.success(processed)
         } catch (e: WallpaperError) {
+            // 3. Offline fallback — a stale cached copy beats an error.
+            //    Skipped on a forced refresh too: pulling to refresh with no
+            //    connection should surface the error, not silently replay old
+            //    results.
+            if (!forceRefresh) {
+                searchCache.get(filters, page)?.let { return Result.success(it) }
+            }
             Result.failure(e)
         }
 

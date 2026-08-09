@@ -41,7 +41,7 @@ class BrowseViewModelTest {
     @Test
     fun `search sends the query to the API`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
         vm.search("cats")
@@ -65,7 +65,7 @@ class BrowseViewModelTest {
                 Result.success(pageOf(if (filters.query == "new") "new-result" else "other", filters))
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
         advanceUntilIdle() // init search is now suspended on the gate
 
         vm.search("new") // cancels the suspended init request, starts a fresh one
@@ -83,7 +83,7 @@ class BrowseViewModelTest {
     fun `search failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.onSearch = { _, _ -> Result.failure(Exception("network")) }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { e -> e.message ?: "unknown" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> e.message ?: "unknown" })
 
         vm.search("cats")
         advanceUntilIdle()
@@ -103,7 +103,7 @@ class BrowseViewModelTest {
                 ),
             )
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertEquals(1, vm.uiState.value.wallpapers.size)
@@ -126,7 +126,7 @@ class BrowseViewModelTest {
                 ),
             )
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { "error" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertEquals(1, vm.uiState.value.wallpapers.size)
@@ -154,7 +154,7 @@ class BrowseViewModelTest {
                 Result.failure(Exception("network"))
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository()) { e -> e.message ?: "error" }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> e.message ?: "error" })
         advanceUntilIdle()
 
         vm.loadNextPage()
@@ -181,7 +181,11 @@ class BrowseViewModelTest {
             )
         }
 
-        override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> {
+        override suspend fun search(
+            filters: WallhavenFilters,
+            page: Int,
+            forceRefresh: Boolean,
+        ): Result<WallpaperResponse> {
             searchRequests += filters to page
             return onSearch(filters, page)
         }

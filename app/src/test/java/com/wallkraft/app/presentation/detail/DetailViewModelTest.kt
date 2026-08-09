@@ -158,7 +158,11 @@ class DetailViewModelTest {
             Result.success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))
         }
 
-        override suspend fun search(filters: com.wallkraft.app.domain.model.WallhavenFilters, page: Int): Result<com.wallkraft.app.domain.model.WallpaperResponse> =
+        override suspend fun search(
+            filters: com.wallkraft.app.domain.model.WallhavenFilters,
+            page: Int,
+            forceRefresh: Boolean,
+        ): Result<com.wallkraft.app.domain.model.WallpaperResponse> =
             Result.success(com.wallkraft.app.domain.model.WallpaperResponse())
 
         override suspend fun wallpaper(id: String): Result<Wallpaper> = wallpaperResult(id)
