@@ -7,6 +7,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
+import android.view.View
+import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,14 +22,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,11 +49,14 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -54,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
@@ -61,6 +72,7 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.util.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -77,7 +89,7 @@ import java.io.File
 fun WallpaperCropDialog(
     imageFile: File,
     onDismiss: () -> Unit,
-    onConfirm: (Bitmap, WallpaperPosition) -> Unit,
+    onConfirm: suspend (Bitmap, WallpaperPosition) -> Boolean,
 ) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
@@ -94,18 +106,25 @@ fun WallpaperCropDialog(
     var panY by remember { mutableFloatStateOf(0f) }
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
+    // Applying state: true while the wallpaper is being set (button shows a
+    // spinner and is disabled). setResult is null until the apply finishes,
+    // then true (success → centered checkmark, then dismiss) or false
+    // (failure → snackbar, dialog stays open to retry).
+    var applying by remember { mutableStateOf(false) }
+    var setResult by remember { mutableStateOf<Boolean?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val setFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
     // The dialog window extends behind the navigation bar but does not dispatch
     // the nav-bar inset to its content (navigationBarsPadding() reads 0 here).
     // Read the real insets from the activity window, which is edge-to-edge and
     // reports them correctly, and pad the bottom controls explicitly.
     //
-    // The dialog content is also offset below the status bar (the window is
-    // full-screen but the content is inset by the decor), so the crop surface
-    // would be shifted down on screen. Offset the image surface back up by the
-    // status bar height so the image centers on the visible screen and the crop
-    // matches what the user sees. The controls stay in the dialog's own frame,
-    // so the bottom padding must include the status bar height too.
+    // The dialog window is forced edge-to-edge below (see the LaunchedEffect
+    // inside the Dialog), so the crop surface spans the full screen and the
+    // image centers on the visible screen without any offset. The controls sit
+    // at the bottom of the (taller-than-frame) crop surface, so the bottom
+    // padding must clear the navigation bar.
     val density = LocalDensity.current
     val context = LocalContext.current
     val statusTopPx = remember {
@@ -122,7 +141,6 @@ fun WallpaperCropDialog(
             ?.getInsets(WindowInsetsCompat.Type.navigationBars())
             ?.bottom ?: 0
     }
-    val statusTop = with(density) { statusTopPx.toDp() }
     val bottomPadding = with(density) { (navBottomPx + statusTopPx).toDp() }
 
     Dialog(
@@ -132,6 +150,38 @@ fun WallpaperCropDialog(
             decorFitsSystemWindows = false,
         ),
     ) {
+        // DialogProperties.decorFitsSystemWindows alone leaves the dialog
+        // window inset below the status bar on this device (frame starts at
+        // screen y=statusTopPx), which would leave a black band at the top of
+        // the crop surface in fill state. Force the window edge-to-edge so the
+        // canvas spans the full screen and the crop output matches it 1:1.
+        val dialogView = LocalView.current
+        LaunchedEffect(Unit) {
+            var v: View? = dialogView
+            while (v != null) {
+                if (v is DialogWindowProvider) {
+                    val window = v.window
+                    window.setDecorFitsSystemWindows(false)
+                    val lp = window.attributes
+                    lp.gravity = android.view.Gravity.TOP or android.view.Gravity.START
+                    lp.width = WindowManager.LayoutParams.MATCH_PARENT
+                    lp.height = WindowManager.LayoutParams.MATCH_PARENT
+                    lp.layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    // The activity window carries these flags and is laid out
+                    // edge-to-edge; the dialog window is missing them, so the
+                    // window manager insets it below the status bar. Add them so
+                    // the crop surface spans the full screen like the detail page.
+                    lp.flags = lp.flags or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
+                    window.attributes = lp
+                    break
+                }
+                v = v.parent as? View
+            }
+        }
+
         val bmp = bitmap
         if (bmp == null) {
             // Loading or decode failure surface.
@@ -239,8 +289,24 @@ fun WallpaperCropDialog(
                     }
                 },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .offset(y = -statusTop),
+                    .fillMaxSize(),
+            )
+
+            // Top scrim: darkens the top of the screen so the white title/hint
+            // (and the status bar icons) stay readable on light wallpapers.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.45f),
+                                Color.Transparent,
+                            ),
+                        ),
+                    ),
             )
 
             // Top bar: title + hint.
@@ -254,15 +320,32 @@ fun WallpaperCropDialog(
                 Text(
                     text = stringResource(R.string.wallpaper_position_title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = androidx.compose.ui.graphics.Color.White,
+                    color = Color.White,
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 Text(
                     text = stringResource(R.string.crop_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.8f),
+                    color = Color.White.copy(alpha = 0.8f),
                 )
             }
+
+            // Bottom scrim: darkens the bottom of the screen so the chips and
+            // buttons stay readable on light wallpapers.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.45f),
+                            ),
+                        ),
+                    ),
+            )
 
             // Bottom controls: position chips + Set/Cancel.
             Column(
@@ -290,29 +373,84 @@ fun WallpaperCropDialog(
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
                 Row(horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16)) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(onClick = onDismiss, enabled = !applying) {
                         Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = {
-                            val crop = Bitmap.createBitmap(
-                                frameWpx.toInt(),
-                                frameHpx.toInt(),
-                                Bitmap.Config.ARGB_8888,
-                            )
-                            val src: android.graphics.Rect? = null
-                            val paint: android.graphics.Paint? = null
-                            android.graphics.Canvas(crop).drawBitmap(
-                                bmp,
-                                src,
-                                RectF(left, top, left + scaledW, top + scaledH),
-                                paint,
-                            )
-                            onConfirm(crop, position)
+                            if (applying) return@Button
+                            applying = true
+                            scope.launch {
+                                val crop = Bitmap.createBitmap(
+                                    frameWpx.toInt(),
+                                    frameHpx.toInt(),
+                                    Bitmap.Config.ARGB_8888,
+                                )
+                                val src: android.graphics.Rect? = null
+                                val paint: android.graphics.Paint? = null
+                                android.graphics.Canvas(crop).drawBitmap(
+                                    bmp,
+                                    src,
+                                    RectF(left, top, left + scaledW, top + scaledH),
+                                    paint,
+                                )
+                                val ok = onConfirm(crop, position)
+                                if (ok) {
+                                    setResult = true
+                                    delay(1200)
+                                    onDismiss()
+                                } else {
+                                    applying = false
+                                    snackbarHostState.showSnackbar(setFailedMsg)
+                                }
+                            }
                         },
                         modifier = Modifier.clip(RoundedCornerShape(50)),
+                        enabled = !applying,
                     ) {
-                        Text(stringResource(R.string.set_as_wallpaper))
+                        if (applying) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        } else {
+                            Text(stringResource(R.string.set_as_wallpaper))
+                        }
+                    }
+                }
+            }
+
+            // Failure feedback: snackbar above the controls, dialog stays open.
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = bottomPadding)
+                    .padding(bottom = KraftSpacing.Spacing64),
+            )
+
+            // Success feedback: centered checkmark + message, then auto-dismiss.
+            if (setResult == true) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(72.dp),
+                        )
+                        Spacer(Modifier.height(KraftSpacing.Spacing12))
+                        Text(
+                            text = stringResource(R.string.wallpaper_set),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                        )
                     }
                 }
             }
