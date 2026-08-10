@@ -150,7 +150,6 @@ fun DetailScreen(
 
     // Resolve snackbar copy now — stringResource is composable and can't
     // be called inside the action callbacks below.
-    val wallpaperSetMsg = stringResource(R.string.wallpaper_set)
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -253,15 +252,14 @@ val setTarget = setWallpaperTarget
             file != null -> WallpaperCropDialog(
                 imageFile = file,
                 onDismiss = { setWallpaperTarget = null },
+                // The dialog owns the feedback: it shows a spinner while the
+                // wallpaper applies, a centered checkmark on success (then
+                // dismisses itself), or a snackbar on failure (and stays open).
+                // We just apply the wallpaper and report whether it worked.
                 onConfirm = { cropped, position ->
-                    setWallpaperTarget = null
-                    scope.launch {
-                        val ok = WallpaperActions.setAsWallpaper(context, cropped, position)
-                        if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        snackbarHostState.showSnackbar(
-                            if (ok) wallpaperSetMsg else wallpaperSetFailedMsg
-                        )
-                    }
+                    val ok = WallpaperActions.setAsWallpaper(context, cropped, position)
+                    if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    ok
                 },
             )
             resolving -> {
