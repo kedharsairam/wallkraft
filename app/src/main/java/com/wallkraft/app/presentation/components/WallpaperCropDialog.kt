@@ -7,17 +7,18 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
+import android.os.Build
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,14 +26,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -68,6 +74,8 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.util.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
@@ -117,23 +125,12 @@ fun WallpaperCropDialog(
 
     // The dialog window extends behind the navigation bar but does not dispatch
     // the nav-bar inset to its content (navigationBarsPadding() reads 0 here).
-    // Read the real insets from the activity window, which is edge-to-edge and
-    // reports them correctly, and pad the bottom controls explicitly.
-    //
-    // The dialog window is forced edge-to-edge below (see the LaunchedEffect
-    // inside the Dialog), so the crop surface spans the full screen and the
-    // image centers on the visible screen without any offset. The controls sit
-    // at the bottom of the (taller-than-frame) crop surface, so the bottom
-    // padding must clear the navigation bar.
+    // Read the real inset from the activity window, which is edge-to-edge and
+    // reports it correctly, and pad the panel content explicitly so it clears
+    // the nav bar. The panel surface itself extends to the bottom of the frame
+    // (behind the transparent gesture nav bar), like a bottom sheet.
     val density = LocalDensity.current
     val context = LocalContext.current
-    val statusTopPx = remember {
-        val activity = context.findActivity()
-        activity?.window?.decorView
-            ?.let { ViewCompat.getRootWindowInsets(it) }
-            ?.getInsets(WindowInsetsCompat.Type.statusBars())
-            ?.top ?: 0
-    }
     val navBottomPx = remember {
         val activity = context.findActivity()
         activity?.window?.decorView
@@ -141,7 +138,7 @@ fun WallpaperCropDialog(
             ?.getInsets(WindowInsetsCompat.Type.navigationBars())
             ?.bottom ?: 0
     }
-    val bottomPadding = with(density) { (navBottomPx + statusTopPx).toDp() }
+    val bottomPadding = with(density) { navBottomPx.toDp() }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -161,13 +158,21 @@ fun WallpaperCropDialog(
             while (v != null) {
                 if (v is DialogWindowProvider) {
                     val window = v.window
-                    window.setDecorFitsSystemWindows(false)
+                    // API 30+ only; on older versions the window flags below
+                    // already lay the dialog out edge-to-edge.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        window.setDecorFitsSystemWindows(false)
+                    }
                     val lp = window.attributes
                     lp.gravity = android.view.Gravity.TOP or android.view.Gravity.START
                     lp.width = WindowManager.LayoutParams.MATCH_PARENT
                     lp.height = WindowManager.LayoutParams.MATCH_PARENT
-                    lp.layoutInDisplayCutoutMode =
-                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    // API 28+ only; the field doesn't exist on 26-27, where the
+                    // window flags below are sufficient.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        lp.layoutInDisplayCutoutMode =
+                            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    }
                     // The activity window carries these flags and is laid out
                     // edge-to-edge; the dialog window is missing them, so the
                     // window manager insets it below the status bar. Add them so
@@ -292,90 +297,111 @@ fun WallpaperCropDialog(
                     .fillMaxSize(),
             )
 
-            // Top scrim: darkens the top of the screen so the white title/hint
-            // (and the status bar icons) stay readable on light wallpapers.
+            // Thin top scrim: just enough for the status-bar icons on light
+            // wallpapers. Short and subtle — the image stays the hero.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .height(160.dp)
+                    .height(100.dp)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.45f),
-                                Color.Transparent,
+                            colorStops = arrayOf(
+                                0.0f to Color.Black.copy(alpha = 0.4f),
+                                1.0f to Color.Transparent,
                             ),
                         ),
                     ),
             )
 
-            // Top bar: title + hint.
-            Column(
+            // Close button: top-left, on a dark circle so it's visible on any
+            // wallpaper. The only chrome above the image.
+            Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
+                    .align(Alignment.TopStart)
                     .statusBarsPadding()
-                    .padding(KraftSpacing.Spacing16),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .padding(KraftSpacing.Spacing16)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable(onClick = onDismiss),
+                contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = stringResource(R.string.wallpaper_position_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
-                Text(
-                    text = stringResource(R.string.crop_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.8f),
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = stringResource(R.string.cancel),
+                    tint = Color.White,
+                    modifier = Modifier.size(18.dp),
                 )
             }
 
-            // Bottom scrim: darkens the bottom of the screen so the chips and
-            // buttons stay readable on light wallpapers.
+            // Bottom panel: a distinct dark surface (translucent so the image
+            // stays dimly visible for WYSIWYG cropping) with a hard top edge
+            // against the image — the Apple approach. The image stays the hero;
+            // the controls live on their own readable layer. The surface
+            // extends to the bottom of the frame; only the content is padded
+            // above the nav bar.
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(220.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                Color.Black.copy(alpha = 0.45f),
-                            ),
-                        ),
-                    ),
-            )
-
-            // Bottom controls: position chips + Set/Cancel.
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(bottom = bottomPadding)
-                    .padding(KraftSpacing.Spacing16),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                    .clip(RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero))
+                    .background(Color.Black.copy(alpha = 0.65f)),
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = bottomPadding)
+                        .padding(KraftSpacing.Spacing16),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    listOf(
-                        WallpaperPosition.HOME to R.string.wallpaper_position_home,
-                        WallpaperPosition.LOCK to R.string.wallpaper_position_lock,
-                        WallpaperPosition.BOTH to R.string.wallpaper_position_both,
-                    ).forEach { (pos, labelRes) ->
-                        FilterChip(
-                            selected = position == pos,
-                            onClick = { position = pos },
-                            label = { Text(stringResource(labelRes)) },
-                        )
+                    // Failure feedback: snackbar at the top of the panel, above
+                    // the title, so it never covers the controls.
+                    SnackbarHost(hostState = snackbarHostState)
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    Text(
+                        text = stringResource(R.string.wallpaper_position_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing4))
+                    Text(
+                        text = stringResource(R.string.crop_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = KraftColors.TextSecondaryDark,
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing16))
+                    // Position choice: segmented control (Home | Lock | Both),
+                    // the Apple idiom for a mutually-exclusive pick.
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        listOf(
+                            WallpaperPosition.HOME to R.string.wallpaper_position_home,
+                            WallpaperPosition.LOCK to R.string.wallpaper_position_lock,
+                            WallpaperPosition.BOTH to R.string.wallpaper_position_both,
+                        ).forEachIndexed { index, (pos, labelRes) ->
+                            SegmentedButton(
+                                selected = position == pos,
+                                onClick = { position = pos },
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = 3,
+                                ),
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = Color.White,
+                                    activeContentColor = Color.Black,
+                                    inactiveContainerColor = KraftColors.SurfaceContainerDark,
+                                    inactiveContentColor = Color.White.copy(alpha = 0.8f),
+                                ),
+                                border = BorderStroke(1.dp, KraftColors.SeparatorDark),
+                                icon = {},
+                            ) {
+                                Text(stringResource(labelRes))
+                            }
+                        }
                     }
-                }
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
-                Row(horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16)) {
-                    TextButton(onClick = onDismiss, enabled = !applying) {
-                        Text(stringResource(R.string.cancel))
-                    }
+                    Spacer(Modifier.height(KraftSpacing.Spacing16))
                     Button(
                         onClick = {
                             if (applying) return@Button
@@ -405,30 +431,39 @@ fun WallpaperCropDialog(
                                 }
                             }
                         },
-                        modifier = Modifier.clip(RoundedCornerShape(50)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(KraftRadius.Standard),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = KraftColors.AccentBlue,
+                            contentColor = Color.White,
+                        ),
                         enabled = !applying,
                     ) {
                         if (applying) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                color = Color.White,
                             )
                         } else {
                             Text(stringResource(R.string.set_as_wallpaper))
                         }
                     }
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    TextButton(
+                        onClick = onDismiss,
+                        enabled = !applying,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            color = Color.White.copy(alpha = 0.8f),
+                        )
+                    }
                 }
             }
-
-            // Failure feedback: snackbar above the controls, dialog stays open.
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = bottomPadding)
-                    .padding(bottom = KraftSpacing.Spacing64),
-            )
 
             // Success feedback: centered checkmark + message, then auto-dismiss.
             if (setResult == true) {

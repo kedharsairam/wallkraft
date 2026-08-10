@@ -209,7 +209,6 @@ fun DetailScreen(
                                 WallpaperActions.share(
                                     context,
                                     wallpaper,
-                                    container.okHttpClient,
                                     container.favoriteImageStore.fileFor(wallpaper.id),
                                 )
                             }
@@ -242,7 +241,6 @@ val setTarget = setWallpaperTarget
             resolvedFile = WallpaperActions.imageFile(
                 context,
                 setTarget,
-                container.okHttpClient,
                 container.favoriteImageStore.fileFor(setTarget.id),
             )
             resolving = false

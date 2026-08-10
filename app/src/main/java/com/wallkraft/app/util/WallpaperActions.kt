@@ -14,13 +14,13 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import coil3.imageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.size.Size
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Wallpaper
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
 
 /**
@@ -47,71 +47,12 @@ object WallpaperActions {
     /** Applies a pre-cropped [Bitmap] as the wallpaper at [position]. */
     fun setAsWallpaper(context: Context, bitmap: Bitmap, position: WallpaperPosition): Boolean =
         runCatching {
-            WallpaperManager.getInstance(context).setBitmap(bitmap, null, true, position.flags)
+            val wm = WallpaperManager.getInstance(context)
+            wm.setBitmap(bitmap, null, true, position.flags)
         }.isSuccess
 
     /**
-     * Sets the wallpaper. First checks if the image already exists in the
-     * Downloads folder (from a previous download) to avoid re-downloading.
-     * If not found, downloads it, caches it in the app's internal cache for
-     * future reuse, and applies it.
-     */
-    suspend fun setAsWallpaper(
-        context: Context,
-        wallpaper: Wallpaper,
-        client: OkHttpClient,
-        position: WallpaperPosition = WallpaperPosition.BOTH,
-    ): Boolean = withContext(Dispatchers.IO) {
-        try {
-            // 1. Check if the wallpaper exists in the Downloads folder.
-            val downloaded = downloadedFile(context, wallpaper.id)
-
-            val stream = if (downloaded != null) {
-                // Found in Downloads — use it directly.
-                context.contentResolver.openInputStream(downloaded.uri)
-            } else {
-                // 2. Not in Downloads — check internal cache.
-                val cacheFile = File(context.cacheDir, "wallpapers/${wallpaper.id}")
-                if (cacheFile.exists() && cacheFile.length() > 0) {
-                    cacheFile.inputStream()
-                } else {
-                    // 3. Download and cache for future use.
-                    cacheFile.parentFile?.mkdirs()
-                    val request = Request.Builder().url(wallpaper.path).get().build()
-                    client.newCall(request).execute().use { response ->
-                        check(response.isSuccessful) { "HTTP ${response.code}" }
-                        val body = response.body ?: error("Empty body")
-                        // Temp file + rename so an interrupted download can't
-                        // leave a partial file that looks valid next time.
-                        val tmp = File(cacheFile.parentFile, "${wallpaper.id}.tmp")
-                        tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
-                        if (!tmp.renameTo(cacheFile)) {
-                            tmp.delete()
-                            cacheFile.delete()
-                            error("Failed to move downloaded image into place")
-                        }
-                    }
-                    cacheFile.inputStream()
-                }
-            }
-
-            stream.use { s ->
-                WallpaperManager.getInstance(context).setStream(
-                    s,
-                    null,
-                    true,
-                    position.flags,
-                )
-            }
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    /** Returns true if a wallpaper has been downloaded to the Downloads folder. */
+     * Returns true if a wallpaper has been downloaded to the Downloads folder. */
     fun isDownloaded(context: Context, wallpaperId: String): Boolean =
         downloadedFile(context, wallpaperId) != null
 
@@ -247,10 +188,9 @@ object WallpaperActions {
     suspend fun share(
         context: Context,
         wallpaper: Wallpaper,
-        client: OkHttpClient,
         localFile: File? = null,
     ): Boolean {
-        val image = shareableFile(context, wallpaper, client, localFile)
+        val image = shareableFile(context, wallpaper, localFile)
         if (image != null) {
             val uri = FileProvider.getUriForFile(
                 context,
@@ -289,7 +229,6 @@ object WallpaperActions {
     private suspend fun shareableFile(
         context: Context,
         wallpaper: Wallpaper,
-        client: OkHttpClient,
         localFile: File?,
     ): File? {
         val ext = extensionFor(wallpaper)
@@ -304,7 +243,7 @@ object WallpaperActions {
             return named.takeIf { it.exists() && it.length() > 0 } ?: local
         }
         coilCachedFile(context, wallpaper)?.let { return it }
-        return downloadToCache(context, wallpaper, client)
+        return coilFetchToCache(context, wallpaper)
     }
 
     /**
@@ -339,36 +278,31 @@ object WallpaperActions {
     private fun extensionFor(wallpaper: Wallpaper): String =
         Uri.parse(wallpaper.path).lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
 
-    /** Downloads [wallpaper]'s full-res into the cache dir, or returns null on failure. */
-    private suspend fun downloadToCache(
-        context: Context,
-        wallpaper: Wallpaper,
-        client: OkHttpClient,
-    ): File? = withContext(Dispatchers.IO) {
-        if (wallpaper.path.isBlank()) return@withContext null
-        runCatching {
-            val dir = File(context.cacheDir, "shared").apply { mkdirs() }
-            // Name the file with its real extension so FileProvider can resolve
-            // the MIME type when the file is shared.
-            val file = File(dir, "${wallpaper.id}.${extensionFor(wallpaper)}")
-            if (file.exists() && file.length() > 0) return@runCatching file
-            val request = Request.Builder().url(wallpaper.path).get().build()
-            client.newCall(request).execute().use { response ->
-                check(response.isSuccessful) { "HTTP ${response.code}" }
-                val body = response.body ?: return@runCatching null
-                // Temp file + rename so a failed download never leaves a
-                // partial file that the length check above would accept.
-                val tmp = File(dir, "${wallpaper.id}.tmp")
-                tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
-                if (!tmp.renameTo(file)) {
-                    tmp.delete()
-                    file.delete()
-                    error("Failed to move downloaded image into place")
-                }
-            }
-            file
-        }.getOrNull()
-    }
+    /**
+     * Ensures [wallpaper]'s full-res image is in Coil's disk cache, then returns
+     * a shareable copy of it (or null on failure).
+     *
+     * The request mirrors the detail screen's exactly — same data, decoded at
+     * [Size.ORIGINAL], on the app's singleton loader — so if the detail screen
+     * is already loading the full-res, Coil joins that in-flight request
+     * instead of starting a second download. The memory cache is disabled
+     * because we only need the bytes on disk; the fetch still populates the
+     * disk cache, which [coilCachedFile] then reads.
+     */
+    private suspend fun coilFetchToCache(context: Context, wallpaper: Wallpaper): File? =
+        withContext(Dispatchers.IO) {
+            if (wallpaper.path.isBlank()) return@withContext null
+            runCatching {
+                val request = ImageRequest.Builder(context)
+                    .data(wallpaper.path)
+                    .size(Size.ORIGINAL)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .build()
+                context.imageLoader.execute(request)
+                coilCachedFile(context, wallpaper)
+            }.getOrNull()
+        }
 
     /**
      * Returns a local file for [wallpaper]'s image: the offline favorite copy
@@ -377,11 +311,10 @@ object WallpaperActions {
     suspend fun imageFile(
         context: Context,
         wallpaper: Wallpaper,
-        client: OkHttpClient,
         localFile: File? = null,
     ): File? = localFile
         ?: coilCachedFile(context, wallpaper)
-        ?: downloadToCache(context, wallpaper, client)
+        ?: coilFetchToCache(context, wallpaper)
 }
 
 /** Which screen(s) to apply a wallpaper to. */

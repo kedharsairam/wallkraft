@@ -5,6 +5,16 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.2] - 2026-08-11
+
+### Added
+- **Apple-style crop dialog redesign** — the Set-wallpaper dialog now uses a clean translucent panel (no blur): a hard-edged bottom sheet with rounded top corners that extends behind the gesture nav bar, a thin top scrim for status-bar legibility, a close button on a dark circle top-left, and an Apple-style segmented control (white pill with black text) for the home / lock / both position picker.
+
+### Changed
+- **Set-as-wallpaper reuses Coil's in-flight full-res load** — the manual OkHttp download fallback is gone. When the full-res isn't cached yet, the app now issues a Coil request identical to the detail screen's (same data, decoded at original size, on the shared loader), so Coil joins an already-running download instead of starting a second one. Data saver still defers the full-res until you zoom, set, or share — the explicit Set action downloads on demand as before.
+- **Share benefits from the same path** — sharing a non-favorite wallpaper also reuses Coil's disk cache or joins the in-flight load instead of a separate OkHttp download.
+- **Dead code removed** — the unused OkHttp-based `setAsWallpaper` overload and `downloadToCache` are deleted; `imageFile`/`share` no longer take an `OkHttpClient`.
+
 ## [1.6.1] - 2026-08-10
 
 ### Fixed
