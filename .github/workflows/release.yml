@@ -101,4 +101,4 @@ jobs:
             - Android APK is signed with the WallKraft release key (arm64-only).
             - Windows build is a single self-contained executable.
           files: |
-            app/build/outputs/apk/release/WallKraft-*.apk
+            android/app/build/outputs/apk/release/WallKraft-*.apk
