@@ -1,8 +1,15 @@
 # WallKraft
 
-A clean, fast, and private wallpaper browsing app for Android, powered by the [Wallhaven](https://wallhaven.cc) API.
+A clean, fast, and private wallpaper browsing app for Android (and Windows, coming soon), powered by the [Wallhaven](https://wallhaven.cc) API.
 
-Built with Kotlin and Jetpack Compose. No ads, no analytics, no trackers — your data stays on your device.
+No ads, no analytics, no trackers — your data stays on your device.
+
+This is a monorepo. Each platform lives in its own directory with its own toolchain:
+
+| Directory | Platform | Stack |
+|---|---|---|
+| `android/` | Android | Kotlin + Jetpack Compose |
+| `windows/` | Windows (planned) | Rust + Slint |
 
 ## Features
 
@@ -37,6 +44,9 @@ Built with Kotlin and Jetpack Compose. No ads, no analytics, no trackers — you
 ## Build
 
 ```bash
+# From the android/ directory
+cd android
+
 # Debug build
 ./gradlew assembleDebug
 
@@ -47,29 +57,31 @@ Built with Kotlin and Jetpack Compose. No ads, no analytics, no trackers — you
 ./gradlew test
 ```
 
-The debug APK is output to `app/build/outputs/apk/debug/app-debug.apk`.
+The debug APK is output to `android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ## Project Structure
 
 ```
-app/src/main/java/com/wallkraft/app/
-├── core/design/          # Design tokens, theme, colors, typography
-├── data/                 # API, database, cache, preferences, repositories
-│   ├── api/              # Wallhaven API client
-│   ├── cache/            # Search response + favorite image caching
-│   ├── db/               # Room database (favorites)
-│   ├── prefs/            # DataStore-backed settings
-│   └── repository/       # Repository implementations
-├── domain/               # Models and repository interfaces
-├── presentation/         # Screens, ViewModels, shared components
-│   ├── browse/           # Browse screen + ViewModel
-│   ├── detail/           # Detail screen + fullscreen viewer
-│   ├── downloads/        # Downloads library + batch delete
-│   ├── favorites/        # Favorites screen + ViewModel
-│   ├── settings/         # Settings screen + ViewModel
-│   ├── common/           # Shared ViewModel logic
-│   └── components/       # Reusable UI components
-└── util/                 # Helpers (WallpaperActions, formatting)
+├── android/               # Android app (Kotlin + Jetpack Compose)
+│   └── app/src/main/java/com/wallkraft/app/
+│       ├── core/design/          # Design tokens, theme, colors, typography
+│       ├── data/                 # API, database, cache, preferences, repositories
+│       │   ├── api/              # Wallhaven API client
+│       │   ├── cache/            # Search response + favorite image caching
+│       │   ├── db/               # Room database (favorites)
+│       │   ├── prefs/            # DataStore-backed settings
+│       │   └── repository/       # Repository implementations
+│       ├── domain/               # Models and repository interfaces
+│       ├── presentation/         # Screens, ViewModels, shared components
+│       │   ├── browse/           # Browse screen + ViewModel
+│       │   ├── detail/           # Detail screen + fullscreen viewer
+│       │   ├── downloads/        # Downloads library + batch delete
+│       │   ├── favorites/        # Favorites screen + ViewModel
+│       │   ├── settings/         # Settings screen + ViewModel
+│       │   ├── common/           # Shared ViewModel logic
+│       │   └── components/       # Reusable UI components
+│       └── util/                 # Helpers (WallpaperActions, formatting)
+└── windows/               # Windows app (Rust + Slint, planned)
 ```
 
 ## Requirements
@@ -85,7 +97,7 @@ WallKraft is private by default:
 - Your Wallhaven API key (optional) is stored only on your device
 - Favorites and downloads are stored locally and never leave your phone
 
-See [docs/privacy-policy.md](docs/privacy-policy.md) for details.
+See [android/docs/privacy-policy.md](android/docs/privacy-policy.md) for details.
 
 ## License
 
