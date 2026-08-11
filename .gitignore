@@ -28,3 +28,6 @@ verify_out.txt
 
 # Built APKs (hand-copied release artifacts)
 dist/
+
+# Rust (Windows app)
+windows/target/
