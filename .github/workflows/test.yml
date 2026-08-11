@@ -3,6 +3,7 @@ name: PR Check
 on:
   pull_request:
     branches: [master]
+    paths: ['android/**', '.github/workflows/test.yml']
 
 jobs:
   build-and-test:

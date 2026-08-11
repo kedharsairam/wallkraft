@@ -1,0 +1,31 @@
+name: Windows CI
+
+on:
+  push:
+    branches: [master]
+    paths: ['windows/**', '.github/workflows/windows-ci.yml']
+  pull_request:
+    branches: [master]
+    paths: ['windows/**', '.github/workflows/windows-ci.yml']
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Run tests
+        run: cargo test --release

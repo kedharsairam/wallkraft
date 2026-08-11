@@ -1,0 +1,42 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Rename EXE with version tag
+        id: rename
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          Copy-Item target/release/wallkraft.exe "target/release/WallKraft-$version-windows.exe"
+          $size = (Get-Item "target/release/WallKraft-$version-windows.exe").Length
+          echo "### EXE Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
+          echo "File: WallKraft-$version-windows.exe" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: windows/target/release/WallKraft-*.exe
