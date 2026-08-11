@@ -62,10 +62,10 @@ jobs:
           VERSION="${TAG#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           mv app/build/outputs/apk/release/app-release.apk \
-             app/build/outputs/apk/release/WallKraft-${VERSION}.apk
-          SIZE=$(du -h app/build/outputs/apk/release/WallKraft-${VERSION}.apk | cut -f1)
+             app/build/outputs/apk/release/WallKraft-${VERSION}-android-arm64.apk
+          SIZE=$(du -h app/build/outputs/apk/release/WallKraft-${VERSION}-android-arm64.apk | cut -f1)
           echo "### APK Size: $SIZE" >> "$GITHUB_STEP_SUMMARY"
-          echo "File: WallKraft-${VERSION}.apk" >> "$GITHUB_STEP_SUMMARY"
+          echo "File: WallKraft-${VERSION}-android-arm64.apk" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -74,13 +74,21 @@ jobs:
           body: |
             ## WallKraft ${{ github.ref_name }}
 
-            Native Kotlin + Jetpack Compose rewrite of the WallKraft wallpaper
-            app (Android).
+            A clean, fast, and private wallpaper browsing app powered by the
+            [Wallhaven](https://wallhaven.cc) API. No ads, no analytics, no trackers.
 
-            ### Install
-            1. Download `WallKraft-${{ steps.rename.outputs.version }}.apk`
+            ### Downloads
+            - `WallKraft-${{ steps.rename.outputs.version }}-android-arm64.apk` — Android (arm64)
+            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — Windows (x64)
+
+            ### Install — Android
+            1. Download the `.apk`
             2. Open the file on your Android device
             3. Allow "Install from unknown sources" if prompted
+
+            ### Install — Windows
+            1. Download the `.exe`
+            2. Run it — portable, no installation required
 
             ### Features
             - Browse the Wallhaven library with search and filters
@@ -90,7 +98,7 @@ jobs:
             - Settings: API key, theme, default sorting
 
             ### Notes
-            - Release APK is signed with the WallKraft release key.
-            - arm64-only build.
+            - Android APK is signed with the WallKraft release key (arm64-only).
+            - Windows build is a single self-contained executable.
           files: |
             app/build/outputs/apk/release/WallKraft-*.apk
