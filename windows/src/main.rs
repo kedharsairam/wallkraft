@@ -20,6 +20,7 @@ struct AppState {
     query: String,
     page: u32,
     wallpapers: Vec<Wallpaper>,
+    busy: bool,
 }
 
 type SharedState = Arc<Mutex<AppState>>;
@@ -36,6 +37,7 @@ fn main() -> Result<()> {
         query: String::new(),
         page: 1,
         wallpapers: Vec::new(),
+        busy: false,
     }));
 
     // Search
@@ -46,9 +48,16 @@ fn main() -> Result<()> {
         let state = state.clone();
         ui.on_search(move |query| {
             let query = query.as_str().trim().to_string();
-            state.lock().unwrap().query = query.clone();
-            state.lock().unwrap().page = 1;
-            state.lock().unwrap().wallpapers.clear();
+            {
+                let mut guard = state.lock().unwrap();
+                if guard.busy {
+                    return;
+                }
+                guard.busy = true;
+                guard.query = query.clone();
+                guard.page = 1;
+                guard.wallpapers.clear();
+            }
             start_search(&ui_cb, &client, &handle, &state, query, 1, false);
         });
     }
@@ -61,7 +70,11 @@ fn main() -> Result<()> {
         let state = state.clone();
         ui.on_load_more(move || {
             let (query, page) = {
-                let guard = state.lock().unwrap();
+                let mut guard = state.lock().unwrap();
+                if guard.busy {
+                    return;
+                }
+                guard.busy = true;
                 (guard.query.clone(), guard.page + 1)
             };
             start_search(&ui_cb, &client, &handle, &state, query, page, true);
@@ -96,6 +109,14 @@ fn main() -> Result<()> {
         ui.on_close_detail(move || ui_cb.set_detail_visible(false));
     }
 
+    // Open in browser
+    ui.on_open_wallhaven(move |id| {
+        let url = format!("https://wallhaven.cc/w/{}", id);
+        let _ = std::process::Command::new("cmd")
+            .args(["/C", "start", "", &url])
+            .spawn();
+    });
+
     // Initial load once the event loop starts
     {
         let ui = ui.clone_strong();
@@ -103,6 +124,7 @@ fn main() -> Result<()> {
         let handle = rt.handle().clone();
         let state = state.clone();
         slint::Timer::single_shot(std::time::Duration::ZERO, move || {
+            state.lock().unwrap().busy = true;
             start_search(&ui, &client, &handle, &state, String::new(), 1, false);
         });
     }
@@ -130,12 +152,19 @@ fn start_search(
     handle.spawn(async move {
         match client.search(&query, page).await {
             Ok(mut wallpapers) => {
+                // Download thumbnails in parallel, skipping cached ones.
+                let mut set = tokio::task::JoinSet::new();
                 for w in &wallpapers {
                     let dest = storage::thumb_path(&cache, &w.id);
                     if !dest.exists() {
-                        let _ = client.download_to(&w.thumbs.small, &dest).await;
+                        let client = client.clone();
+                        let url = w.thumbs.small.clone();
+                        set.spawn(async move {
+                            let _ = client.download_to(&url, &dest).await;
+                        });
                     }
                 }
+                while set.join_next().await.is_some() {}
                 {
                     let mut guard = state.lock().unwrap();
                     if append {
@@ -144,6 +173,7 @@ fn start_search(
                         guard.wallpapers = wallpapers;
                     }
                     guard.page = page;
+                    guard.busy = false;
                 }
                 // Images are loaded on the UI thread (slint::Image is not Send).
                 let state_ui = state.clone();
@@ -157,10 +187,11 @@ fn start_search(
                 });
             }
             Err(e) => {
+                state.lock().unwrap().busy = false;
                 let msg = format!("Search failed: {e}");
                 let _ = ui_weak.upgrade_in_event_loop(move |ui| {
                     ui.set_loading(false);
-                    ui.set_status(msg.into());
+                    flash_status(&ui, msg);
                 });
             }
         }
@@ -189,7 +220,7 @@ fn open_detail(
         let dest = storage::full_path(&cache, &w.id);
         if !dest.exists() && client.download_to(&w.path, &dest).await.is_err() {
             let msg = format!("Download failed for {}", w.id);
-            let _ = ui_weak.upgrade_in_event_loop(move |ui| ui.set_status(msg.into()));
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| flash_status(&ui, msg));
             return;
         }
         let resolution = w.resolution.clone();
@@ -203,6 +234,17 @@ fn open_detail(
             ui.set_detail_visible(true);
             ui.set_status(SharedString::default());
         });
+    });
+}
+
+/// Show a transient status toast that clears itself after a few seconds.
+fn flash_status(ui: &MainWindow, msg: impl Into<SharedString>) {
+    ui.set_status(msg.into());
+    let weak = ui.as_weak();
+    slint::Timer::single_shot(std::time::Duration::from_secs(3), move || {
+        if let Some(ui) = weak.upgrade() {
+            ui.set_status(SharedString::default());
+        }
     });
 }
 
@@ -228,14 +270,14 @@ fn apply_wallpaper(
         let dest = storage::full_path(&cache, &w.id);
         if !dest.exists() && client.download_to(&w.path, &dest).await.is_err() {
             let msg = format!("Download failed for {}", w.id);
-            let _ = ui_weak.upgrade_in_event_loop(move |ui| ui.set_status(msg.into()));
+            let _ = ui_weak.upgrade_in_event_loop(move |ui| flash_status(&ui, msg));
             return;
         }
         let msg = match wallpaper::set_wallpaper(&dest) {
             Ok(()) => "Wallpaper set".to_string(),
             Err(e) => format!("Failed to set wallpaper: {e}"),
         };
-        let _ = ui_weak.upgrade_in_event_loop(move |ui| ui.set_status(msg.into()));
+        let _ = ui_weak.upgrade_in_event_loop(move |ui| flash_status(&ui, msg));
     });
 }
 
@@ -252,10 +294,17 @@ fn build_rows(wallpapers: &[Wallpaper], cache: &PathBuf) -> Vec<RowData> {
 
 fn wallpaper_data(w: &Wallpaper, cache: &PathBuf) -> WallpaperData {
     let thumb = storage::thumb_path(cache, &w.id);
+    // Tile ratio = height / width, so the card height is width * ratio.
+    let ratio = if w.dimension_x > 0 && w.dimension_y > 0 {
+        w.dimension_y as f32 / w.dimension_x as f32
+    } else {
+        0.625
+    };
     WallpaperData {
         id: w.id.clone().into(),
         thumb: Image::load_from_path(&thumb).unwrap_or_default(),
         resolution: w.resolution.clone().into(),
         category: w.category.clone().into(),
+        ratio,
     }
 }

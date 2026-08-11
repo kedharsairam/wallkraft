@@ -1,10 +1,42 @@
-import { ListView, Button, LineEdit, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { ListView, VerticalBox, HorizontalBox } from "std-widgets.slint";
 
+// ---------------------------------------------------------------------------
+// Kraft Design Language tokens (dark first). Ported from KraftTokens.kt.
+// A global makes the palette available anywhere and easy to swap for light
+// mode later: just set the properties from Rust.
+// ---------------------------------------------------------------------------
+global KraftTheme {
+    in property <color> bg: #000000;
+    in property <color> surface: #1C1C1E;
+    in property <color> surface-secondary: #2C2C2E;
+    in property <color> surface-tertiary: #3A3A3C;
+    in property <color> text-primary: #FFFFFF;
+    in property <color> text-secondary: #EBEBF5;
+    in property <color> text-tertiary: #8E8E93;
+    in property <color> accent: #0A84FF;
+    in property <color> separator: #38383A;
+
+    in property <length> radius-small: 8px;
+    in property <length> radius-standard: 12px;
+    in property <length> radius-large: 16px;
+
+    in property <length> space-2: 8px;
+    in property <length> space-3: 12px;
+    in property <length> space-4: 16px;
+    in property <length> space-5: 20px;
+    in property <length> space-6: 24px;
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
 struct WallpaperData {
     id: string,
     thumb: image,
     resolution: string,
     category: string,
+    // tile ratio = height / width, so a card height is width * ratio
+    ratio: float,
 }
 
 struct RowData {
@@ -12,15 +44,94 @@ struct RowData {
     right: WallpaperData,
 }
 
+// ---------------------------------------------------------------------------
+// Themed controls (custom-drawn, per Kraft design language)
+// ---------------------------------------------------------------------------
+component PrimaryButton inherits Rectangle {
+    in property <string> text;
+    callback clicked;
+
+    height: 34px;
+    border-radius: KraftTheme.radius-small;
+    background: KraftTheme.accent;
+
+    states [
+        hovered when touch.has-hover: {
+            background: #3395FF;
+        }
+        pressed when touch.pressed: {
+            background: #006FE6;
+        }
+    ]
+
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 18px;
+        Text {
+            text: root.text;
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 600;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+        mouse-cursor: pointer;
+    }
+}
+
+component GhostButton inherits Rectangle {
+    in property <string> text;
+    callback clicked;
+
+    height: 34px;
+    border-radius: KraftTheme.radius-small;
+    background: KraftTheme.surface-secondary;
+
+    states [
+        hovered when touch.has-hover: {
+            background: KraftTheme.surface-tertiary;
+        }
+    ]
+
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 18px;
+        Text {
+            text: root.text;
+            color: KraftTheme.text-primary;
+            font-size: 14px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+        mouse-cursor: pointer;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wallpaper tile
+// ---------------------------------------------------------------------------
 component WallpaperCard inherits Rectangle {
     in property <WallpaperData> data;
     callback clicked;
 
-    height: 200px;
-    border-radius: 12px;
-    background: #1C1C1E;
-    clip: true;
     visible: root.data.id != "";
+    background: KraftTheme.surface-secondary;
+    border-radius: KraftTheme.radius-standard;
+    clip: true;
+
+    states [
+        hovered when touch.has-hover: {
+            background: KraftTheme.surface-tertiary;
+        }
+    ]
 
     Image {
         source: root.data.thumb;
@@ -29,29 +140,58 @@ component WallpaperCard inherits Rectangle {
         image-fit: cover;
     }
 
+    // resolution pill
     Rectangle {
-        height: 30px;
-        background: #000000A0;
-        y: parent.height - self.height;
-        Text {
-            text: root.data.resolution;
-            color: #FFFFFF;
-            font-size: 12px;
-            vertical-alignment: center;
-            horizontal-alignment: center;
+        x: 8px;
+        y: 8px;
+        height: 20px;
+        border-radius: 10px;
+        background: #00000080;
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 8px;
+            Text {
+                text: root.data.resolution;
+                color: #FFFFFF;
+                font-size: 11px;
+                vertical-alignment: center;
+            }
         }
     }
 
-    TouchArea {
+    // subtle hover veil
+    Rectangle {
+        width: 100%;
+        height: 100%;
+        background: #FFFFFF12;
+        visible: touch.has-hover;
+    }
+
+    touch := TouchArea {
         clicked => { root.clicked(); }
+        mouse-cursor: pointer;
     }
 }
 
+// ---------------------------------------------------------------------------
+// Placeholder tile while the first page loads
+// ---------------------------------------------------------------------------
+component ShimmerTile inherits Rectangle {
+    height: 180px;
+    border-radius: KraftTheme.radius-standard;
+    background: KraftTheme.surface-secondary;
+    opacity: 0.5;
+    animate opacity { duration: 1.4s; iteration-count: -1; }
+}
+
+// ---------------------------------------------------------------------------
+// Main window
+// ---------------------------------------------------------------------------
 export component MainWindow inherits Window {
     title: "WallKraft";
-    width: 960px;
-    height: 680px;
-    background: #0D0D0F;
+    width: 1100px;
+    height: 720px;
+    background: KraftTheme.bg;
 
     in property <[RowData]> rows: [];
     in property <bool> loading: false;
@@ -65,107 +205,189 @@ export component MainWindow inherits Window {
     callback load-more();
     callback open-detail(string);
     callback set-wallpaper(string);
+    callback open-wallhaven(string);
     callback close-detail();
 
     VerticalBox {
-        padding: 16px;
-        spacing: 12px;
+        padding: KraftTheme.space-4;
+        spacing: KraftTheme.space-3;
 
+        // Header
         HorizontalBox {
-            spacing: 8px;
+            spacing: KraftTheme.space-3;
+
             Text {
                 text: "WallKraft";
-                font-size: 22px;
+                font-size: 24px;
                 font-weight: 700;
-                color: #F2F2F7;
+                color: KraftTheme.text-primary;
                 vertical-alignment: center;
             }
-            Rectangle { }
-            search-field := LineEdit {
-                placeholder-text: "Search wallpapers...";
-                accepted => { root.search(self.text); }
+
+            // Search field
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 34px;
+                border-radius: KraftTheme.radius-small;
+                background: KraftTheme.surface-secondary;
+
+                states [
+                    focused when search-field.has-focus: {
+                        background: KraftTheme.surface-tertiary;
+                    }
+                ]
+
+                // Placeholder layer (TextInput has no built-in placeholder)
+                Text {
+                    x: 12px;
+                    width: parent.width - 24px;
+                    height: 100%;
+                    text: "Search wallpapers";
+                    color: KraftTheme.text-tertiary;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    visible: search-field.text == "" && !search-field.has-focus;
+                }
+
+                search-field := TextInput {
+                    x: 12px;
+                    width: parent.width - 24px;
+                    height: 100%;
+                    color: KraftTheme.text-primary;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    accepted => { root.search(self.text); }
+                }
             }
-            Button {
+
+            PrimaryButton {
                 text: "Search";
                 clicked => { root.search(search-field.text); }
             }
         }
 
-        if root.loading: Text {
-            text: "Loading...";
-            color: #8E8E93;
-            font-size: 13px;
+        // First-load skeleton
+        if root.loading && root.rows.length == 0: VerticalLayout {
+            spacing: KraftTheme.space-3;
+            for i in 4: HorizontalLayout {
+                spacing: KraftTheme.space-3;
+                ShimmerTile { }
+                ShimmerTile { }
+            }
         }
 
-        if root.status != "": Text {
-            text: root.status;
-            color: #FF9F0A;
-            font-size: 13px;
-        }
-
+        // Grid
         ListView {
-            for row in root.rows: HorizontalBox {
-                spacing: 12px;
+            for row in root.rows: HorizontalLayout {
+                spacing: KraftTheme.space-3;
                 WallpaperCard {
                     data: row.left;
+                    vertical-stretch: 0;
+                    height: self.width * row.left.ratio;
                     clicked => { root.open-detail(row.left.id); }
                 }
                 WallpaperCard {
                     data: row.right;
+                    vertical-stretch: 0;
+                    height: self.width * row.right.ratio;
                     clicked => { root.open-detail(row.right.id); }
+                }
+            }
+
+            // Infinite scroll: load more when the viewport nears the bottom
+            changed viewport-y => {
+                if self.viewport-y + self.visible-height >= self.viewport-height - 400px {
+                    root.load-more();
                 }
             }
         }
 
-        Button {
-            text: "Load more";
-            clicked => { root.load-more(); }
+        // Footer hint / load state
+        HorizontalBox {
+            height: 28px;
+            Rectangle { }
+            if root.loading && root.rows.length > 0: Text {
+                text: "Loading more...";
+                color: KraftTheme.text-tertiary;
+                font-size: 12px;
+                vertical-alignment: center;
+            }
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Detail overlay
+    // -----------------------------------------------------------------------
     if root.detail-visible: Rectangle {
         x: 0;
         y: 0;
         width: parent.width;
         height: parent.height;
-        background: #0D0D0F;
+        background: KraftTheme.bg;
 
         VerticalBox {
-            padding: 16px;
-            spacing: 12px;
+            padding: KraftTheme.space-4;
+            spacing: KraftTheme.space-3;
 
             HorizontalBox {
-                spacing: 8px;
-                Button {
+                spacing: KraftTheme.space-2;
+                GhostButton {
                     text: "Back";
                     clicked => { root.close-detail(); }
                 }
                 Text {
                     text: root.detail-id;
-                    color: #8E8E93;
+                    color: KraftTheme.text-tertiary;
                     font-size: 13px;
                     vertical-alignment: center;
                 }
                 Rectangle { }
                 Text {
                     text: root.detail-resolution;
-                    color: #8E8E93;
+                    color: KraftTheme.text-tertiary;
                     font-size: 13px;
                     vertical-alignment: center;
                 }
             }
 
             Image {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
                 source: root.detail-image;
-                width: parent.width;
-                height: parent.height - 120px;
                 image-fit: contain;
             }
 
-            Button {
-                text: "Set as Wallpaper";
-                primary: true;
-                clicked => { root.set-wallpaper(root.detail-id); }
+            HorizontalBox {
+                spacing: KraftTheme.space-3;
+                PrimaryButton {
+                    text: "Set as Wallpaper";
+                    clicked => { root.set-wallpaper(root.detail-id); }
+                }
+                GhostButton {
+                    text: "Open on wallhaven.cc";
+                    clicked => { root.open-wallhaven(root.detail-id); }
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Status toast
+    // -----------------------------------------------------------------------
+    if root.status != "": Rectangle {
+        x: (parent.width - self.width) / 2;
+        y: parent.height - self.height - 28px;
+        height: 36px;
+        border-radius: 18px;
+        background: #1C1C1ECC;
+        HorizontalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            Text {
+                text: root.status;
+                color: KraftTheme.text-primary;
+                font-size: 13px;
+                vertical-alignment: center;
             }
         }
     }
