@@ -1,0 +1,172 @@
+import { ListView, Button, LineEdit, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+struct WallpaperData {
+    id: string,
+    thumb: image,
+    resolution: string,
+    category: string,
+}
+
+struct RowData {
+    left: WallpaperData,
+    right: WallpaperData,
+}
+
+component WallpaperCard inherits Rectangle {
+    in property <WallpaperData> data;
+    callback clicked;
+
+    height: 200px;
+    border-radius: 12px;
+    background: #1C1C1E;
+    clip: true;
+    visible: root.data.id != "";
+
+    Image {
+        source: root.data.thumb;
+        width: 100%;
+        height: 100%;
+        image-fit: cover;
+    }
+
+    Rectangle {
+        height: 30px;
+        background: #000000A0;
+        y: parent.height - self.height;
+        Text {
+            text: root.data.resolution;
+            color: #FFFFFF;
+            font-size: 12px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+    }
+
+    TouchArea {
+        clicked => { root.clicked(); }
+    }
+}
+
+export component MainWindow inherits Window {
+    title: "WallKraft";
+    width: 960px;
+    height: 680px;
+    background: #0D0D0F;
+
+    in property <[RowData]> rows: [];
+    in property <bool> loading: false;
+    in property <string> status: "";
+    in property <bool> detail-visible: false;
+    in property <image> detail-image;
+    in property <string> detail-resolution: "";
+    in property <string> detail-id: "";
+
+    callback search(string);
+    callback load-more();
+    callback open-detail(string);
+    callback set-wallpaper(string);
+    callback close-detail();
+
+    VerticalBox {
+        padding: 16px;
+        spacing: 12px;
+
+        HorizontalBox {
+            spacing: 8px;
+            Text {
+                text: "WallKraft";
+                font-size: 22px;
+                font-weight: 700;
+                color: #F2F2F7;
+                vertical-alignment: center;
+            }
+            Rectangle { }
+            search-field := LineEdit {
+                placeholder-text: "Search wallpapers...";
+                accepted => { root.search(self.text); }
+            }
+            Button {
+                text: "Search";
+                clicked => { root.search(search-field.text); }
+            }
+        }
+
+        if root.loading: Text {
+            text: "Loading...";
+            color: #8E8E93;
+            font-size: 13px;
+        }
+
+        if root.status != "": Text {
+            text: root.status;
+            color: #FF9F0A;
+            font-size: 13px;
+        }
+
+        ListView {
+            for row in root.rows: HorizontalBox {
+                spacing: 12px;
+                WallpaperCard {
+                    data: row.left;
+                    clicked => { root.open-detail(row.left.id); }
+                }
+                WallpaperCard {
+                    data: row.right;
+                    clicked => { root.open-detail(row.right.id); }
+                }
+            }
+        }
+
+        Button {
+            text: "Load more";
+            clicked => { root.load-more(); }
+        }
+    }
+
+    if root.detail-visible: Rectangle {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.height;
+        background: #0D0D0F;
+
+        VerticalBox {
+            padding: 16px;
+            spacing: 12px;
+
+            HorizontalBox {
+                spacing: 8px;
+                Button {
+                    text: "Back";
+                    clicked => { root.close-detail(); }
+                }
+                Text {
+                    text: root.detail-id;
+                    color: #8E8E93;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                Rectangle { }
+                Text {
+                    text: root.detail-resolution;
+                    color: #8E8E93;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+            }
+
+            Image {
+                source: root.detail-image;
+                width: parent.width;
+                height: parent.height - 120px;
+                image-fit: contain;
+            }
+
+            Button {
+                text: "Set as Wallpaper";
+                primary: true;
+                clicked => { root.set-wallpaper(root.detail-id); }
+            }
+        }
+    }
+}
