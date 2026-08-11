@@ -5,6 +5,11 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2026-08-11
+
+### Internal
+- **Fully automated dual-platform releases** — a single version tag now builds and uploads both the Android APK and the Windows EXE to one release page, with no manual steps.
+
 ## [1.7.0] - 2026-08-11
 
 ### Added
