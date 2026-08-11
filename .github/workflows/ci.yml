@@ -3,8 +3,10 @@ name: CI
 on:
   push:
     branches: [master]
+    paths: ['android/**', '.github/workflows/ci.yml']
   pull_request:
     branches: [master]
+    paths: ['android/**', '.github/workflows/ci.yml']
 
 jobs:
   build:
