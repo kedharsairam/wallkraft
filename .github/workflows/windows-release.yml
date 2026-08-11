@@ -31,10 +31,10 @@ jobs:
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
           echo "version=$version" >> $env:GITHUB_OUTPUT
-          Copy-Item target/release/wallkraft.exe "target/release/WallKraft-$version-windows.exe"
-          $size = (Get-Item "target/release/WallKraft-$version-windows.exe").Length
+          Copy-Item target/release/wallkraft.exe "target/release/WallKraft-$version-windows-x64.exe"
+          $size = (Get-Item "target/release/WallKraft-$version-windows-x64.exe").Length
           echo "### EXE Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
-          echo "File: WallKraft-$version-windows.exe" >> $env:GITHUB_STEP_SUMMARY
+          echo "File: WallKraft-$version-windows-x64.exe" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2

@@ -5,6 +5,15 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2026-08-11
+
+### Added
+- **Windows app (preview)** — WallKraft now ships for Windows as a native Rust + Slint build. Browse the Wallhaven library, search, view details, and set the desktop wallpaper directly from the app. A single self-contained executable, no installation required.
+- **Monorepo restructure** — the repository now hosts both platforms: `android/` (Kotlin + Compose) and `windows/` (Rust + Slint), with per-platform CI and a shared release pipeline.
+
+### Changed
+- **Release artifacts carry platform and architecture** — files are now named `WallKraft-<version>-android-arm64.apk` and `WallKraft-<version>-windows-x64.exe` so each download is unambiguous.
+
 ## [1.6.2] - 2026-08-11
 
 ### Added
