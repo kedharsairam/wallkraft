@@ -5,6 +5,19 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-08-13
+
+### Added — Windows app (release-ready)
+- **Installer** — per-user NSIS build (`WallKraft-<version>-setup.exe`) installing to `%LOCALAPPDATA%\Programs\WallKraft` with Start Menu shortcuts, Add/Remove Programs entry, and silent install/uninstall support.
+- **App icon & metadata** — Kraft-brand icon embedded in the exe and window/taskbar, full VERSIONINFO, PerMonitorV2 DPI manifest.
+- **Auto-update** — checks GitHub releases on startup (fail-silent, offline-first) and applies new versions in place: download installer, restart, silent install, relaunch.
+- **Drag & drop save** — drag any grid tile to the desktop or a folder to save the full-resolution image via native OLE.
+- **First-load skeletons** — shimmer placeholders that mirror the real masonry column count.
+- **winget manifests** — generated and validated (`tools/publish-winget.ps1`), ready for submission to winget-pkgs.
+
+### Changed
+- **Platform version tracks** — Android (1.x) and Windows (0.x) now version independently; the `v*` tag triggers each platform's release only when the tag matches its own version.
+
 ## [1.8.0] - 2026-08-11
 
 ### Internal

@@ -1,6 +1,6 @@
 # WallKraft
 
-A clean, fast, and private wallpaper browsing app for Android (and Windows, coming soon), powered by the [Wallhaven](https://wallhaven.cc) API.
+A clean, fast, and private wallpaper browsing app for Android and Windows, powered by the [Wallhaven](https://wallhaven.cc) API.
 
 No ads, no analytics, no trackers — your data stays on your device.
 
@@ -9,7 +9,21 @@ This is a monorepo. Each platform lives in its own directory with its own toolch
 | Directory | Platform | Stack |
 |---|---|---|
 | `android/` | Android | Kotlin + Jetpack Compose |
-| `windows/` | Windows (planned) | Rust + Slint |
+| `windows/` | Windows | Rust + Slint |
+
+## Windows app
+
+Native Rust + Slint desktop app — browse, set, and manage Wallhaven wallpapers:
+
+- **Staggered masonry grid** with infinite scroll, first-load skeletons, and tile fade-ins
+- **Search & filters** — text search, category / purity / sort / orientation / color / resolution / aspect ratio
+- **Set as wallpaper** — apply to the desktop with undo support
+- **Drag & drop** — drag any tile to the desktop or a folder to save the full-res image
+- **System tray** — show/hide, random, undo, quit
+- **Detail view** — zoom, pan, copy URL, find similar wallpapers
+- **Favorites, slideshow, offline-first caching, dark / light / system theme**
+- **Installer & auto-update** — per-user NSIS installer (no admin), automatic in-app updates
+- Portable single-exe build available alongside the installer
 
 ## Features
 
@@ -59,6 +73,28 @@ cd android
 
 The debug APK is output to `android/app/build/outputs/apk/debug/app-debug.apk`.
 
+## Build — Windows
+
+```bash
+# From the windows/ directory
+cd windows
+
+# Debug build
+cargo build
+
+# Release build
+cargo build --release
+
+# Unit tests + lint
+cargo test
+cargo clippy -- -D warnings
+
+# NSIS installer (requires NSIS 3.x on PATH or at the default install path)
+makensis /DVERSION=0.1.0 /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
+```
+
+The release exe is `windows/target/release/wallkraft.exe`; the installer is `WallKraft-<version>-setup.exe`.
+
 ## Project Structure
 
 ```
@@ -81,12 +117,18 @@ The debug APK is output to `android/app/build/outputs/apk/debug/app-debug.apk`.
 │       │   ├── common/           # Shared ViewModel logic
 │       │   └── components/       # Reusable UI components
 │       └── util/                 # Helpers (WallpaperActions, formatting)
-└── windows/               # Windows app (Rust + Slint, planned)
+└── windows/               # Windows app (Rust + Slint)
+    ├── src/                      # App modules (api, state, storage, tray, update, …)
+    ├── ui/main.slint             # Slint UI
+    ├── installer.nsi             # NSIS installer script
+    ├── tools/                    # generate-icon.ps1, publish-winget.ps1
+    └── ROADMAP.md                # Windows roadmap (all phases complete)
 ```
 
 ## Requirements
 
 - Android 8.0 (API 26) or higher
+- Windows 10 / 11 (x64)
 - Internet connection for the Wallhaven API (cached content works offline)
 
 ## Privacy
@@ -95,7 +137,7 @@ WallKraft is private by default:
 
 - No accounts, no ads, no analytics, no trackers
 - Your Wallhaven API key (optional) is stored only on your device
-- Favorites and downloads are stored locally and never leave your phone
+- Favorites and downloads are stored locally and never leave your device
 
 See [android/docs/privacy-policy.md](android/docs/privacy-policy.md) for details.
 

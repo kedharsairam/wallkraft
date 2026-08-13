@@ -6,7 +6,32 @@ on:
       - 'v*'
 
 jobs:
+  # This monorepo shares the `v*` tag namespace across two independent version
+  # tracks (Android 1.x, Windows 0.x). Only release for a tag that matches this
+  # platform's own version, so tagging v0.1.0 for Windows doesn't attach a
+  # stale APK, and vice versa.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: check
+        run: |
+          ANDROID_VER=$(grep -oP 'versionName\s*=\s*"\K[^"]+' android/app/build.gradle.kts)
+          TAG="${{ github.ref_name }}"
+          if [ "${TAG#v}" = "$ANDROID_VER" ]; then
+            echo "Tag $TAG matches Android version $ANDROID_VER — releasing."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag $TAG does not match Android version $ANDROID_VER — skipping Android release."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: check
+    if: needs.check.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

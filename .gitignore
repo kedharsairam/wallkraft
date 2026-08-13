@@ -31,3 +31,6 @@ dist/
 
 # Rust (Windows app)
 windows/target/
+
+# Generated winget manifests (re-generate with tools/publish-winget.ps1)
+winget-out/

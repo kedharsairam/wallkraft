@@ -6,7 +6,32 @@ on:
       - 'v*'
 
 jobs:
+  # This monorepo shares the `v*` tag namespace across two independent version
+  # tracks (Android 1.x, Windows 0.x). Only release for a tag that matches this
+  # platform's own version, so tagging v1.9.0 for Android doesn't build a
+  # Windows installer labeled 1.9.0, and vice versa.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: check
+        run: |
+          WIN_VER=$(grep -m1 '^version' windows/Cargo.toml | cut -d'"' -f2)
+          TAG="${{ github.ref_name }}"
+          if [ "${TAG#v}" = "$WIN_VER" ]; then
+            echo "Tag $TAG matches Windows version $WIN_VER — releasing."
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag $TAG does not match Windows version $WIN_VER — skipping Windows release."
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   release:
+    needs: check
+    if: needs.check.outputs.should-run == 'true'
     runs-on: windows-latest
     permissions:
       contents: write
@@ -36,7 +61,48 @@ jobs:
           echo "### EXE Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
           echo "File: WallKraft-$version-windows-x64.exe" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Install NSIS
+        run: choco install nsis --no-progress -y
+
+      - name: Build NSIS installer
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          makensis /DVERSION=$version /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
+          $size = (Get-Item "target/release/WallKraft-$version-setup.exe").Length
+          echo "### Installer Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
+          echo "File: WallKraft-$version-setup.exe" >> $env:GITHUB_STEP_SUMMARY
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
+          name: WallKraft ${{ github.ref_name }}
+          body: |
+            ## WallKraft ${{ github.ref_name }} (Windows)
+
+            A clean, fast, and private wallpaper browser for Windows, powered by the
+            [Wallhaven](https://wallhaven.cc) API. No ads, no analytics, no trackers.
+
+            ### Downloads
+            - `WallKraft-${{ steps.rename.outputs.version }}-setup.exe` — installer (recommended; per-user, no admin)
+            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — portable single-file build
+
+            ### Install
+            1. Download the `-setup.exe` installer (or run the portable exe directly)
+            2. Run it — installs to `%LOCALAPPDATA%\Programs\WallKraft`, no admin required
+
+            ### Features
+            - Browse the Wallhaven library with search and filters
+            - Staggered masonry grid with infinite scroll and first-load skeletons
+            - Detail view: zoom, pan, copy URL, similar wallpapers
+            - Set as wallpaper, favorites, slideshow, undo
+            - System tray: show/hide, random, undo, quit
+            - Drag any tile out to the desktop/folder to save the full-res image
+            - Auto-update: checks GitHub releases on startup and updates in place
+            - Offline-first: cached search results and favorites keep working offline
+            - Dark / light / system theme, persisted
+
+            ### Notes
+            - Installer is a per-user NSIS build (no elevation).
+            - The app self-updates; `winget upgrade --all` ignores it by design.
           files: windows/target/release/WallKraft-*.exe
