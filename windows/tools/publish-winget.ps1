@@ -55,16 +55,17 @@ $hash = (Get-FileHash $SetupPath -Algorithm SHA256).Hash
 $sizeMB = [math]::Round((Get-Item $SetupPath).Length / 1MB, 2)
 Write-Host "PackageVersion : $Version"
 Write-Host "Setup exe      : $SetupPath ($sizeMB MB)"
-Write-Host "SHA256         : $hash"
+Write-Host "SHA256 (local) : $hash"
 
 # The hash in the manifest must match the bytes served from the release asset
 # EXACTLY. CI builds (different makensis/Rust toolchain than this machine) can
-# produce different bytes, so verify against the live URL when the release
-# exists. Skippable with -SkipUrlCheck (never recommend this for real PRs).
+# produce different bytes, so when the release exists the LIVE asset's hash is
+# the source of truth - it is what the InstallerUrl serves. Skippable with
+# -SkipUrlCheck (never recommend this for real PRs).
 $releaseUrl = "https://github.com/kedharsairam/wallkraft/releases/download/v$Version/WallKraft-$Version-setup.exe"
 if (-not $SkipUrlCheck) {
     Write-Host ""
-    Write-Host "Checking released asset against the local hash..."
+    Write-Host "Checking released asset..."
     $tmpRemote = Join-Path $env:TEMP "WallKraft-$Version-urlcheck.exe"
     # curl writes errors to stderr, which PS 5.1 surfaces as NativeCommandError;
     # tolerate that here and branch on $LASTEXITCODE instead.
@@ -77,12 +78,13 @@ if (-not $SkipUrlCheck) {
         if ($remoteHash -eq $hash) {
             Write-Host "Released asset SHA256 matches local build." -ForegroundColor Green
         } else {
-            Remove-Item $tmpRemote -Force
-            throw "Hash mismatch! Released asset: $remoteHash, local: $hash. The CI build differs from this machine - re-run this script after the release so the hash matches the ACTUAL asset."
+            Write-Host "Released asset ($remoteHash) differs from local build ($hash)." -ForegroundColor Yellow
+            Write-Host "Using the RELEASED asset's hash in the manifest - it is what the InstallerUrl serves." -ForegroundColor Yellow
+            $hash = $remoteHash
         }
     } else {
         Write-Host "Release asset not reachable (exit $LASTEXITCODE) - release not pushed yet?" -ForegroundColor Yellow
-        Write-Host "Hash was NOT verified against the live URL. Re-run this script AFTER pushing the release." -ForegroundColor Yellow
+        Write-Host "Falling back to the local build's hash. Re-run this script AFTER pushing the release to verify." -ForegroundColor Yellow
     }
     Remove-Item $tmpRemote -Force -ErrorAction SilentlyContinue
 }
