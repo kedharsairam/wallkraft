@@ -29,3 +29,6 @@ jobs:
 
       - name: Run tests
         run: cargo test --release
+
+      - name: Lint (clippy, warnings as errors)
+        run: cargo clippy --all-targets -- -D warnings

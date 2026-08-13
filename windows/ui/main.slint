@@ -1,11 +1,11 @@
-import { ListView, VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
 
 // ---------------------------------------------------------------------------
-// Kraft Design Language tokens (dark first). Ported from KraftTokens.kt.
-// A global makes the palette available anywhere and easy to swap for light
-// mode later: just set the properties from Rust.
+// Kraft Design Language tokens. Colors are set from Rust (set_theme) so the
+// dark/light palettes live in one place; `dark` is informational for the UI.
 // ---------------------------------------------------------------------------
-global KraftTheme {
+export global KraftTheme {
+    in property <bool> dark: true;
     in property <color> bg: #000000;
     in property <color> surface: #1C1C1E;
     in property <color> surface-secondary: #2C2C2E;
@@ -34,14 +34,11 @@ struct WallpaperData {
     id: string,
     thumb: image,
     resolution: string,
-    category: string,
-    // tile ratio = height / width, so a card height is width * ratio
+    // Height per unit width (h/w). A tile's height is width * ratio, so tiles
+    // keep their true aspect ratio — no cropping. Columns are staggered
+    // (masonry), like the Android app's LazyVerticalStaggeredGrid.
     ratio: float,
-}
-
-struct RowData {
-    left: WallpaperData,
-    right: WallpaperData,
+    favorite: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -49,6 +46,7 @@ struct RowData {
 // ---------------------------------------------------------------------------
 component PrimaryButton inherits Rectangle {
     in property <string> text;
+    in property <bool> enabled: true;
     callback clicked;
 
     height: 34px;
@@ -56,11 +54,15 @@ component PrimaryButton inherits Rectangle {
     background: KraftTheme.accent;
 
     states [
-        hovered when touch.has-hover: {
+        hovered when touch.has-hover && root.enabled: {
             background: #3395FF;
         }
-        pressed when touch.pressed: {
+        pressed when touch.pressed && root.enabled: {
             background: #006FE6;
+        }
+        disabled when !root.enabled: {
+            background: KraftTheme.surface-tertiary;
+            opacity: 0.7;
         }
     ]
 
@@ -78,6 +80,7 @@ component PrimaryButton inherits Rectangle {
     }
 
     touch := TouchArea {
+        enabled: root.enabled;
         clicked => { root.clicked(); }
         mouse-cursor: pointer;
     }
@@ -115,17 +118,15 @@ component GhostButton inherits Rectangle {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Wallpaper tile
-// ---------------------------------------------------------------------------
-component WallpaperCard inherits Rectangle {
-    in property <WallpaperData> data;
+component IconButton inherits Rectangle {
+    in property <string> text;
+    in property <length> control-width: 32px;
     callback clicked;
 
-    visible: root.data.id != "";
+    width: root.control-width;
+    height: 32px;
+    border-radius: KraftTheme.radius-small;
     background: KraftTheme.surface-secondary;
-    border-radius: KraftTheme.radius-standard;
-    clip: true;
 
     states [
         hovered when touch.has-hover: {
@@ -133,11 +134,169 @@ component WallpaperCard inherits Rectangle {
         }
     ]
 
+    Text {
+        text: root.text;
+        color: KraftTheme.text-primary;
+        font-size: 15px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    touch := TouchArea {
+        clicked => { root.clicked(); }
+        mouse-cursor: pointer;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Filter dropdown — a themed trigger that opens a popup option list.
+// The popup is anchored with `absolute-position`, which yields coordinates
+// relative to the enclosing Window (what PopupWindow's x/y expect).
+// ---------------------------------------------------------------------------
+component FilterDropdown inherits Rectangle {
+    in property <string> label;
+    in property <[string]> options;
+    in property <int> selected: 0;
+    callback option-selected(int);
+
+    height: 34px;
+    border-radius: KraftTheme.radius-small;
+    background: KraftTheme.surface-secondary;
+
+    states [
+        hovered when touch.has-hover: {
+            background: KraftTheme.surface-tertiary;
+        }
+        open when popup.is-open: {
+            background: KraftTheme.surface-tertiary;
+        }
+    ]
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        spacing: 8px;
+        Text {
+            text: root.label;
+            color: KraftTheme.text-tertiary;
+            font-size: 13px;
+            vertical-alignment: center;
+        }
+        Text {
+            text: root.options[root.selected];
+            color: KraftTheme.text-primary;
+            font-size: 13px;
+            font-weight: 600;
+            vertical-alignment: center;
+        }
+        Text {
+            text: "⌄";
+            color: KraftTheme.text-tertiary;
+            font-size: 13px;
+            vertical-alignment: center;
+        }
+    }
+
+    touch := TouchArea {
+        clicked => { popup.show(); }
+        mouse-cursor: pointer;
+    }
+
+    popup := PopupWindow {
+        // x/y must be bound here — the popup's own properties can't be
+        // touched from the enclosing component. absolute-position gives
+        // window coordinates, which is what PopupWindow expects.
+        x: root.absolute-position.x;
+        y: root.absolute-position.y + root.height;
+        width: root.width;
+        height: 40px * root.options.length;
+
+        Rectangle {
+            width: 100%;
+            height: 100%;
+            background: KraftTheme.surface-secondary;
+            border-radius: KraftTheme.radius-small;
+            border-width: 1px;
+            border-color: KraftTheme.separator;
+            clip: true;
+
+            VerticalLayout {
+                for opt[i] in root.options: TouchArea {
+                    height: 40px;
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.option-selected(i);
+                        popup.close();
+                    }
+                    Rectangle {
+                        width: 100%;
+                        height: 100%;
+                        background: touch.has-hover || i == root.selected
+                            ? KraftTheme.surface-tertiary
+                            : KraftTheme.surface-secondary;
+                        HorizontalLayout {
+                            padding-left: 12px;
+                            padding-right: 12px;
+                            spacing: 8px;
+                            Text {
+                                text: opt;
+                                color: i == root.selected ? KraftTheme.accent : KraftTheme.text-primary;
+                                font-size: 13px;
+                                vertical-alignment: center;
+                            }
+                            Rectangle { }
+                            if i == root.selected: Text {
+                                text: "✓";
+                                color: KraftTheme.accent;
+                                font-size: 13px;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Wallpaper tile
+// ---------------------------------------------------------------------------
+component WallpaperCard inherits Rectangle {
+    in property <WallpaperData> data;
+    callback clicked;
+    callback favorite-clicked;
+    // Window coordinates of a right-click (for the context menu).
+    callback context-menu(length, length);
+    // The user dragged this tile far enough to start an OS drag-out.
+    callback start-drag(string);
+
+    // Drag-gesture state: Slint reports `button: Other` on move events, so we
+    // arm on left-down and fire once the pointer travels >6px from the press.
+    private property <bool> drag-armed: false;
+    private property <length> drag-down-x: 0px;
+    private property <length> drag-down-y: 0px;
+
+    visible: root.data.id != "";
+    background: KraftTheme.surface-secondary;
+    border-radius: KraftTheme.radius-standard;
+    clip: true;
+
+    // Entrance fade-in (each tile fades in as it enters the model).
+    private property <bool> entered: false;
+    opacity: root.entered ? 1.0 : 0.0;
+    animate opacity { duration: 250ms; easing: ease-out; }
+    init => { root.entered = true; }
+
     Image {
         source: root.data.thumb;
         width: 100%;
         height: 100%;
         image-fit: cover;
+        // Subtle zoom on hover, from the tile center.
+        transform-scale: touch.has-hover ? 1.05 : 1.0;
+        transform-origin: { x: self.width / 2, y: self.height / 2 };
+        animate transform-scale { duration: 200ms; easing: ease-out; }
     }
 
     // resolution pill
@@ -169,7 +328,50 @@ component WallpaperCard inherits Rectangle {
 
     touch := TouchArea {
         clicked => { root.clicked(); }
+        pointer-event(event) => {
+            if event.kind == PointerEventKind.down && event.button == PointerEventButton.right {
+                root.context-menu(
+                    touch.absolute-position.x + touch.mouse-x,
+                    touch.absolute-position.y + touch.mouse-y
+                );
+            } else if event.kind == PointerEventKind.down && event.button == PointerEventButton.left {
+                root.drag-armed = true;
+                root.drag-down-x = touch.mouse-x;
+                root.drag-down-y = touch.mouse-y;
+            } else if event.kind == PointerEventKind.move && root.drag-armed {
+                if abs(touch.mouse-x - root.drag-down-x) > 6px
+                    || abs(touch.mouse-y - root.drag-down-y) > 6px
+                {
+                    root.drag-armed = false;
+                    root.start-drag(root.data.id);
+                }
+            } else if event.kind == PointerEventKind.up || event.kind == PointerEventKind.cancel {
+                root.drag-armed = false;
+            }
+        }
         mouse-cursor: pointer;
+    }
+
+    // favorite heart — on top of the tile so it receives its own clicks
+    Rectangle {
+        x: parent.width - 36px;
+        y: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        background: #00000080;
+        visible: touch.has-hover || root.data.favorite;
+        Text {
+            text: root.data.favorite ? "♥" : "♡";
+            color: root.data.favorite ? #FF453A : #FFFFFF;
+            font-size: 16px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        heart-touch := TouchArea {
+            clicked => { root.favorite-clicked(); }
+            mouse-cursor: pointer;
+        }
     }
 }
 
@@ -177,7 +379,7 @@ component WallpaperCard inherits Rectangle {
 // Placeholder tile while the first page loads
 // ---------------------------------------------------------------------------
 component ShimmerTile inherits Rectangle {
-    height: 180px;
+    height: self.width * 0.5625;
     border-radius: KraftTheme.radius-standard;
     background: KraftTheme.surface-secondary;
     opacity: 0.5;
@@ -189,17 +391,87 @@ component ShimmerTile inherits Rectangle {
 // ---------------------------------------------------------------------------
 export component MainWindow inherits Window {
     title: "WallKraft";
-    width: 1100px;
-    height: 720px;
+    icon: @image-url("../assets/wallkraft.png");
+    preferred-width: 1100px;
+    preferred-height: 760px;
     background: KraftTheme.bg;
 
-    in property <[RowData]> rows: [];
+    // Adaptive masonry columns that scroll together (one shared ScrollView).
+    in property <[[WallpaperData]]> columns: [];
     in property <bool> loading: false;
+    // Column count used by the first-load skeleton (kept in sync with the real
+    // masonry column count from Rust).
+    in property <int> skeleton-columns: 3;
     in property <string> status: "";
+    in property <string> empty-message: "";
+    in property <bool> error: false;
+
+    // Detail view
     in property <bool> detail-visible: false;
     in property <image> detail-image;
     in property <string> detail-resolution: "";
     in property <string> detail-id: "";
+    in property <string> detail-url: "";
+    in property <string> detail-author: "";
+    in property <string> detail-views: "";
+    in property <string> detail-tags: "";
+    in property <bool> detail-favorite: false;
+    property <float> detail-zoom: 1.0;
+    property <length> detail-pan-x: 0px;
+    property <length> detail-pan-y: 0px;
+    private property <length> detail-pan-start-x: 0px;
+    private property <length> detail-pan-start-y: 0px;
+
+    // Settings modal
+    property <bool> settings-visible: false;
+
+    // Favorites view toggle
+    in property <bool> favorites-view: false;
+
+    // Undo
+    in property <bool> undo-visible: false;
+
+    // Slideshow
+    in property <bool> slideshow-active: false;
+
+    // Auto-update (set from Rust after the startup release check)
+    in property <bool> update-available: false;
+    in property <string> update-version: "";
+    in property <bool> update-downloading: false;
+
+    // Filter / settings state (indices into each dropdown's option list).
+    in property <int> category-index: 3;
+    in property <int> purity-index: 0;
+    in property <int> sorting-index: 0;
+    in property <int> orientation-index: 0;
+    in property <int> atleast-index: 0;
+    in property <int> ratio-index: 0;
+    in property <int> theme-index: 0;
+    in property <int> style-index: 0;
+    in property <int> slideshow-interval-index: 1;
+
+    // Context menu state (popup position + items, set from Rust).
+    property <length> context-menu-x: 0px;
+    property <length> context-menu-y: 0px;
+    in property <[string]> context-items: [];
+    in property <string> context-id: "";
+    in property <string> context-url: "";
+
+    // Mirror of the ScrollView's viewport-y (negative while scrolled). Synced
+    // one-way through `changed` callbacks — NOT a binding, which would sever
+    // the ScrollView's internal viewport-y <=> flickable <=> scrollbar chain.
+    in-out property <length> grid-viewport-y: 0px;
+
+    // Notify Rust whenever the window is resized so it can recompute how many
+    // masonry columns fit the new width and re-balance the grid.
+    changed width => { root.columns-changed(self.width); }
+
+    // Rust -> ScrollView direction of the grid-viewport-y mirror.
+    changed grid-viewport-y => {
+        if scroll-view.viewport-y != root.grid-viewport-y {
+            scroll-view.viewport-y = root.grid-viewport-y;
+        }
+    }
 
     callback search(string);
     callback load-more();
@@ -207,24 +479,82 @@ export component MainWindow inherits Window {
     callback set-wallpaper(string);
     callback open-wallhaven(string);
     callback close-detail();
+    callback retry();
+    callback category-changed(int);
+    callback purity-changed(int);
+    callback sorting-changed(int);
+    callback orientation-changed(int);
+    callback columns-changed(length);
+    callback viewport-changed(length, length);
+    callback toggle-favorite(string);
+    callback show-favorites();
+    callback random-search();
+    callback color-changed(string);
+    callback atleast-changed(int);
+    callback ratio-changed(int);
+    callback theme-changed(int);
+    callback style-changed(int);
+    callback slideshow-toggle();
+    callback slideshow-interval-changed(int);
+    callback update-now(string);
+    callback undo();
+    callback save-as(string);
+    callback open-folder(string);
+    callback similar(string);
+    callback copy-url(string);
+    // Right-click on a tile: Rust records the id and builds the item list.
+    callback context-menu(string);
+    // Drag a tile out to the desktop/folder to save the full-res image.
+    callback start-drag(string);
+    callback context-action(int);
+    // Invoked from Rust when a new detail is opened, to reset zoom/pan.
+    callback reset-detail-view();
+    reset-detail-view => {
+        root.detail-zoom = 1.0;
+        root.detail-pan-x = 0px;
+        root.detail-pan-y = 0px;
+    }
+
+    // Keyboard shortcuts (Ctrl+F focus search, Ctrl+R random, Ctrl+D
+    // favorites, Ctrl+Z undo, Esc close detail/settings).
+    focus-scope := FocusScope {
+        key-pressed(event) => {
+            if event.text == Key.Escape {
+                if root.detail-visible {
+                    root.close-detail();
+                } else if root.settings-visible {
+                    root.settings-visible = false;
+                }
+                accept
+            } else if event.modifiers.control && event.text == "f" {
+                search-field.focus();
+                accept
+            } else if event.modifiers.control && event.text == "r" {
+                root.random-search();
+                accept
+            } else if event.modifiers.control && event.text == "d" {
+                root.show-favorites();
+                accept
+            } else if event.modifiers.control && event.text == "z" {
+                if root.undo-visible {
+                    root.undo();
+                }
+                accept
+            } else {
+                reject
+            }
+        }
+    }
 
     VerticalBox {
         padding: KraftTheme.space-4;
         spacing: KraftTheme.space-3;
 
-        // Header
+        // Header row 1: search + primary actions
         HorizontalBox {
             spacing: KraftTheme.space-3;
 
-            Text {
-                text: "WallKraft";
-                font-size: 24px;
-                font-weight: 700;
-                color: KraftTheme.text-primary;
-                vertical-alignment: center;
-            }
-
-            // Search field
+            // Search field (flexible)
             Rectangle {
                 horizontal-stretch: 1;
                 height: 34px;
@@ -237,7 +567,6 @@ export component MainWindow inherits Window {
                     }
                 ]
 
-                // Placeholder layer (TextInput has no built-in placeholder)
                 Text {
                     x: 12px;
                     width: parent.width - 24px;
@@ -264,53 +593,199 @@ export component MainWindow inherits Window {
                 text: "Search";
                 clicked => { root.search(search-field.text); }
             }
+            GhostButton {
+                text: "Random";
+                clicked => { root.random-search(); }
+            }
+            GhostButton {
+                text: root.favorites-view ? "Grid" : "Favorites";
+                clicked => { root.show-favorites(); }
+            }
+            IconButton {
+                text: "⚙";
+                clicked => { root.settings-visible = !root.settings-visible; }
+            }
+            if root.update-available: PrimaryButton {
+                text: root.update-downloading ? "Downloading…" : "Update v" + root.update-version;
+                enabled: !root.update-downloading;
+                clicked => { root.update-now(root.update-version); }
+            }
         }
 
-        // First-load skeleton
-        if root.loading && root.rows.length == 0: VerticalLayout {
+        // Header row 2: filters
+        HorizontalBox {
+            spacing: KraftTheme.space-3;
+
+            FilterDropdown {
+                label: "Category";
+                options: ["General", "Anime", "People", "All"];
+                selected: root.category-index;
+                option-selected(i) => { root.category-changed(i); }
+            }
+            FilterDropdown {
+                label: "Purity";
+                options: ["SFW", "SFW + Sketchy", "All"];
+                selected: root.purity-index;
+                option-selected(i) => { root.purity-changed(i); }
+            }
+            FilterDropdown {
+                label: "Sort";
+                options: ["Date added", "Relevance", "Views", "Random", "Favorites"];
+                selected: root.sorting-index;
+                option-selected(i) => { root.sorting-changed(i); }
+            }
+            FilterDropdown {
+                label: "Orientation";
+                options: ["All", "Landscape", "Portrait"];
+                selected: root.orientation-index;
+                option-selected(i) => { root.orientation-changed(i); }
+            }
+            FilterDropdown {
+                label: "Min res";
+                options: ["Any", "1920x1080", "2560x1440", "3840x2160"];
+                selected: root.atleast-index;
+                option-selected(i) => { root.atleast-changed(i); }
+            }
+            FilterDropdown {
+                label: "Ratio";
+                options: ["Any", "16:9", "9:16", "4:3", "3:4", "16:10", "10:16", "21:9", "32:9"];
+                selected: root.ratio-index;
+                option-selected(i) => { root.ratio-changed(i); }
+            }
+
+            // Dominant-color filter
+            Rectangle {
+                width: 110px;
+                height: 34px;
+                border-radius: KraftTheme.radius-small;
+                background: KraftTheme.surface-secondary;
+
+                states [
+                    focused when color-field.has-focus: {
+                        background: KraftTheme.surface-tertiary;
+                    }
+                ]
+
+                Text {
+                    x: 12px;
+                    width: parent.width - 24px;
+                    height: 100%;
+                    text: "Color #hex";
+                    color: KraftTheme.text-tertiary;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                    visible: color-field.text == "" && !color-field.has-focus;
+                }
+
+                color-field := TextInput {
+                    x: 12px;
+                    width: parent.width - 24px;
+                    height: 100%;
+                    color: KraftTheme.text-primary;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                    accepted => { root.color-changed(self.text); }
+                }
+            }
+        }
+
+        // First-load skeleton — the column count mirrors the real masonry
+        // column count (set from Rust) so it doesn't visibly "pop" on arrival.
+        if root.loading && root.columns.length == 0: VerticalLayout {
             spacing: KraftTheme.space-3;
             for i in 4: HorizontalLayout {
                 spacing: KraftTheme.space-3;
-                ShimmerTile { }
-                ShimmerTile { }
+                for c in root.skeleton-columns: ShimmerTile { }
             }
         }
 
-        // Grid
-        ListView {
-            for row in root.rows: HorizontalLayout {
-                spacing: KraftTheme.space-3;
-                WallpaperCard {
-                    data: row.left;
-                    vertical-stretch: 0;
-                    height: self.width * row.left.ratio;
-                    clicked => { root.open-detail(row.left.id); }
+        // Empty / error state
+        if !root.loading && root.columns.length == 0 && root.empty-message != "": Rectangle {
+            vertical-stretch: 1;
+            width: 100%;
+            background: transparent;
+
+            VerticalLayout {
+                width: 100%;
+                height: 100%;
+                alignment: center;
+                spacing: KraftTheme.space-4;
+
+                Text {
+                    text: root.empty-message;
+                    color: KraftTheme.text-tertiary;
+                    font-size: 16px;
+                    horizontal-alignment: center;
                 }
-                WallpaperCard {
-                    data: row.right;
-                    vertical-stretch: 0;
-                    height: self.width * row.right.ratio;
-                    clicked => { root.open-detail(row.right.id); }
+
+                if root.error: PrimaryButton {
+                    text: "Retry";
+                    clicked => { root.retry(); }
+                }
+            }
+        }
+
+        // Grid — adaptive masonry: a model of columns inside ONE ScrollView so
+        // they scroll together.
+        scroll-view := ScrollView {
+            vertical-stretch: 1;
+            mouse-drag-pan-enabled: true;
+
+            HorizontalLayout {
+                spacing: KraftTheme.space-3;
+
+                for col in root.columns: VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: KraftTheme.space-3;
+                    for tile in col: WallpaperCard {
+                        data: tile;
+                        height: self.width * tile.ratio;
+                        clicked => { root.open-detail(tile.id); }
+                        favorite-clicked => { root.toggle-favorite(tile.id); }
+                        context-menu(x, y) => {
+                            root.context-menu-x = x;
+                            root.context-menu-y = y;
+                            root.context-menu(tile.id);
+                            context-popup.show();
+                        }
+                        start-drag(id) => { root.start-drag(id); }
+                    }
                 }
             }
 
-            // Infinite scroll: load more when the viewport nears the bottom
+            // Infinite scroll: viewport-y is NEGATIVE while scrolled
+            // (0 at the top), so the offset is -self.viewport-y.
             changed viewport-y => {
-                if self.viewport-y + self.visible-height >= self.viewport-height - 400px {
+                root.grid-viewport-y = self.viewport-y;
+                root.viewport-changed(-self.viewport-y, self.visible-height);
+                if -self.viewport-y + self.visible-height >= self.viewport-height - 2 * self.visible-height {
                     root.load-more();
                 }
             }
         }
 
-        // Footer hint / load state
+        // Footer: undo + slideshow + load state
         HorizontalBox {
-            height: 28px;
+            height: 34px;
+            spacing: KraftTheme.space-3;
+
+            if root.undo-visible: GhostButton {
+                text: "Undo";
+                clicked => { root.undo(); }
+            }
+
             Rectangle { }
-            if root.loading && root.rows.length > 0: Text {
+
+            if root.loading && root.columns.length > 0: Text {
                 text: "Loading more...";
                 color: KraftTheme.text-tertiary;
                 font-size: 12px;
                 vertical-alignment: center;
+            }
+
+            GhostButton {
+                text: root.slideshow-active ? "Stop slideshow" : "Slideshow";
+                clicked => { root.slideshow-toggle(); }
             }
         }
     }
@@ -329,6 +804,7 @@ export component MainWindow inherits Window {
             padding: KraftTheme.space-4;
             spacing: KraftTheme.space-3;
 
+            // Top bar
             HorizontalBox {
                 spacing: KraftTheme.space-2;
                 GhostButton {
@@ -348,24 +824,275 @@ export component MainWindow inherits Window {
                     font-size: 13px;
                     vertical-alignment: center;
                 }
+                Text {
+                    text: root.detail-views;
+                    color: KraftTheme.text-tertiary;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                // favorite heart
+                Rectangle {
+                    width: 34px;
+                    height: 34px;
+                    border-radius: KraftTheme.radius-small;
+                    background: root.detail-favorite ? #FF453A33 : KraftTheme.surface-secondary;
+                    Text {
+                        text: root.detail-favorite ? "♥" : "♡";
+                        color: root.detail-favorite ? #FF453A : KraftTheme.text-primary;
+                        font-size: 18px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    TouchArea {
+                        clicked => { root.toggle-favorite(root.detail-id); }
+                        mouse-cursor: pointer;
+                    }
+                }
             }
 
-            Image {
+            // Image area with zoom/pan
+            Rectangle {
                 horizontal-stretch: 1;
                 vertical-stretch: 1;
-                source: root.detail-image;
-                image-fit: contain;
+                clip: true;
+                background: KraftTheme.surface;
+                border-radius: KraftTheme.radius-standard;
+
+                Image {
+                    x: root.detail-pan-x;
+                    y: root.detail-pan-y;
+                    width: parent.width * root.detail-zoom;
+                    height: parent.height * root.detail-zoom;
+                    source: root.detail-image;
+                    image-fit: contain;
+                }
+
+                // Zoom percentage
+                Text {
+                    x: 12px;
+                    y: 12px;
+                    text: Math.round(root.detail-zoom * 100) + "%";
+                    color: KraftTheme.text-tertiary;
+                    font-size: 12px;
+                }
+
+                // Zoom controls (bottom-right, on top of the pan area)
+                HorizontalBox {
+                    x: parent.width - 150px;
+                    y: parent.height - 44px;
+                    spacing: 4px;
+                    IconButton {
+                        text: "+";
+                        clicked => { root.detail-zoom = min(8.0, root.detail-zoom + 0.25); }
+                    }
+                    IconButton {
+                        text: "−";
+                        clicked => { root.detail-zoom = max(1.0, root.detail-zoom - 0.25); }
+                    }
+                    IconButton {
+                        text: "Reset";
+                        control-width: 64px;
+                        clicked => {
+                            root.detail-zoom = 1.0;
+                            root.detail-pan-x = 0px;
+                            root.detail-pan-y = 0px;
+                        }
+                    }
+                }
+
+                pan-touch := TouchArea {
+                    width: 100%;
+                    height: 100%;
+                    pointer-event(e) => {
+                        if e.kind == PointerEventKind.down {
+                            root.detail-pan-start-x = root.detail-pan-x;
+                            root.detail-pan-start-y = root.detail-pan-y;
+                        }
+                    }
+                    moved => {
+                        if pan-touch.pressed {
+                            root.detail-pan-x = root.detail-pan-start-x + (pan-touch.mouse-x - pan-touch.pressed-x);
+                            root.detail-pan-y = root.detail-pan-start-y + (pan-touch.mouse-y - pan-touch.pressed-y);
+                        }
+                    }
+                    scroll-event(e) => {
+                        if e.modifiers.control {
+                            root.detail-zoom = max(1.0, min(8.0, root.detail-zoom + e.delta-y / 100px));
+                            accept
+                        } else {
+                            reject
+                        }
+                    }
+                }
             }
 
+            // Author / tags
+            HorizontalBox {
+                spacing: KraftTheme.space-3;
+                Text {
+                    text: root.detail-author;
+                    color: KraftTheme.text-secondary;
+                    font-size: 13px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: root.detail-tags;
+                    color: KraftTheme.text-tertiary;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                    overflow: elide;
+                }
+            }
+
+            // Action row
             HorizontalBox {
                 spacing: KraftTheme.space-3;
                 PrimaryButton {
                     text: "Set as Wallpaper";
                     clicked => { root.set-wallpaper(root.detail-id); }
                 }
+                FilterDropdown {
+                    label: "Style";
+                    options: ["Fill", "Fit", "Stretch", "Center", "Tile", "Span"];
+                    selected: root.style-index;
+                    option-selected(i) => { root.style-changed(i); }
+                }
+                GhostButton {
+                    text: "Save As";
+                    clicked => { root.save-as(root.detail-id); }
+                }
+                GhostButton {
+                    text: "Folder";
+                    clicked => { root.open-folder(root.detail-id); }
+                }
+                GhostButton {
+                    text: "Similar";
+                    clicked => { root.similar(root.detail-id); }
+                }
+                GhostButton {
+                    text: "Copy URL";
+                    clicked => { root.copy-url(root.detail-url); }
+                }
+                Rectangle { }
                 GhostButton {
                     text: "Open on wallhaven.cc";
-                    clicked => { root.open-wallhaven(root.detail-id); }
+                    clicked => { root.open-wallhaven(root.detail-url); }
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Settings modal
+    // -----------------------------------------------------------------------
+    if root.settings-visible: Rectangle {
+        x: 0;
+        y: 0;
+        width: parent.width;
+        height: parent.height;
+        background: #00000080;
+
+        // Click outside the panel to close.
+        TouchArea {
+            width: 100%;
+            height: 100%;
+            clicked => { root.settings-visible = false; }
+        }
+
+        Rectangle {
+            x: (parent.width - 340px) / 2;
+            y: (parent.height - 320px) / 2;
+            width: 340px;
+            height: 320px;
+            border-radius: KraftTheme.radius-large;
+            background: KraftTheme.surface;
+            border-width: 1px;
+            border-color: KraftTheme.separator;
+
+            VerticalLayout {
+                padding: KraftTheme.space-5;
+                spacing: KraftTheme.space-4;
+
+                Text {
+                    text: "Settings";
+                    font-size: 18px;
+                    font-weight: 700;
+                    color: KraftTheme.text-primary;
+                }
+
+                FilterDropdown {
+                    label: "Theme";
+                    options: ["Dark", "Light", "System"];
+                    selected: root.theme-index;
+                    option-selected(i) => { root.theme-changed(i); }
+                }
+                FilterDropdown {
+                    label: "Wallpaper style";
+                    options: ["Fill", "Fit", "Stretch", "Center", "Tile", "Span"];
+                    selected: root.style-index;
+                    option-selected(i) => { root.style-changed(i); }
+                }
+                FilterDropdown {
+                    label: "Slideshow every";
+                    options: ["10s", "30s", "1m", "5m"];
+                    selected: root.slideshow-interval-index;
+                    option-selected(i) => { root.slideshow-interval-changed(i); }
+                }
+
+                GhostButton {
+                    text: root.slideshow-active ? "Stop slideshow" : "Start slideshow";
+                    clicked => { root.slideshow-toggle(); }
+                }
+
+                PrimaryButton {
+                    text: "Done";
+                    clicked => { root.settings-visible = false; }
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Context menu (right-click on a tile)
+    // -----------------------------------------------------------------------
+    context-popup := PopupWindow {
+        x: root.context-menu-x;
+        y: root.context-menu-y;
+        width: 200px;
+        height: 44px * root.context-items.length;
+
+        Rectangle {
+            width: 100%;
+            height: 100%;
+            background: KraftTheme.surface-secondary;
+            border-radius: KraftTheme.radius-small;
+            border-width: 1px;
+            border-color: KraftTheme.separator;
+            clip: true;
+
+            VerticalLayout {
+                for item[i] in root.context-items: item-touch := TouchArea {
+                    height: 44px;
+                    mouse-cursor: pointer;
+                    clicked => {
+                        root.context-action(i);
+                        context-popup.close();
+                    }
+                    Rectangle {
+                        width: 100%;
+                        height: 100%;
+                        background: item-touch.has-hover ? KraftTheme.surface-tertiary : transparent;
+                        HorizontalLayout {
+                            padding-left: 12px;
+                            padding-right: 12px;
+                            Text {
+                                text: item;
+                                color: KraftTheme.text-primary;
+                                font-size: 13px;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -379,7 +1106,7 @@ export component MainWindow inherits Window {
         y: parent.height - self.height - 28px;
         height: 36px;
         border-radius: 18px;
-        background: #1C1C1ECC;
+        background: KraftTheme.dark ? #1C1C1ECC : #FFFFFFCC;
         HorizontalLayout {
             padding-left: 16px;
             padding-right: 16px;

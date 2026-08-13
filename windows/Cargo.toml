@@ -3,15 +3,53 @@ name = "wallkraft"
 version = "0.1.0"
 edition = "2024"
 
+# Embedded into the exe's VERSIONINFO resource by winres (build.rs).
+[package.metadata.winres]
+CompanyName = "Kedhar Sairam"
+FileDescription = "WallKraft — browse and apply wallpapers from Wallhaven"
+LegalCopyright = "Copyright (c) 2026 Kedhar Sairam"
+OriginalFilename = "wallkraft.exe"
+
 [dependencies]
 anyhow = "1.0.104"
+clipboard-win = "5.4"
 directories = "6.0.0"
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
 reqwest = { version = "0.13.4", features = ["json"] }
+rfd = "0.15"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 slint = "1.17.1"
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros"] }
-windows = { version = "0.62.2", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
+tracing = "0.1.44"
+tracing-appender = "0.2.5"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+tray-icon = "0.19"
+windows = { version = "0.62.2", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_Com",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_DataExchange",
+    "Win32_System_Ole",
+    "Win32_System_Registry",
+    "Win32_System_SystemServices",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+] }
+# Direct dep so the `implement` macro's generated code can resolve `windows_core`.
+windows-core = "0.62"
+winit = "0.30"
 
 [build-dependencies]
 slint-build = "1.17.1"
+winres = "0.1"
+
+[dev-dependencies]
+filetime = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
