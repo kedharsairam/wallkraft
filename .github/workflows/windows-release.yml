@@ -68,7 +68,13 @@ jobs:
         shell: pwsh
         run: |
           $version = "${{ github.ref_name }}".TrimStart('v')
-          makensis /DVERSION=$version /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
+          # choco's nsis.install deploys to Program Files but doesn't add it to PATH
+          $makensis = @(
+            "C:\Program Files (x86)\NSIS\makensis.exe",
+            "C:\Program Files\NSIS\makensis.exe"
+          ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+          if (-not $makensis) { throw "makensis not found - is NSIS installed?" }
+          & $makensis /DVERSION=$version /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
           $size = (Get-Item "target/release/WallKraft-$version-setup.exe").Length
           echo "### Installer Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
           echo "File: WallKraft-$version-setup.exe" >> $env:GITHUB_STEP_SUMMARY
