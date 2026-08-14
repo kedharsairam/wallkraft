@@ -8,7 +8,7 @@
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\WallKraft"
 
 !ifndef VERSION
-  !define VERSION "0.1.0"
+  !define VERSION "1.9.0"
 !endif
 !ifndef EXE_PATH
   !error "EXE_PATH must be set: makensis /DEXE_PATH=..."
