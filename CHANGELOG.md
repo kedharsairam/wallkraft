@@ -5,6 +5,11 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+- **Unified versioning** — WallKraft now uses one version number across all platforms. Android and Windows are both at 1.9.0; a `v*` tag releases both platforms together. Release workflows refuse (fail CI) if a tag doesn't match the platform version, so a one-sided bump can't ship a partial release.
+
 ## [0.1.0] - 2026-08-13
 
 ### Added — Windows app (release-ready)

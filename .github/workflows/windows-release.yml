@@ -6,14 +6,11 @@ on:
       - 'v*'
 
 jobs:
-  # This monorepo shares the `v*` tag namespace across two independent version
-  # tracks (Android 1.x, Windows 0.x). Only release for a tag that matches this
-  # platform's own version, so tagging v1.9.0 for Android doesn't build a
-  # Windows installer labeled 1.9.0, and vice versa.
+  # WallKraft uses ONE version across all platforms. A `v*` tag must match this
+  # platform's version or the release is refused — so a one-sided version bump
+  # fails CI instead of silently shipping a partial release.
   check:
     runs-on: ubuntu-latest
-    outputs:
-      should-run: ${{ steps.check.outputs.should-run }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,15 +20,13 @@ jobs:
           TAG="${{ github.ref_name }}"
           if [ "${TAG#v}" = "$WIN_VER" ]; then
             echo "Tag $TAG matches Windows version $WIN_VER — releasing."
-            echo "should-run=true" >> "$GITHUB_OUTPUT"
           else
-            echo "Tag $TAG does not match Windows version $WIN_VER — skipping Windows release."
-            echo "should-run=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Tag $TAG does not match Windows version $WIN_VER. All platforms must share the same version — bump windows/Cargo.toml (and android/app/build.gradle.kts) or fix the tag, then re-push."
+            exit 1
           fi
 
   release:
     needs: check
-    if: needs.check.outputs.should-run == 'true'
     runs-on: windows-latest
     permissions:
       contents: write
