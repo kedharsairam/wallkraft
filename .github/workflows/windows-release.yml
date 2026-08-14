@@ -101,18 +101,24 @@ jobs:
         with:
           name: WallKraft ${{ github.ref_name }}
           body: |
-            ## WallKraft ${{ github.ref_name }} (Windows)
+            ## WallKraft ${{ github.ref_name }}
 
-            A clean, fast, and private wallpaper browser for Windows, powered by the
+            A clean, fast, and private wallpaper browser for Android and Windows, powered by the
             [Wallhaven](https://wallhaven.cc) API. No ads, no analytics, no trackers.
 
             ### Downloads
-            - `WallKraft-${{ steps.rename.outputs.version }}-setup.exe` — installer (recommended; per-user, no admin)
-            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — portable single-file build
+            - `WallKraft-${{ steps.rename.outputs.version }}-setup.exe` — Windows installer (recommended; per-user, no admin)
+            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — Windows portable single-file build
+            - `WallKraft-${{ steps.rename.outputs.version }}-android-arm64.apk` — Android (arm64)
 
-            ### Install
+            ### Install — Windows
             1. Download the `-setup.exe` installer (or run the portable exe directly)
             2. Run it — installs to `%LOCALAPPDATA%\Programs\WallKraft`, no admin required
+
+            ### Install — Android
+            1. Download the `.apk`
+            2. Open the file on your Android device
+            3. Allow "Install from unknown sources" if prompted
 
             ### Features
             - Browse the Wallhaven library with search and filters
@@ -126,6 +132,7 @@ jobs:
             - Dark / light / system theme, persisted
 
             ### Notes
-            - Installer is a per-user NSIS build (no elevation).
-            - The app self-updates; `winget upgrade --all` ignores it by design.
+            - One version for all platforms: WallKraft ${{ github.ref_name }} ships Android + Windows together.
+            - Android APK is signed with the WallKraft release key (arm64-only).
+            - Windows installer is a per-user NSIS build (no elevation); the app self-updates.
           files: windows/target/release/WallKraft-*.exe
