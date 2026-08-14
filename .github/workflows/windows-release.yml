@@ -56,8 +56,30 @@ jobs:
           echo "### EXE Size: $([math]::Round($size / 1MB, 2)) MB" >> $env:GITHUB_STEP_SUMMARY
           echo "File: WallKraft-$version-windows-x64.exe" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Cache NSIS
+        id: nsis-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\Program Files (x86)\NSIS
+          key: nsis-3.12
+
       - name: Install NSIS
-        run: choco install nsis --no-progress -y
+        if: steps.nsis-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          # choco can return exit 0 while installing nothing (feed timeouts), so
+          # retry until makensis.exe actually exists.
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          $attempts = 0
+          do {
+            $attempts++
+            choco install nsis --no-progress -y
+            if (-not (Test-Path -LiteralPath $makensis)) { Start-Sleep -Seconds 10 }
+          } while (-not (Test-Path -LiteralPath $makensis) -and $attempts -lt 5)
+          if (-not (Test-Path -LiteralPath $makensis)) {
+            throw "makensis not found after $attempts choco attempts"
+          }
+          Write-Host "NSIS installed at $makensis"
 
       - name: Build NSIS installer
         shell: pwsh
