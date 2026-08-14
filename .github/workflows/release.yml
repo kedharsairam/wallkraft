@@ -94,31 +94,37 @@ jobs:
           body: |
             ## WallKraft ${{ github.ref_name }}
 
-            A clean, fast, and private wallpaper browsing app powered by the
+            A clean, fast, and private wallpaper browser for Android and Windows, powered by the
             [Wallhaven](https://wallhaven.cc) API. No ads, no analytics, no trackers.
 
             ### Downloads
+            - `WallKraft-${{ steps.rename.outputs.version }}-setup.exe` — Windows installer (recommended; per-user, no admin)
+            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — Windows portable single-file build
             - `WallKraft-${{ steps.rename.outputs.version }}-android-arm64.apk` — Android (arm64)
-            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — Windows (x64)
+
+            ### Install — Windows
+            1. Download the `-setup.exe` installer (or run the portable exe directly)
+            2. Run it — installs to `%LOCALAPPDATA%\Programs\WallKraft`, no admin required
 
             ### Install — Android
             1. Download the `.apk`
             2. Open the file on your Android device
             3. Allow "Install from unknown sources" if prompted
 
-            ### Install — Windows
-            1. Download the `.exe`
-            2. Run it — portable, no installation required
-
             ### Features
             - Browse the Wallhaven library with search and filters
-            - Staggered wallpaper grid with infinite scroll
-            - Detail view: download, set as wallpaper, share, open on wallhaven.cc
-            - Favorites (stored locally)
-            - Settings: API key, theme, default sorting
+            - Staggered masonry grid with infinite scroll and first-load skeletons
+            - Detail view: zoom, pan, copy URL, similar wallpapers
+            - Set as wallpaper, favorites, slideshow, undo
+            - System tray: show/hide, random, undo, quit
+            - Drag any tile out to the desktop/folder to save the full-res image
+            - Auto-update: checks GitHub releases on startup and updates in place
+            - Offline-first: cached search results and favorites keep working offline
+            - Dark / light / system theme, persisted
 
             ### Notes
+            - One version for all platforms: WallKraft ${{ github.ref_name }} ships Android + Windows together.
             - Android APK is signed with the WallKraft release key (arm64-only).
-            - Windows build is a single self-contained executable.
+            - Windows installer is a per-user NSIS build (no elevation); the app self-updates.
           files: |
             android/app/build/outputs/apk/release/WallKraft-*.apk
