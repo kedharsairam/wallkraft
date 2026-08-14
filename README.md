@@ -90,10 +90,12 @@ cargo test
 cargo clippy -- -D warnings
 
 # NSIS installer (requires NSIS 3.x on PATH or at the default install path)
-makensis /DVERSION=0.1.0 /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
+makensis /DVERSION=1.9.0 /DEXE_PATH="target\release\wallkraft.exe" installer.nsi
 ```
 
 The release exe is `windows/target/release/wallkraft.exe`; the installer is `WallKraft-<version>-setup.exe`.
+
+> **Versioning:** WallKraft uses one version number across all platforms. Android and Windows are bumped together (currently 1.9.0), and a `v*` tag releases both at once. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Project Structure
 
