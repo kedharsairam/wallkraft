@@ -135,4 +135,4 @@ Goal: scroll forever without RAM creep. Two-tier bounding:
 - winget publish (done):
   - `tools/publish-winget.ps1` generates the three-file winget manifest set (1.12.0 schema, `InstallerType: nullsoft`, `Scope: user`, `/S` switches, `AppsAndFeaturesEntries`, `RequireExplicitUpgrade` because the app self-updates) into a winget-pkgs-ready layout, computes the installer SHA256, and runs `winget validate` (passed with zero warnings)
   - Crucially, the script verifies the manifest hash against the **live release asset** via curl (CI builds can produce different bytes than a local build, so the hash must match what the release actually serves); 404 = "release not pushed yet, re-run after release" warning
-  - Submission itself is a PR to microsoft/winget-pkgs once the v0.1.0 release exists; `winget-out/` is gitignored (regenerable)
+  - Submitted as PR [microsoft/winget-pkgs#417017](https://github.com/microsoft/winget-pkgs/pull/417017) for v1.9.0 (fork branch `KedharSairam.WallKraft-0.1.0`); awaiting bot review. `winget-out/` is gitignored (regenerable)
