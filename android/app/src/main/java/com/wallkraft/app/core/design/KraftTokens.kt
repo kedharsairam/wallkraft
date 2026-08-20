@@ -105,3 +105,32 @@ object KraftTypeScale {
     val Caption1 = 12.sp
     val Caption2 = 11.sp
 }
+
+/** Centralized tuning constants — every magic number lives here for easy auditing. */
+object KraftConstants {
+    // -- Caching --
+    const val SearchCacheTtlMs = 30 * 60 * 1000L // 30 minutes
+    const val SearchCacheMaxEntries = 100
+    const val FavoriteImageMaxBytes = 1L * 1024 * 1024 * 1024 // 1GB
+    const val CoilDiskMaxBytes = 512L * 1024 * 1024 // 512 MB
+    const val CoilMemoryPercent = 0.25
+
+    // -- Network --
+    const val RetryMax = 3
+    const val RetryBackoffBaseMs = 1000L // 1s * (1 << attempt) => 1s,2s,4s
+    const val CallTimeoutSec = 30L
+    const val ConnectTimeoutSec = 15L
+    const val ReadTimeoutSec = 15L
+    const val RateLimitCooldownMs = 60_000L
+
+    // -- UI / Grid --
+    const val GridPrefetchAhead = 4
+    const val GridPrefetchThreshold = 20
+    const val GridPrefetchDebounceMs = 150L
+    const val MinRefreshMs = 500L
+
+    // -- Crop / Decode --
+    const val MaxDecodeDim = 4096
+    const val MaxCropZoom = 8f
+    const val CropAnimDurationMs = 220L
+}

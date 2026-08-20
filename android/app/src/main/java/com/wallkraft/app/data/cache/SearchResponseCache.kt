@@ -1,5 +1,6 @@
 package com.wallkraft.app.data.cache
 
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.WallpaperResponse
 import kotlinx.serialization.json.Json
@@ -22,7 +23,7 @@ class SearchResponseCache(
     private val directory: File,
     private val json: Json,
 ) {
-    private val ttlMillis = 30 * 60 * 1000L // 30 minutes
+    private val ttlMillis = KraftConstants.SearchCacheTtlMs
 
     /** True when a fresh (within TTL) cached response exists. */
     fun isFresh(filters: WallhavenFilters, page: Int): Boolean {
@@ -65,9 +66,9 @@ class SearchResponseCache(
     }
 
     private fun WallhavenFilters.signature(): String =
-        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query"
+        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${color.orEmpty()}|${atleast.orEmpty()}"
 
     private companion object {
-        const val MAX_ENTRIES = 100
+        const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries
     }
 }

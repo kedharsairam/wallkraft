@@ -16,7 +16,6 @@ import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
@@ -37,17 +36,11 @@ class SettingsStore(private val context: Context) : SettingsRepository {
         val DATA_SAVER_MODE = booleanPreferencesKey("data_saver_mode")
     }
 
-    override val settings: Flow<AppSettings> = combine(
-        context.wallKraftDataStore.data
-            .catch { exception ->
-                if (exception is IOException) emit(emptyPreferences()) else throw exception
-            },
-        // Observe the encrypted store by polling — EncryptedSharedPreferences
-        // doesn't expose a Flow, so we derive one from the DataStore stream.
-        context.wallKraftDataStore.data.catch { emit(emptyPreferences()) },
-    ) { prefs, _ ->
-        prefs.toSettings(encryptedKeyStore.getApiKey())
-    }
+    override val settings: Flow<AppSettings> = context.wallKraftDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { prefs -> prefs.toSettings(encryptedKeyStore.getApiKey()) }
 
     override suspend fun current(): AppSettings = settings.first()
 

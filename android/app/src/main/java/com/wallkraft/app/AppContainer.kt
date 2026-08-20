@@ -3,6 +3,7 @@ package com.wallkraft.app
 import android.content.Context
 import android.content.res.Resources
 import androidx.room.Room
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.SearchResponseCache
@@ -39,8 +40,10 @@ class AppContainer(context: Context) {
 
     val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(KraftConstants.ConnectTimeoutSec, TimeUnit.SECONDS)
+            .readTimeout(KraftConstants.ReadTimeoutSec, TimeUnit.SECONDS)
+            .callTimeout(KraftConstants.CallTimeoutSec, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .build()
     }
 
@@ -63,6 +66,7 @@ class AppContainer(context: Context) {
     private val database: WallKraftDatabase by lazy {
         Room.databaseBuilder(appContext, WallKraftDatabase::class.java, "wallkraft.db")
             .addMigrations(WallKraftDatabase.MIGRATION_1_2, WallKraftDatabase.MIGRATION_2_3)
+            .fallbackToDestructiveMigrationOnDowngrade()
             .build()
     }
 

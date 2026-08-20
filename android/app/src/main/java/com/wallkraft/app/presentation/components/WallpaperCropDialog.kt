@@ -74,9 +74,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.graphics.createBitmap
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.util.WallpaperPosition
@@ -161,28 +163,22 @@ fun WallpaperCropDialog(
             while (v != null) {
                 if (v is DialogWindowProvider) {
                     val window = v.window
-                    // API 30+ only; on older versions the window flags below
-                    // already lay the dialog out edge-to-edge.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        window.setDecorFitsSystemWindows(false)
-                    }
+                    WindowCompat.setDecorFitsSystemWindows(window, false)
                     val lp = window.attributes
                     lp.gravity = android.view.Gravity.TOP or android.view.Gravity.START
                     lp.width = WindowManager.LayoutParams.MATCH_PARENT
                     lp.height = WindowManager.LayoutParams.MATCH_PARENT
-                    // API 28+ only; the field doesn't exist on 26-27, where the
-                    // window flags below are sufficient.
+                    // API 28+ only; the field doesn't exist on 26-27.
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         lp.layoutInDisplayCutoutMode =
                             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
                     }
-                    // The activity window carries these flags and is laid out
-                    // edge-to-edge; the dialog window is missing them, so the
-                    // window manager insets it below the status bar. Add them so
-                    // the crop surface spans the full screen like the detail page.
+                    // The activity window is laid out edge-to-edge; the dialog
+                    // window is missing the flag, so the window manager insets it
+                    // below the status bar. Add it so the crop surface spans the
+                    // full screen like the detail page.
                     lp.flags = lp.flags or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                     window.attributes = lp
                     break
                 }
@@ -410,20 +406,24 @@ fun WallpaperCropDialog(
                             if (applying) return@Button
                             applying = true
                             scope.launch {
-                                val crop = createBitmap(
-                                    frameWpx.toInt(),
-                                    frameHpx.toInt(),
-                                    Bitmap.Config.ARGB_8888,
-                                )
-                                val src: android.graphics.Rect? = null
-                                val paint: android.graphics.Paint? = null
-                                android.graphics.Canvas(crop).drawBitmap(
-                                    bmp,
-                                    src,
-                                    RectF(left, top, left + scaledW, top + scaledH),
-                                    paint,
-                                )
+                                // Crop is ~16MB at 1080×2400×4 — allocate off the main thread
+                                // to avoid jank/OOM, and recycle on failure so we don't leak.
+                                val crop = withContext(Dispatchers.Default) {
+                                    val c = createBitmap(
+                                        frameWpx.toInt(),
+                                        frameHpx.toInt(),
+                                        Bitmap.Config.ARGB_8888,
+                                    )
+                                    android.graphics.Canvas(c).drawBitmap(
+                                        bmp,
+                                        null as android.graphics.Rect?,
+                                        RectF(left, top, left + scaledW, top + scaledH),
+                                        null as android.graphics.Paint?,
+                                    )
+                                    c
+                                }
                                 val ok = onConfirm(crop, position)
+                                if (!ok) runCatching { crop.recycle() }
                                 if (ok) {
                                     setResult = true
                                     delay(1200)
@@ -561,9 +561,9 @@ private fun decodeBounded(file: File): Bitmap? {
     return BitmapFactory.decodeFile(file.absolutePath, opts)
 }
 
-private const val MAX_DECODE_DIM = 4096
-private const val MAX_CROP_ZOOM = 8f
-private const val ANIM_DURATION_MS = 220L
+private const val MAX_DECODE_DIM = KraftConstants.MaxDecodeDim
+private const val MAX_CROP_ZOOM = KraftConstants.MaxCropZoom
+private const val ANIM_DURATION_MS = KraftConstants.CropAnimDurationMs
 
 /** Walks up the context chain to the owning [Activity], if any. */
 private tailrec fun Context.findActivity(): Activity? = when (this) {

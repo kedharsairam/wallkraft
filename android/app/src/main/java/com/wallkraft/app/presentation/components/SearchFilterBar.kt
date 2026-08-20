@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.core.graphics.toColorInt
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -78,10 +79,12 @@ fun SearchFilterBar(
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
 
-    // Dropdown expansion state for the three filter buttons.
+    // Dropdown expansion state for filter buttons.
     var categoriesExpanded by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
     var orientationExpanded by remember { mutableStateOf(false) }
+    var colorExpanded by remember { mutableStateOf(false) }
+    var atleastExpanded by remember { mutableStateOf(false) }
 
     Column(modifier = modifier) {
         // Search row: field (with magnifier + clear) + physical search button.
@@ -251,6 +254,75 @@ fun SearchFilterBar(
                 }
             }
         }
+        // Second filter row: Color + Min resolution (Wallhaven colors/atleast).
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing4),
+        ) {
+            FilterDropdownButton(
+                label = colorLabel(filters.color),
+                expanded = colorExpanded,
+                onExpandedChange = { colorExpanded = it },
+                modifier = Modifier.weight(1f),
+            ) {
+                // All + 12 palette colors matching Wallhaven's palette.
+                ColorOption.entries.forEach { c ->
+                    DropdownMenuItem(
+                        text = { Text(c.displayName()) },
+                        leadingIcon = {
+                            if (filters.color == c.hex) {
+                                Icon(Icons.Filled.Check, contentDescription = null)
+                            }
+                        },
+                        trailingIcon = if (c.hex != null) {
+                            {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(
+                                            try {
+                                                androidx.compose.ui.graphics.Color(
+                                                    "#${c.hex}".toColorInt(),
+                                                )
+                                            } catch (_: Exception) {
+                                                MaterialTheme.colorScheme.surfaceVariant
+                                            },
+                                        ),
+                                )
+                            }
+                        } else null,
+                        onClick = {
+                            onFiltersChange(filters.copy(color = c.hex))
+                            colorExpanded = false
+                        },
+                    )
+                }
+            }
+            FilterDropdownButton(
+                label = atleastLabel(filters.atleast),
+                expanded = atleastExpanded,
+                onExpandedChange = { atleastExpanded = it },
+                modifier = Modifier.weight(1f),
+            ) {
+                AtleastOption.entries.forEach { a ->
+                    DropdownMenuItem(
+                        text = { Text(a.displayName()) },
+                        leadingIcon = {
+                            if (filters.atleast == a.value) {
+                                Icon(Icons.Filled.Check, contentDescription = null)
+                            }
+                        },
+                        onClick = {
+                            onFiltersChange(filters.copy(atleast = a.value))
+                            atleastExpanded = false
+                        },
+                    )
+                }
+            }
+        }
 
         // Hairline separator so the header reads as a distinct surface
         // above the scrolling grid.
@@ -312,4 +384,44 @@ private fun categoriesLabel(categories: Set<Category>): String = when {
     categories.size == Category.entries.size -> stringResource(R.string.filter_all)
     categories.size == 1 -> categories.first().displayName()
     else -> "${categories.first().displayName()} +${categories.size - 1}"
+}
+
+private enum class ColorOption(val hex: String?, val label: String) {
+    All(null, "All colors"),
+    Red("ff0000", "Red"),
+    Orange("ff7f00", "Orange"),
+    Yellow("ffff00", "Yellow"),
+    Green("00ff00", "Green"),
+    Cyan("00ffff", "Cyan"),
+    Blue("0000ff", "Blue"),
+    Purple("800080", "Purple"),
+    Pink("ff69b4", "Pink"),
+    Brown("a52a2a", "Brown"),
+    Gray("808080", "Gray"),
+    Black("000000", "Black"),
+    White("ffffff", "White"),
+    ;
+    @Composable fun displayName(): String = label
+}
+
+private enum class AtleastOption(val value: String?, val label: String) {
+    All(null, "Any res"),
+    HD("1920x1080", "HD 1920×1080"),
+    QHD("2560x1440", "QHD 2560×1440"),
+    UHD("3840x2160", "4K 3840×2160"),
+    UHDPlus("5120x2880", "5K 5120×2880"),
+    ;
+    @Composable fun displayName(): String = label
+}
+
+@Composable
+private fun colorLabel(hex: String?): String = when (hex) {
+    null -> "Color"
+    else -> ColorOption.entries.firstOrNull { it.hex == hex }?.label ?: "#$hex"
+}
+
+@Composable
+private fun atleastLabel(value: String?): String = when (value) {
+    null -> "Resolution"
+    else -> AtleastOption.entries.firstOrNull { it.value == value }?.label ?: value
 }

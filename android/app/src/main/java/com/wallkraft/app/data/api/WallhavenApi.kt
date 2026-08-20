@@ -1,5 +1,6 @@
 package com.wallkraft.app.data.api
 
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -42,7 +43,7 @@ class WallhavenApi(
 
     /** Max automatic retries for transient failures (network / 5xx). */
     private companion object {
-        const val MAX_RETRIES = 3
+        const val MAX_RETRIES = KraftConstants.RetryMax
     }
 
     private fun checkRateLimit() {
@@ -65,6 +66,10 @@ class WallhavenApi(
                 if (filters.orientation != Orientation.Both) {
                     addQueryParameter("ratios", filters.orientation.value)
                 }
+                // Wallhaven colors is a hex without #, e.g. "ff0000" for red.
+                if (!filters.color.isNullOrBlank()) addQueryParameter("colors", filters.color)
+                // Minimum resolution, e.g. "1920x1080" — Wallhaven's atleast param.
+                if (!filters.atleast.isNullOrBlank()) addQueryParameter("atleast", filters.atleast)
             }
             .build()
         return execute(url.toString())
@@ -136,7 +141,7 @@ class WallhavenApi(
             error("unreachable")
         }
 
-    private fun backoffMillis(attempt: Int): Long = 1000L * (1 shl attempt)
+    private fun backoffMillis(attempt: Int): Long = KraftConstants.RetryBackoffBaseMs * (1 shl attempt)
 
     private fun parseRateLimit(remaining: String?) {
         remaining?.toIntOrNull()?.let { RateLimitState.update(it) }
