@@ -71,3 +71,6 @@
 
 - v1.5.0 released 2026-08-07. This roadmap starts after that release.
 - No analytics, no crash reporting, no tracking — by explicit user decision.
+- **No localization (2026-08-14)** — the app is English-only. `values-hi/strings.xml` was removed; the earlier Hindi milestone is reversed. All strings live in the default `values/strings.xml`.
+- **Multi-source rejected (2026-08-14)** — evaluated adding Pexels as a second wallpaper source; declined. Wallhaven stays the single source (filters are the reason it was chosen).
+- **Detail panel redesign + uploader browse (2026-08-14)** — the bottom panel now shows a drag handle, a clickable uploader row (real avatar, tap → that uploader's wallpapers via `@username`), stat pills (resolution/size/category), and a "Tags" section. The right-edge action stack gained Instagram-style labels; the favorite button shows the compact favorite count. Deleted uploader accounts render as a non-clickable "Account deleted" row.

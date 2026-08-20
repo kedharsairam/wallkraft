@@ -28,11 +28,8 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -53,13 +50,19 @@ import com.wallkraft.app.presentation.favorites.FavoritesScreen
 import com.wallkraft.app.presentation.settings.SettingsScreen
 
 object Routes {
-    const val BROWSE = "browse?query={query}"
+    const val BROWSE = "browse?query={query}&title={title}"
     const val FAVORITES = "favorites"
     const val DOWNLOADS = "downloads"
     const val SETTINGS = "settings"
     const val DETAIL = "detail/{id}?thumb={thumb}&path={path}"
 
-    fun browse(query: String = "") = "browse?query=${Uri.encode(query)}"
+    /**
+     * [title] is a display-only label for the search bar (e.g. an uploader's
+     * username) that sits on top of the raw [query] (e.g. `@username`). It is
+     * abandoned the moment the user edits the search box.
+     */
+    fun browse(query: String = "", title: String = "") =
+        "browse?query=${Uri.encode(query)}&title=${Uri.encode(title)}"
     fun detail(id: String, thumb: String? = null, path: String? = null) =
         "detail/$id?thumb=${Uri.encode(thumb ?: "")}&path=${Uri.encode(path ?: "")}"
 }
@@ -86,16 +89,10 @@ fun WallKraftNavHost(container: AppContainer) {
     val currentDestination = backStackEntry?.destination
     val isDetail = currentDestination?.route == Routes.DETAIL
 
-    // The detail screen reports its zoom state up here so the bottom bar can
-    // hide while the user is zoomed in — giving a clean, edge-to-edge view.
-    var detailZoomed by remember { mutableStateOf(false) }
-    val hideBottomBar = isDetail && detailZoomed
-
-    // Reset the zoom flag whenever the user leaves the detail screen, so
-    // returning to another image later starts un-zoomed with the bar visible.
-    LaunchedEffect(isDetail) {
-        if (!isDetail) detailZoomed = false
-    }
+    // The detail screen is full-bleed: no bottom bar, so the bottom panel
+    // anchors to the screen's bottom edge. (Temporary — the bar may return
+    // once the panel is finalized.)
+    val hideBottomBar = isDetail
 
     val browseGridState = rememberLazyStaggeredGridState()
     val favoritesGridState = rememberLazyStaggeredGridState()
@@ -169,9 +166,13 @@ fun WallKraftNavHost(container: AppContainer) {
         ) {
             composable(
                 route = Routes.BROWSE,
-                arguments = listOf(navArgument("query") { type = NavType.StringType; defaultValue = "" }),
+                arguments = listOf(
+                    navArgument("query") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("title") { type = NavType.StringType; defaultValue = "" },
+                ),
             ) { entry ->
                 val query = entry.arguments?.getString("query").orEmpty()
+                val title = entry.arguments?.getString("title").orEmpty()
                 BrowseScreen(
                     container = container,
                     onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
@@ -180,6 +181,7 @@ fun WallKraftNavHost(container: AppContainer) {
                     gridState = if (query.isBlank()) browseGridState else null,
                     navBarPadding = navBarPadding,
                     initialQuery = query,
+                    title = title,
                 )
             }
             composable(Routes.FAVORITES) {
@@ -230,7 +232,13 @@ fun WallKraftNavHost(container: AppContainer) {
                     previewPath = entry.arguments?.getString("path").orEmpty(),
                     onBack = { navController.popBackStack() },
                     onTagClick = { tag -> navController.navigate(Routes.browse(tag)) },
-                    onZoomChanged = { zoomed -> detailZoomed = zoomed },
+                    // Uploader tap opens that user's uploads — the `@username`
+                    // search operator — with the friendly name shown in the
+                    // search bar instead of the raw syntax.
+                    onUploaderClick = { username ->
+                        navController.navigate(Routes.browse("@$username", title = username))
+                    },
+                    onZoomChanged = {},
                     navBarPadding = navBarPadding,
                 )
             }

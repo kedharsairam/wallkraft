@@ -2,17 +2,28 @@ package com.wallkraft.app.presentation.detail
 
 import android.app.Activity
 import android.view.WindowManager
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,16 +43,21 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -66,8 +82,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -77,16 +96,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
@@ -98,6 +125,7 @@ import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.WallpaperPosition
+import com.wallkraft.app.util.formatCount
 import com.wallkraft.app.util.toUserMessage
 import com.wallkraft.app.util.wallpaperCategoryLabel
 import java.io.File
@@ -111,6 +139,7 @@ fun DetailScreen(
     wallpaperId: String,
     onBack: () -> Unit,
     onTagClick: (String) -> Unit = {},
+    onUploaderClick: (String) -> Unit = {},
     onZoomChanged: (Boolean) -> Unit = {},
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     previewThumb: String = "",
@@ -173,6 +202,7 @@ fun DetailScreen(
                     DetailContent(
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
+                        isUploaderDeleted = uiState.isDetailLoaded && wallpaper.uploaderName.isBlank(),
                         dataSaverEnabled = dataSaverEnabled,
                         // Prefer the locally-cached favorite copy when it exists
                         // so the image loads instantly and works offline; fall
@@ -215,6 +245,7 @@ fun DetailScreen(
                         },
                         onBack = onBack,
                         onTagClick = onTagClick,
+                        onUploaderClick = onUploaderClick,
                         onZoomChanged = onZoomChanged,
                         navBarPadding = navBarPadding,
                         modifier = Modifier.fillMaxSize(),
@@ -308,6 +339,7 @@ val setTarget = setWallpaperTarget
 private fun DetailContent(
     wallpaper: Wallpaper,
     isFavorite: Boolean,
+    isUploaderDeleted: Boolean,
     dataSaverEnabled: Boolean?,
     imageModel: Any,
     onToggleFavorite: () -> Unit,
@@ -316,6 +348,7 @@ private fun DetailContent(
     onShare: () -> Unit,
     onBack: () -> Unit,
     onTagClick: (String) -> Unit,
+    onUploaderClick: (String) -> Unit,
     onZoomChanged: (Boolean) -> Unit,
     navBarPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
@@ -493,10 +526,6 @@ private fun DetailContent(
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
                     }
-                    Spacer(Modifier.weight(1f))
-                    IconButton(onClick = { WallpaperActions.openInBrowser(context, wallpaper) }) {
-                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.open_on_wallhaven), tint = Color.White)
-                    }
                 }
             }
         }
@@ -516,8 +545,11 @@ private fun DetailContent(
             DetailPanelContent(
                 wallpaper = wallpaper,
                 onTagClick = onTagClick,
+                onUploaderClick = onUploaderClick,
+                isUploaderDeleted = isUploaderDeleted,
                 clickable = false,
                 collapsed = true,
+                loadAvatar = false,
                 bottomPadding = navBarPadding,
             )
         }
@@ -531,36 +563,63 @@ private fun DetailContent(
             DetailPanelContent(
                 wallpaper = wallpaper,
                 onTagClick = onTagClick,
+                onUploaderClick = onUploaderClick,
+                isUploaderDeleted = isUploaderDeleted,
                 clickable = false,
                 collapsed = false,
+                loadAvatar = false,
                 bottomPadding = navBarPadding,
             )
         }
 
         val density = LocalDensity.current
-        val collapsedHeightPx = collapsedContentHeight.toFloat()
-        val maxPanelHeightPx = min(fullContentHeight.toFloat(), maxHeight.value)
-
-        // Two-state panel: collapsed (metadata + one truncated tag line with an
-        // inline "...") or expanded (all tag chips). Swipe up to expand, swipe
-        // down to collapse. While dragging the panel follows the finger; on
-        // release it settles to whichever state is closer.
-        var expanded by remember(wallpaper.id) { mutableStateOf(false) }
-        val panelHeight = remember(wallpaper.id) { Animatable(0f) }
-        // Drag offset in px, tracked synchronously so the release decision is
-        // correct even though the Animatable settles asynchronously.
-        var dragOffsetPx by remember(wallpaper.id) { mutableStateOf(0f) }
-        // Displayed height = settled height + live drag offset, clamped.
-        val displayedHeightPx = (panelHeight.value + dragOffsetPx)
-            .coerceIn(collapsedHeightPx, maxPanelHeightPx)
-        val scope = rememberCoroutineScope()
-
-        // Settle the panel to the target on first layout only.
-        LaunchedEffect(collapsedHeightPx, wallpaper.id) {
-            if (collapsedHeightPx > 0f && panelHeight.value == 0f) {
-                panelHeight.snapTo(collapsedHeightPx)
-            }
+        // The panel content's bottom padding — spacer + nav-bar inset + the
+        // bottom nav bar — is part of the measured Column, but the visible
+        // collapsed bar is the content without it: the compact bar (handle,
+        // uploader, pull hint) anchored to the bottom bar. Subtracting the
+        // inset from the measured height gives the bar its collapsed height;
+        // the panel itself is always anchored to the bottom bar, so expanding
+        // grows it upward from there.
+        val navInsetPx = remember {
+            (context as? Activity)?.window?.decorView
+                ?.let { ViewCompat.getRootWindowInsets(it) }
+                ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+                ?.bottom ?: 0
         }
+        val bottomInsetPx = with(density) {
+            KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
+        }
+        // The collapsed content is measured from the grid preview, which has no
+        // uploader; once the real detail loads the content grows. Both heights
+        // are clamped so the panel never exceeds its allowed maximum — 65% of
+        // the available height, converted from dp to px (maxHeight is a Dp).
+        val maxPanelHeightPx = min(
+            fullContentHeight.toFloat(),
+            with(density) { (maxHeight * 0.65f).toPx() },
+        )
+        // Add the gesture navigation bar height to the collapsed panel so the
+        // "More details" hint sits above the white pill at the screen bottom.
+        // Without this the hint text overlaps the pill and is unreadable. The
+        // extra height pushes the stats behind the gesture bar (hidden by the
+        // dark gradient + system overlay), so only handle/uploader/hint remain
+        // visible. The expanded state is unaffected (it uses maxPanelHeightPx).
+        val gestureBarHeight = with(density) { navBarPadding.toPx() }
+        val collapsedHeightPx = min(
+            (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
+            maxPanelHeightPx,
+        )
+        // True when the expanded content is taller than the panel's max height.
+        // In that case the tag chips become scrollable so nothing is clipped;
+        // when the content fits, no scroll modifier is attached at all, so the
+        // whole-panel drag-to-collapse gesture works exactly as before.
+        val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
+
+        // Two-state panel: collapsed (compact bar) or expanded (full content).
+        // Swipe up to expand, swipe down to collapse. `expanded` is owned here
+        // because the right-edge stack reads it to fade out; the panel itself
+        // lives in [BottomPanel], which owns the drag state so per-frame drag
+        // updates don't recompose the whole screen.
+        var expanded by remember(wallpaper.id) { mutableStateOf(false) }
 
         // Right-edge vertical action stack (favorite, download, set wallpaper),
         // like Instagram reels. Floats just above the collapsed panel and hides
@@ -572,97 +631,282 @@ private fun DetailContent(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = KraftSpacing.Spacing12)
-                .padding(bottom = with(density) { panelHeight.value.toDp() } + KraftSpacing.Spacing16),
+                // Fixed position, independent of the drag: it floats just
+                // above the collapsed bar's top edge and only fades out while
+                // the panel is expanded — it never rides along with the drag.
+                // The bar's visual top sits `collapsedHeightPx` above the
+                // content area bottom, since the bar is anchored to the
+                // bottom bar.
+                .padding(bottom = with(density) { collapsedHeightPx.toDp() } + KraftSpacing.Spacing16),
         ) {
             Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
             ) {
-                ReelsActionButton(
+                ReelsActionItem(
                     onClick = onToggleFavorite,
                     icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    label = formatCount(wallpaper.favorites),
                     contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                     tint = if (isFavorite) KraftColors.AccentRed else Color.White,
                 )
-                ReelsActionButton(
+                ReelsActionItem(
                     onClick = onDownload,
                     icon = Icons.Filled.Download,
+                    label = stringResource(R.string.download),
                     contentDescription = stringResource(R.string.download),
                 )
-                ReelsActionButton(
+                ReelsActionItem(
                     onClick = onSetWallpaper,
                     icon = Icons.Filled.Wallpaper,
+                    label = stringResource(R.string.set_as_wallpaper),
                     contentDescription = stringResource(R.string.set_as_wallpaper),
                 )
-                ReelsActionButton(
+                ReelsActionItem(
                     onClick = onShare,
                     icon = Icons.Filled.Share,
+                    label = stringResource(R.string.share),
                     contentDescription = stringResource(R.string.share),
                 )
             }
         }
 
         // Bottom panel — metadata + tags. Collapsed by default showing the
-        // metadata and a single truncated tag line ending in "...". Swipe up
-        // to expand and reveal every tag chip; swipe down to collapse.
-        // Fades away while zoomed, and sits above the bottom nav bar.
-        AnimatedVisibility(
-            visible = !isZoomed,
-            enter = fadeIn(animationSpec = tween(250)),
-            exit = fadeOut(animationSpec = tween(200)),
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(with(density) { panelHeight.value.toDp() })
-                    .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
-                    .background(Color.Black.copy(alpha = 0.75f))
-                    .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
-                        detectVerticalDragGestures(
-                            onDragStart = {
-                                // Freeze the settled height so the offset is relative
-                                // to it; cancel any in-flight settle animation.
-                                scope.launch { panelHeight.stop() }
-                            },
-                            onVerticalDrag = { change, dragAmount ->
-                                change.consume()
-                                // dragAmount is negative when dragging up; subtract so
-                                // pulling up grows the panel.
-                                dragOffsetPx -= dragAmount
-                            },
-                            onDragEnd = {
-                                val midpoint = (collapsedHeightPx + maxPanelHeightPx) / 2f
-                                val currentPx = (panelHeight.value + dragOffsetPx)
-                                    .coerceIn(collapsedHeightPx, maxPanelHeightPx)
-                                expanded = currentPx > midpoint
-                                scope.launch {
-                                    panelHeight.animateTo(
-                                        targetValue = if (expanded) maxPanelHeightPx else collapsedHeightPx,
-                                        animationSpec = tween(300),
-                                    )
-                                }
-                                dragOffsetPx = 0f
-                            },
-                        )
-                    },
-            ) {
-                // Crossfade between the collapsed preview and the full chip list so
-                // the content switch doesn't pop while the height animates.
-                Crossfade(
-                    targetState = expanded,
-                    animationSpec = tween(200),
-                    modifier = Modifier.align(Alignment.TopStart),
-                ) { isExpanded ->
-                    DetailPanelContent(
-                        wallpaper = wallpaper,
-                        onTagClick = onTagClick,
-                        clickable = true,
-                        collapsed = !isExpanded,
-                        bottomPadding = navBarPadding,
-                    )
-                }
+        // compact bar (handle + uploader); swipe up to expand and reveal the
+        // divider, stats, and every tag chip. Fades away while zoomed, and
+        // sits above the bottom nav bar.
+        BottomPanel(
+            wallpaper = wallpaper,
+            onTagClick = onTagClick,
+            onUploaderClick = onUploaderClick,
+            isUploaderDeleted = isUploaderDeleted,
+            collapsedHeightPx = collapsedHeightPx,
+            maxPanelHeightPx = maxPanelHeightPx,
+            contentOverflows = contentOverflows,
+            navBarPadding = navBarPadding,
+            isZoomed = isZoomed,
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        )
+    }
+}
+
+/**
+ * The bottom panel: drag handle, uploader row, stat pills, and tags.
+ *
+ * The panel always renders its full content and clips it to its current
+ * height, so dragging reveals the extra content progressively with zero
+ * content switching — the only thing that changes while dragging is the Box
+ * height. All drag state lives here so per-frame drag updates recompose only
+ * this composable, never the whole screen (which is what made the panel
+ * stutter before).
+ *
+ * `expanded` is owned by the caller (the right-edge stack reads it to fade
+ * out); this composable only reports it via [onExpandedChange] as the drag
+ * crosses the threshold or settles past the expand threshold.
+ */
+@Composable
+private fun BottomPanel(
+    wallpaper: Wallpaper,
+    onTagClick: (String) -> Unit,
+    onUploaderClick: (String) -> Unit,
+    isUploaderDeleted: Boolean,
+    collapsedHeightPx: Float,
+    maxPanelHeightPx: Float,
+    contentOverflows: Boolean,
+    navBarPadding: androidx.compose.ui.unit.Dp,
+    isZoomed: Boolean,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+) {
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    // Settled height, animated between collapsed and expanded.
+    val panelHeight = remember(wallpaper.id) { Animatable(0f) }
+    // Drag offset in px, tracked synchronously so the release decision is
+    // correct even though the Animatable settles asynchronously.
+    var dragOffsetPx by remember(wallpaper.id) { mutableStateOf(0f) }
+    // Once the user has touched the panel we stop auto-snapping it to the
+    // measured heights — the panel is theirs from then on.
+    var userInteracted by remember(wallpaper.id) { mutableStateOf(false) }
+    // Release velocity in px/s (upward positive), smoothed from the last drag
+    // events so a quick flick settles the panel even when the pull distance
+    // is small. Without this, expanding a tall panel (many tags) would need
+    // a long drag because the settle threshold scales with content height.
+    var dragVelocityPxPerSec by remember(wallpaper.id) { mutableStateOf(0f) }
+    var lastDragTimestamp by remember(wallpaper.id) { mutableStateOf(0L) }
+
+    // Settle the panel to the target height. Runs on first layout and again
+    // whenever the measured heights change (e.g. the real detail loads and
+    // the uploader row appears). Once the user has dragged the panel it's
+    // theirs — except when the content grows past the current height, so
+    // the panel never clips its own content. `expanded` is deliberately NOT
+    // a key here: onDragEnd owns the settle, and keying on it would let
+    // this effect race the finger every time the drag threshold flips it.
+    LaunchedEffect(collapsedHeightPx, maxPanelHeightPx, wallpaper.id) {
+        if (collapsedHeightPx > 0f) {
+            val target = if (expanded) maxPanelHeightPx else collapsedHeightPx
+            if (!userInteracted || target > panelHeight.value) {
+                panelHeight.animateTo(
+                    targetValue = target,
+                    animationSpec = tween(250),
+                )
             }
         }
+    }
+
+    // The panel is always anchored to the bottom bar: its height follows the
+    // finger while dragging, clamped to the collapsed/expanded range, and it
+    // grows upward from the bottom bar as it expands.
+    val currentHeightPx = (panelHeight.value + dragOffsetPx)
+        .coerceIn(collapsedHeightPx, maxPanelHeightPx)
+
+    // Wrapper Box restores the BoxScope so the panel can align to the bottom
+    // of the content area (BottomPanel is a standalone composable, not a
+    // BoxScope receiver).
+    Box(modifier = Modifier.fillMaxSize()) {
+        // AnimatedVisibility wraps its content in an internal Box that
+        // center-aligns oversized children. Because the inner measurement
+        // Box (requiredHeight = maxPanel) is taller than the outer clip Box
+        // (currentHeight), AnimatedVisibility's internal Box pushes the
+        // entire panel upward by ~257px, hiding the handle/uploader/hint.
+        // Using graphicsLayer alpha bypasses that internal layout entirely.
+        val panelAlpha by animateFloatAsState(
+            targetValue = if (isZoomed) 0f else 1f,
+            animationSpec = tween(250),
+            label = "panelAlpha",
+        )
+
+        // The outer panel is a custom Layout (not a Box) because Box
+        // center-aligns children that are taller than the Box, even with
+        // contentAlignment = TopStart. This pushes the handle/uploader/hint
+        // above the visible clip region when collapsed. A custom Layout lets
+        // us measure content at maxPanelHeight (so every child lays out at
+        // its natural size) while always placing it at y=0. The clip +
+        // background + pointerInput work on the Layout's reported height
+        // (currentHeightPx), which is what drives the panel's visual size.
+        val maxH = maxPanelHeightPx.toInt()
+        Layout(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .graphicsLayer { alpha = panelAlpha }
+                .height(with(density) { currentHeightPx.toDp() })
+                .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.45f), Color.Black.copy(alpha = 0.96f)),
+                    ),
+                )
+                .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
+                    // Settled height where the drag started. Read at release to
+                    // tell an upward pull from a downward drag, so the expand and
+                    // collapse thresholds can be asymmetric.
+                    var dragStartPx = 0f
+                    detectVerticalDragGestures(
+                        onDragStart = {
+                            // Freeze the settled height so the offset is relative
+                            // to it; cancel any in-flight settle animation. From
+                            // here on the panel is user-controlled.
+                            userInteracted = true
+                            dragVelocityPxPerSec = 0f
+                            lastDragTimestamp = 0L
+                            dragStartPx = panelHeight.value
+                            scope.launch { panelHeight.stop() }
+                        },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            // Track release velocity from the event timestamps.
+                            // dragAmount is negative when dragging up; negate so
+                            // upward is positive.
+                            val now = change.uptimeMillis
+                            if (lastDragTimestamp > 0L) {
+                                val dt = (now - lastDragTimestamp).coerceAtLeast(1L)
+                                val instantVelocity = -dragAmount / dt * 1000f
+                                dragVelocityPxPerSec =
+                                    dragVelocityPxPerSec * 0.7f + instantVelocity * 0.3f
+                            }
+                            lastDragTimestamp = now
+                            // dragAmount is negative when dragging up; subtract so
+                            // pulling up grows the panel.
+                            dragOffsetPx -= dragAmount
+                            // Flip state live while dragging: once the panel
+                            // clears the collapsed bar by a small margin the
+                            // right-edge stack fades out. The panel Box's height
+                            // follows the finger, so its clip reveals the extra
+                            // content progressively — no content switching.
+                            onExpandedChange(
+                                (panelHeight.value + dragOffsetPx) >
+                                    collapsedHeightPx + with(density) { 8.dp.toPx() },
+                            )
+                        },
+                        onDragEnd = {
+                            val currentPx = (panelHeight.value + dragOffsetPx)
+                                .coerceIn(collapsedHeightPx, maxPanelHeightPx)
+                            val rangePx = maxPanelHeightPx - collapsedHeightPx
+                            // Expand threshold: a small, consistent pull opens the
+                            // panel regardless of content height. Capped at half
+                            // the range so it always sits below the expanded
+                            // height for very short content.
+                            val expandThresholdPx = collapsedHeightPx +
+                                min(with(density) { 40.dp.toPx() }, rangePx * 0.5f)
+                            // Collapse needs a deliberate drag past the midpoint
+                            // (or a downward flick) — a small downward drag on a
+                            // tall panel shouldn't close it.
+                            val midpointPx = (collapsedHeightPx + maxPanelHeightPx) / 2f
+                            // A quick flick settles by velocity; a slow drag
+                            // settles by position. Asymmetric thresholds: a small
+                            // pull up opens the panel regardless of content
+                            // height, while collapsing needs a deliberate drag
+                            // down past the midpoint.
+                            val velocityThresholdPx = with(density) { 380.dp.toPx() }
+                            val draggedUp = currentPx > dragStartPx
+                            val settleExpanded = when {
+                                dragVelocityPxPerSec > velocityThresholdPx -> true
+                                dragVelocityPxPerSec < -velocityThresholdPx -> false
+                                draggedUp -> currentPx > expandThresholdPx
+                                else -> currentPx > midpointPx
+                            }
+                            onExpandedChange(settleExpanded)
+                            scope.launch {
+                                // Snap to where the finger released, then
+                                // animate to the target — no jump back.
+                                panelHeight.snapTo(currentPx)
+                                panelHeight.animateTo(
+                                    targetValue = if (settleExpanded) maxPanelHeightPx else collapsedHeightPx,
+                                    animationSpec = tween(300),
+                                )
+                            }
+                            dragOffsetPx = 0f
+                        },
+                    )
+                },
+            content = {
+                DetailPanelContent(
+                    wallpaper = wallpaper,
+                    onTagClick = onTagClick,
+                    onUploaderClick = onUploaderClick,
+                    isUploaderDeleted = isUploaderDeleted,
+                    clickable = true,
+                    collapsed = !expanded,
+                    tagsScrollable = contentOverflows,
+                    pullHintVisible = !expanded,
+                    bottomPadding = navBarPadding,
+                )
+            },
+            measurePolicy = { measurables: List<androidx.compose.ui.layout.Measurable>, constraints: Constraints ->
+                val childConstraints = Constraints(
+                    minWidth = constraints.minWidth,
+                    maxWidth = constraints.maxWidth,
+                    minHeight = maxH,
+                    maxHeight = maxH,
+                )
+                val placeable = measurables.first().measure(childConstraints)
+                layout(constraints.maxWidth, constraints.maxHeight) {
+                    placeable.place(0, 0)
+                }
+            },
+        )
     }
 }
 
@@ -693,6 +937,50 @@ private fun ReelsActionButton(
 }
 
 /**
+ * An Instagram-style action: the circular button plus a small caption label
+ * centered beneath it. The favorite button's label is the wallpaper's favorite
+ * count; the others carry their action name. The item has a fixed width so
+ * every button in the stack aligns on the same axis regardless of how wide its
+ * label is. The label has a subtle drop shadow so it stays readable over
+ * bright image areas.
+ */
+@Composable
+private fun ReelsActionItem(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    label: String,
+    contentDescription: String?,
+    tint: Color = Color.White,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.width(88.dp),
+    ) {
+        ReelsActionButton(
+            onClick = onClick,
+            icon = icon,
+            contentDescription = contentDescription,
+            tint = tint,
+        )
+        Spacer(Modifier.height(KraftSpacing.Spacing4))
+        Text(
+            text = label,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            style = MaterialTheme.typography.labelSmall.copy(
+                color = Color.White,
+                shadow = Shadow(
+                    color = Color.Black.copy(alpha = 0.6f),
+                    offset = Offset(0f, 1f),
+                    blurRadius = 3f,
+                ),
+            ),
+        )
+    }
+}
+
+/**
  * A clickable tag chip — tapping it opens the tag-filtered grid. Uses the
  * accent blue treatment (tinted fill + border) so tags read as interactive.
  * Pass `clickable = false` for the invisible measurement pass.
@@ -716,40 +1004,32 @@ private fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean 
     )
 }
 
-/** The two metadata lines shown at the top of the bottom panel. */
-@Composable
-private fun DetailPanelMetadata(wallpaper: Wallpaper) {
-    Column {
-        Text(
-            text = "${wallpaper.resolution}  ·  ${wallpaper.fileSizeFormatted()}",
-            style = MaterialTheme.typography.titleSmall,
-            color = Color.White,
-        )
-        Spacer(Modifier.height(KraftSpacing.Spacing4))
-        Text(
-            text = "${wallpaperCategoryLabel(wallpaper.category)}  ·  ${stringResource(R.string.favorites_format, wallpaper.favorites)}",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.8f),
-        )
-    }
-}
+/** The uploader row's three visual states, crossfaded as the detail loads. */
+private enum class UploaderState { Loading, Loaded, Deleted }
 
 /**
- * The bottom-panel content: metadata + tags.
+ * The bottom-panel content: drag handle, uploader row, stat pills, and tags.
  *
- * `collapsed = true` shows the metadata plus a preview of the first few tag
- * chips with an inline "…" after them — the same chip design as the expanded
- * state, just truncated. `collapsed = false` shows every tag as a clickable
- * chip, flowing vertically (FlowRow, no horizontal scroll). `clickable =
- * false` disables chip taps for the invisible measurement pass.
+ * `collapsed = true` shows just the drag handle and uploader row — the compact
+ * bar. `collapsed = false` adds the divider, stat pills, and all tag chips.
+ * `clickable = false` disables chip taps for the invisible measurement pass.
+ * `loadAvatar = false` skips the uploader avatar network fetch in that same
+ * pass (the fixed-size placeholder keeps the measured height identical).
+ * `tagsScrollable` attaches a vertical scroll to the tag chips — only used
+ * when the expanded content would overflow the panel's max height.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DetailPanelContent(
     wallpaper: Wallpaper,
     onTagClick: (String) -> Unit,
+    onUploaderClick: (String) -> Unit,
+    isUploaderDeleted: Boolean,
     clickable: Boolean = true,
     collapsed: Boolean = false,
+    loadAvatar: Boolean = true,
+    tagsScrollable: Boolean = false,
+    pullHintVisible: Boolean = true,
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
@@ -760,26 +1040,312 @@ private fun DetailPanelContent(
             .padding(horizontal = KraftSpacing.Spacing16)
             .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
-        DetailPanelMetadata(wallpaper = wallpaper)
-        if (wallpaper.tags.isNotEmpty()) {
-            Spacer(Modifier.height(KraftSpacing.Spacing12))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+        // Drag handle — signals the panel can be swiped. A touch wider and
+        // brighter than before, with a soft shadow so it reads on any image.
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .size(width = 40.dp, height = 4.dp)
+                .shadow(4.dp, RoundedCornerShape(2.dp), clip = false)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color.White.copy(alpha = 0.6f)),
+        )
+        Spacer(Modifier.height(KraftSpacing.Spacing16))
+
+        // Uploader row. While the preview is still loading (no uploader data yet) a
+        // pulsing skeleton occupies the slot; once the real detail loads it
+        // crossfades to the uploader row (or the account-deleted state). All
+        // three states are the same height, so the panel never changes size —
+        // the load reads as content arriving, not a layout jump. This is the
+        // collapsed bar's content — the divider, stats, and tags only appear
+        // expanded.
+        val uploaderState = when {
+            wallpaper.uploaderName.isNotBlank() -> UploaderState.Loaded
+            isUploaderDeleted -> UploaderState.Deleted
+            else -> UploaderState.Loading
+        }
+        Crossfade(
+            targetState = uploaderState,
+            animationSpec = tween(200),
+            label = "uploaderRow",
+            modifier = Modifier,
+        ) { state ->
+            when (state) {
+                UploaderState.Loaded -> UploaderRow(
+                    name = wallpaper.uploaderName,
+                    avatarUrl = wallpaper.uploaderAvatarUrl,
+                    loadAvatar = loadAvatar,
+                    onClick = { onUploaderClick(wallpaper.uploaderName) },
+                    clickable = clickable,
+                )
+                UploaderState.Deleted -> DeletedUploaderRow()
+                UploaderState.Loading -> UploaderRowPlaceholder()
+            }
+        }
+
+        // Pull hint — "More details ⌄" — tells first-time users the bar swipes
+        // up. It's placed between the uploader and the divider and rendered in
+        // both collapsed and expanded states, so the collapsed panel's measured
+        // height includes it and it's visible without any drag. It grows/shrinks
+        // in place so the divider and stats below slide smoothly, and fades
+        // away entirely once the user starts dragging (expanded) — it would be
+        // pointless while the panel is visibly moving.
+        Spacer(Modifier.height(KraftSpacing.Spacing8))
+        AnimatedVisibility(
+            visible = pullHintVisible,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = tween(200)),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = tween(200)),
+            modifier = Modifier,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                val visibleTags = if (collapsed) wallpaper.tags.take(3) else wallpaper.tags
-                visibleTags.forEach { tag ->
-                    DetailTagChip(name = tag.name, onClick = { onTagClick(tag.name) }, clickable = clickable)
+                Text(
+                    text = stringResource(R.string.more_details),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Color.White.copy(alpha = 0.55f),
+                        letterSpacing = 0.4.sp,
+                    ),
+                )
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    imageVector = Icons.Outlined.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.55f),
+                    modifier = Modifier.size(12.dp),
+                )
+            }
+        }
+        Spacer(Modifier.height(KraftSpacing.Spacing8))
+
+        // Expanded content: stat pills and tags. The live panel always renders
+        // this (clipped to its current height), so the reveal is purely the
+        // Box clip following the finger — no switching, no fade.
+        if (!collapsed) {
+            Column {
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
+
+                // Stat pills: resolution, file size, category. (Favorites moved
+                // to the right-edge action stack, so it's not repeated here.)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                ) {
+                    StatPill(wallpaper.resolution)
+                    StatPill(wallpaper.fileSizeFormatted())
+                    StatPill(wallpaperCategoryLabel(wallpaper.category))
                 }
-                if (collapsed && wallpaper.tags.size > visibleTags.size) {
+
+                if (wallpaper.tags.isNotEmpty()) {
+                    Spacer(Modifier.height(KraftSpacing.Spacing16))
                     Text(
-                        text = "...",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White.copy(alpha = 0.9f),
-                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
+                        text = stringResource(R.string.tags_heading),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color.White.copy(alpha = 0.55f),
+                            letterSpacing = 0.4.sp,
+                        ),
                     )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                        verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                        modifier = if (tagsScrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier,
+                    ) {
+                        wallpaper.tags.forEach { tag ->
+                            DetailTagChip(name = tag.name, onClick = { onTagClick(tag.name) }, clickable = clickable)
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+/** A compact stat pill (resolution, size, category) in the bottom panel. */
+@Composable
+private fun StatPill(text: String) {
+    val shape = RoundedCornerShape(KraftRadius.Small)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
+        modifier = Modifier
+            .clip(shape)
+            .background(Color.White.copy(alpha = 0.10f))
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), shape)
+            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
+    )
+}
+
+/**
+ * The clickable uploader row: avatar + username. Tapping it opens the
+ * uploader's wallpapers (search query `@username`), mirroring tag behavior.
+ * Only the avatar + name are clickable — the row wraps its content instead of
+ * filling the panel width, so the tap target (and its ripple) stays compact
+ * rather than covering the whole strip.
+ */
+@Composable
+private fun UploaderRow(
+    name: String,
+    avatarUrl: String,
+    loadAvatar: Boolean,
+    onClick: () -> Unit,
+    clickable: Boolean,
+) {
+    val viewByDesc = stringResource(R.string.view_by_uploader, name)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
+            .semantics { contentDescription = viewByDesc }
+            .padding(vertical = KraftSpacing.Spacing2),
+    ) {
+        UploaderAvatar(avatarUrl = avatarUrl, name = name, loadAvatar = loadAvatar)
+        Spacer(Modifier.width(KraftSpacing.Spacing12))
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold,
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            // Cap the width so a very long username ellipsizes instead of
+            // overflowing the panel; the tap target stays compact.
+            modifier = Modifier.widthIn(max = 240.dp),
+        )
+    }
+}
+
+/**
+ * A pulsing skeleton shown in the uploader slot while the real uploader
+ * details load. Same dimensions as the real row (32dp avatar + name), so the
+ * panel never changes size when the data arrives — it reads as content
+ * loading, not a layout jump.
+ */
+@Composable
+private fun UploaderRowPlaceholder() {
+    val pulse by rememberInfiniteTransition(label = "uploaderPlaceholder").animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.65f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 750, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "uploaderPlaceholderAlpha",
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(vertical = KraftSpacing.Spacing2),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = pulse)),
+        )
+        Spacer(Modifier.width(KraftSpacing.Spacing12))
+        Box(
+            modifier = Modifier
+                .width(120.dp)
+                .height(16.dp)
+                .clip(RoundedCornerShape(KraftRadius.Small))
+                .background(Color.White.copy(alpha = pulse)),
+        )
+    }
+}
+
+/**
+ * The uploader's avatar: the real image when available, otherwise the
+ * username's initial on a deterministic accent color. `loadAvatar = false`
+ * (measurement pass) renders the placeholder directly — same size, no network.
+ */
+@Composable
+private fun UploaderAvatar(
+    avatarUrl: String,
+    name: String,
+    loadAvatar: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val initial = name.firstOrNull()?.uppercase() ?: "?"
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .background(avatarColor(name)),
+    ) {
+        if (loadAvatar && avatarUrl.isNotBlank()) {
+            SubcomposeAsyncImage(
+                model = avatarUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                loading = { InitialLetter(initial) },
+                error = { InitialLetter(initial) },
+            )
+        } else {
+            InitialLetter(initial)
+        }
+    }
+}
+
+@Composable
+private fun InitialLetter(initial: String) {
+    Text(
+        text = initial,
+        style = MaterialTheme.typography.labelMedium.copy(
+            color = Color.White,
+            fontWeight = FontWeight.SemiBold,
+        ),
+    )
+}
+
+/**
+ * Shown when the loaded detail has no uploader — the account was deleted but
+ * the wallpaper remains. Not clickable: there is no user to browse.
+ */
+@Composable
+private fun DeletedUploaderRow() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = KraftSpacing.Spacing2),
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.12f)),
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Person,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.5f),
+                modifier = Modifier.size(18.dp),
+            )
+        }
+        Spacer(Modifier.width(KraftSpacing.Spacing12))
+        Text(
+            text = stringResource(R.string.account_deleted),
+            style = MaterialTheme.typography.titleSmall.copy(
+                color = Color.White.copy(alpha = 0.5f),
+            ),
+        )
+    }
+}
+
+/** Deterministic avatar color per username, picked from the Kraft accents. */
+private val avatarPalette = listOf(
+    KraftColors.AccentBlue,
+    KraftColors.AccentPurple,
+    KraftColors.AccentOrange,
+    KraftColors.AccentGreen,
+    KraftColors.AccentRed,
+)
+
+private fun avatarColor(name: String): Color =
+    avatarPalette[(name.hashCode() and Int.MAX_VALUE) % avatarPalette.size]

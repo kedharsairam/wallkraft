@@ -20,6 +20,30 @@ data class Tag(
     @SerialName("name") val name: String = "",
 )
 
+/**
+ * The uploader's avatar image at the sizes Wallhaven serves. Only the detail
+ * endpoint returns the uploader; search listings omit it entirely.
+ */
+@Immutable
+@Serializable
+data class UploaderAvatar(
+    @SerialName("200px") val px200: String = "",
+    @SerialName("128px") val px128: String = "",
+    @SerialName("32px") val px32: String = "",
+    @SerialName("20px") val px20: String = "",
+)
+
+/**
+ * The wallpaper's uploader. `null` (or an empty [username]) means the account
+ * no longer exists — Wallhaven keeps the wallpaper but the uploader is gone.
+ */
+@Immutable
+@Serializable
+data class Uploader(
+    @SerialName("username") val username: String = "",
+    @SerialName("avatar") val avatar: UploaderAvatar? = null,
+)
+
 @Immutable
 @Serializable
 data class Wallpaper(
@@ -35,6 +59,7 @@ data class Wallpaper(
     @SerialName("category") val category: String = "general",
     @SerialName("purity") val purity: String = "sfw",
     @SerialName("tags") val tags: List<Tag> = emptyList(),
+    @SerialName("uploader") val uploader: Uploader? = null,
 ) {
     // Wallhaven pre-crops `small`/`large` to fixed 3:2 / 16:9 ratios, which
     // makes non-matching wallpapers look zoomed. `original` preserves the true
@@ -47,6 +72,22 @@ data class Wallpaper(
 
     /** True when the API reports this wallpaper as safe-for-work. */
     val isSfw: Boolean get() = purity == "sfw"
+
+    /**
+     * The uploader's username, or "" when there is none — a deleted account,
+     * a guest upload, or data that hasn't loaded the uploader yet (search
+     * listings never carry it; only the detail endpoint does).
+     */
+    val uploaderName: String get() = uploader?.username?.takeIf { it.isNotBlank() } ?: ""
+
+    /**
+     * Best available avatar URL (128px preferred — crisp on a 32dp circle at
+     * typical densities), or "" when the uploader has no avatar.
+     */
+    val uploaderAvatarUrl: String get() {
+        val avatar = uploader?.avatar ?: return ""
+        return avatar.px128.ifBlank { avatar.px200.ifBlank { avatar.px32.ifBlank { avatar.px20 } } }
+    }
 
     fun fileSizeFormatted(): String =
         if (fileSize < 1024 * 1024) {

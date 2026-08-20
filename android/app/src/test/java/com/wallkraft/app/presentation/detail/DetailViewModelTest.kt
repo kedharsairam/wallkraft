@@ -153,6 +153,40 @@ class DetailViewModelTest {
         assertEquals("not found", vm.uiState.value.error)
     }
 
+    @Test
+    fun `isDetailLoaded becomes true after a successful load`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { id -> Result.success(Wallpaper(id = id)) }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.isDetailLoaded)
+    }
+
+    @Test
+    fun `isDetailLoaded stays false when the load fails`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { Result.failure(Exception("network")) }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.isDetailLoaded)
+    }
+
+    @Test
+    fun `preview seed keeps isDetailLoaded false`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { Result.success(Wallpaper(id = it)) }
+        val vm = DetailViewModel(
+            "wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" },
+            previewThumb = "thumb.jpg", previewPath = "path.jpg",
+        )
+
+        // Before the network resolves, the preview exists but detail is not loaded.
+        assertTrue(vm.uiState.value.wallpaper != null)
+        assertFalse(vm.uiState.value.isDetailLoaded)
+    }
+
     private class FakeWallpaperRepository : WallpaperRepository {
         var wallpaperResult: (String) -> Result<Wallpaper> = {
             Result.success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))
