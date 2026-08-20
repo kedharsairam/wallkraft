@@ -46,12 +46,14 @@ object WallpaperActions {
         return dm.enqueue(request)
     }
 
-    /** Applies a pre-cropped [Bitmap] as the wallpaper at [position]. */
-    fun setAsWallpaper(context: Context, bitmap: Bitmap, position: WallpaperPosition): Boolean =
-        runCatching {
-            val wm = WallpaperManager.getInstance(context)
-            wm.setBitmap(bitmap, null, true, position.flags)
-        }.isSuccess
+    /** Applies a pre-cropped [Bitmap] as the wallpaper at [position]. Off main thread. */
+    suspend fun setAsWallpaper(context: Context, bitmap: Bitmap, position: WallpaperPosition): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val wm = WallpaperManager.getInstance(context)
+                wm.setBitmap(bitmap, null, true, position.flags)
+            }.isSuccess
+        }
 
     /**
      * Returns true if a wallpaper has been downloaded to the Downloads folder. */
