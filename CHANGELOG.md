@@ -5,6 +5,11 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+- **Windows app discontinued** — WallKraft is now Android-only. The `windows/` directory (Rust + Slint), Windows CI/release workflows, NSIS installer, winget manifests, and all Windows documentation have been removed. Future releases ship only `WallKraft-<version>-android-arm64.apk`.
+
 ## [1.10.0] - 2026-08-20
 
 ### Changed

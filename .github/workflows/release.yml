@@ -6,9 +6,6 @@ on:
       - 'v*'
 
 jobs:
-  # WallKraft uses ONE version across all platforms. A `v*` tag must match this
-  # platform's version or the release is refused — so a one-sided version bump
-  # fails CI instead of silently shipping a partial release.
   check:
     runs-on: ubuntu-latest
     steps:
@@ -21,7 +18,7 @@ jobs:
           if [ "${TAG#v}" = "$ANDROID_VER" ]; then
             echo "Tag $TAG matches Android version $ANDROID_VER — releasing."
           else
-            echo "::error::Tag $TAG does not match Android version $ANDROID_VER. All platforms must share the same version — bump android/app/build.gradle.kts (and windows/Cargo.toml) or fix the tag, then re-push."
+            echo "::error::Tag $TAG does not match Android version $ANDROID_VER — bump android/app/build.gradle.kts or fix the tag, then re-push."
             exit 1
           fi
 
@@ -94,17 +91,11 @@ jobs:
           body: |
             ## WallKraft ${{ github.ref_name }}
 
-            A clean, fast, and private wallpaper browser for Android and Windows, powered by the
+            A clean, fast, and private wallpaper browser for Android, powered by the
             [Wallhaven](https://wallhaven.cc) API. No ads, no analytics, no trackers.
 
             ### Downloads
-            - `WallKraft-${{ steps.rename.outputs.version }}-setup.exe` — Windows installer (recommended; per-user, no admin)
-            - `WallKraft-${{ steps.rename.outputs.version }}-windows-x64.exe` — Windows portable single-file build
             - `WallKraft-${{ steps.rename.outputs.version }}-android-arm64.apk` — Android (arm64)
-
-            ### Install — Windows
-            1. Download the `-setup.exe` installer (or run the portable exe directly)
-            2. Run it — installs to `%LOCALAPPDATA%\Programs\WallKraft`, no admin required
 
             ### Install — Android
             1. Download the `.apk`
@@ -115,16 +106,11 @@ jobs:
             - Browse the Wallhaven library with search and filters
             - Staggered masonry grid with infinite scroll and first-load skeletons
             - Detail view: zoom, pan, copy URL, similar wallpapers
-            - Set as wallpaper, favorites, slideshow, undo
-            - System tray: show/hide, random, undo, quit
-            - Drag any tile out to the desktop/folder to save the full-res image
-            - Auto-update: checks GitHub releases on startup and updates in place
-            - Offline-first: cached search results and favorites keep working offline
-            - Dark / light / system theme, persisted
+            - Set as wallpaper (crop & position), favorites, downloads, share
+            - Data saver, offline-first caching, dark / light / system theme
+            - Fullscreen viewer, pull-to-refresh
 
             ### Notes
-            - One version for all platforms: WallKraft ${{ github.ref_name }} ships Android + Windows together.
             - Android APK is signed with the WallKraft release key (arm64-only).
-            - Windows installer is a per-user NSIS build (no elevation); the app self-updates.
           files: |
             android/app/build/outputs/apk/release/WallKraft-*.apk
