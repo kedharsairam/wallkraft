@@ -2,6 +2,7 @@ package com.wallkraft.app.data.cache
 
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -32,15 +33,13 @@ class SearchResponseCacheTest {
 
     private fun filters(
         query: String = "",
-        color: String? = null,
-        atleast: String? = null,
+        purity: Purity = Purity.SfW,
     ) = WallhavenFilters(
         categories = setOf(Category.General),
         sorting = Sorting.DateAdded,
         orientation = Orientation.Both,
         query = query,
-        color = color,
-        atleast = atleast,
+        purity = purity,
     )
 
     private fun response(ids: List<String>) = WallpaperResponse(
@@ -87,15 +86,13 @@ class SearchResponseCacheTest {
     }
 
     @Test
-    fun colorAndAtleast_arePartOfKey() {
-        val base = filters(query = "q", color = null, atleast = null)
-        val withColor = filters(query = "q", color = "ff0000", atleast = null)
-        val withAtleast = filters(query = "q", color = null, atleast = "1920x1080")
+    fun purity_isPartOfKey() {
+        val base = filters(query = "q", purity = Purity.SfW)
+        val withSketchy = filters(query = "q", purity = Purity.SfWSketchy)
         cache.put(base, 1, response(listOf("base")))
-        assertNull(cache.get(withColor, 1))
-        assertNull(cache.get(withAtleast, 1))
-        cache.put(withColor, 1, response(listOf("red")))
-        assertEquals("red", cache.get(withColor, 1)!!.data[0].id)
+        assertNull(cache.get(withSketchy, 1))
+        cache.put(withSketchy, 1, response(listOf("sketchy")))
+        assertEquals("sketchy", cache.get(withSketchy, 1)!!.data[0].id)
         assertEquals("base", cache.get(base, 1)!!.data[0].id)
     }
 

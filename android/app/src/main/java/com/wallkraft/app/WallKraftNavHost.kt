@@ -104,7 +104,6 @@ fun WallKraftNavHost(container: AppContainer) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     modifier = Modifier.height(64.dp),
-                    windowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
                 ) {
                     tabs.forEach { tab ->
                         val selected =

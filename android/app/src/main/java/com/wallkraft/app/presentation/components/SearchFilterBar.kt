@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
-import androidx.core.graphics.toColorInt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -60,6 +59,7 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.util.displayName
@@ -68,10 +68,8 @@ private val RoundedCornerShapeDp = RoundedCornerShape(KraftRadius.Standard)
 
 /**
  * The search field + filter sheet shared by Browse and Tag screens.
- * Single-row chrome (search + Filters button) saves 252px vs the old 2-row
- * dropdowns — gallery-first, not control-panel. Filters live in a
- * ModalBottomSheet grouped list (Apple HIG sheet) so every filter stays
- * accessible without crowding the header.
+ * Single-row chrome (search + Filters button) saves 252px — gallery-first.
+ * Filters live in a ModalBottomSheet with chip FlowRows (not list rows).
  */
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -89,16 +87,15 @@ fun SearchFilterBar(
 
     val activeCount = remember(filters) {
         var c = 0
-        if (filters.categories.size != Category.entries.size) c++
+        // Default is General only (100); any extra category or missing General is active.
+        if (filters.categories != setOf(Category.General)) c++
         if (filters.sorting != Sorting.DateAdded) c++
         if (filters.orientation != Orientation.Both) c++
-        if (filters.color != null) c++
-        if (filters.atleast != null) c++
+        if (filters.purity != Purity.SfW) c++
         c
     }
 
     Column(modifier = modifier) {
-        // Search row: field (with magnifier + clear) + Search button + Filters button.
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -202,7 +199,6 @@ fun SearchFilterBar(
             }
         }
 
-        // Hairline separator so the header reads as a distinct surface above the grid.
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
         )
@@ -228,7 +224,7 @@ fun SearchFilterBar(
                     modifier = Modifier.padding(bottom = KraftSpacing.Spacing4),
                 )
 
-                // Categories — multi-select chips (Apple home app style, not list rows)
+                // Categories — multi-select chips. Default General only.
                 FilterSectionLabel("Categories")
                 androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
@@ -255,7 +251,7 @@ fun SearchFilterBar(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Sorting — FlowRow single-select chips
+                // Sorting — single-select chips
                 FilterSectionLabel("Sort by")
                 androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
@@ -275,7 +271,7 @@ fun SearchFilterBar(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Orientation — FlowRow chips
+                // Orientation — chips
                 FilterSectionLabel("Orientation")
                 androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
@@ -295,58 +291,35 @@ fun SearchFilterBar(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Color — palette circles in FlowRow, not list rows
-                FilterSectionLabel("Color")
+                // Purity — SFW vs SFW+Sketchy (never NSFW). Default SFW only.
+                FilterSectionLabel("Content")
                 androidx.compose.foundation.layout.FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    ColorOption.entries.forEach { c ->
-                        val checked = filters.color == c.hex
-                        androidx.compose.material3.FilterChip(
-                            selected = checked,
-                            onClick = { onFiltersChange(filters.copy(color = c.hex)) },
-                            label = { Text(c.displayName()) },
-                            leadingIcon = if (c.hex != null) {
-                                {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(14.dp)
-                                            .clip(androidx.compose.foundation.shape.CircleShape)
-                                            .background(
-                                                try {
-                                                    androidx.compose.ui.graphics.Color("#${c.hex}".toColorInt())
-                                                } catch (_: Exception) {
-                                                    MaterialTheme.colorScheme.surfaceVariant
-                                                },
-                                            ),
-                                    )
-                                }
-                            } else null,
-                        )
-                    }
+                    androidx.compose.material3.FilterChip(
+                        selected = filters.purity == Purity.SfW,
+                        onClick = { onFiltersChange(filters.copy(purity = Purity.SfW)) },
+                        label = { Text("SFW") },
+                        leadingIcon = if (filters.purity == Purity.SfW) {
+                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        } else null,
+                    )
+                    androidx.compose.material3.FilterChip(
+                        selected = filters.purity == Purity.SfWSketchy,
+                        onClick = { onFiltersChange(filters.copy(purity = Purity.SfWSketchy)) },
+                        label = { Text("SFW + Sketchy") },
+                        leadingIcon = if (filters.purity == Purity.SfWSketchy) {
+                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        } else null,
+                    )
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-                // Resolution — chips FlowRow
-                FilterSectionLabel("Minimum resolution")
-                androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    AtleastOption.entries.forEach { a ->
-                        androidx.compose.material3.FilterChip(
-                            selected = filters.atleast == a.value,
-                            onClick = { onFiltersChange(filters.copy(atleast = a.value)) },
-                            label = { Text(a.displayName()) },
-                            leadingIcon = if (filters.atleast == a.value) {
-                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
-                        )
-                    }
-                }
+                Text(
+                    text = "NSFW is never shown.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = KraftSpacing.Spacing8),
@@ -421,10 +394,6 @@ private fun FilterSheetItem(
     }
 }
 
-/**
- * A compact dropdown button for the filter row: a label + chevron that opens a
- * [DropdownMenu] anchored beneath it. Kept for legacy previews; sheet is primary.
- */
 @Composable
 private fun FilterDropdownButton(
     label: String,
@@ -472,44 +441,4 @@ private fun categoriesLabel(categories: Set<Category>): String = when {
     categories.size == Category.entries.size -> stringResource(R.string.filter_all)
     categories.size == 1 -> categories.first().displayName()
     else -> "${categories.first().displayName()} +${categories.size - 1}"
-}
-
-private enum class ColorOption(val hex: String?, val label: String) {
-    All(null, "All colors"),
-    Red("ff0000", "Red"),
-    Orange("ff7f00", "Orange"),
-    Yellow("ffff00", "Yellow"),
-    Green("00ff00", "Green"),
-    Cyan("00ffff", "Cyan"),
-    Blue("0000ff", "Blue"),
-    Purple("800080", "Purple"),
-    Pink("ff69b4", "Pink"),
-    Brown("a52a2a", "Brown"),
-    Gray("808080", "Gray"),
-    Black("000000", "Black"),
-    White("ffffff", "White"),
-    ;
-    @Composable fun displayName(): String = label
-}
-
-private enum class AtleastOption(val value: String?, val label: String) {
-    All(null, "Any res"),
-    HD("1920x1080", "HD 1920×1080"),
-    QHD("2560x1440", "QHD 2560×1440"),
-    UHD("3840x2160", "4K 3840×2160"),
-    UHDPlus("5120x2880", "5K 5120×2880"),
-    ;
-    @Composable fun displayName(): String = label
-}
-
-@Composable
-private fun colorLabel(hex: String?): String = when (hex) {
-    null -> "Color"
-    else -> ColorOption.entries.firstOrNull { it.hex == hex }?.label ?: "#$hex"
-}
-
-@Composable
-private fun atleastLabel(value: String?): String = when (value) {
-    null -> "Resolution"
-    else -> AtleastOption.entries.firstOrNull { it.value == value }?.label ?: value
 }
