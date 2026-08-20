@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">WallKraft</string>
 
     <!-- Navigation -->
@@ -65,15 +65,22 @@
     <string name="select">Select</string>
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>
-    <string name="selected_count">%1$d selected</string>
-    <string name="selected">Selected</string>
-    <string name="delete_selected_title">Delete %1$d downloads?</string>
-    <string name="delete_selected_message">This removes %1$d files from your device. The wallpapers stay on wallhaven.cc.</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <string name="selected" tools:override="true">Selected</string>
+    <plurals name="delete_selected_title">
+        <item quantity="one">Delete %d download?</item>
+        <item quantity="other">Delete %d downloads?</item>
+    </plurals>
+    <plurals name="delete_selected_message">
+        <item quantity="one">This removes %d file from your device. The wallpaper stays on wallhaven.cc.</item>
+        <item quantity="other">This removes %d files from your device. The wallpapers stay on wallhaven.cc.</item>
+    </plurals>
 
     <!-- Detail -->
-    <string name="wallpaper">Wallpaper</string>
     <string name="back">Back</string>
-    <string name="view_fullscreen">View fullscreen</string>
     <string name="downloading">Downloading %1$s…</string>
     <string name="wallpaper_set">Wallpaper set</string>
     <string name="wallpaper_set_failed">Couldn\'t set wallpaper</string>

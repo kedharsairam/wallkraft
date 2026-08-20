@@ -74,6 +74,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -533,8 +536,8 @@ private fun DetailContent(
         // Invisible measurement pass. These sit at the top-start corner, are
         // fully transparent, and their chips are non-clickable, so they never
         // intercept touches — they exist only to size the bottom panel.
-        var collapsedContentHeight by remember { mutableStateOf(0) }
-        var fullContentHeight by remember { mutableStateOf(0) }
+        var collapsedContentHeight by remember { mutableIntStateOf(0) }
+        var fullContentHeight by remember { mutableIntStateOf(0) }
 
         Box(
             modifier = Modifier
@@ -725,7 +728,7 @@ private fun BottomPanel(
     val panelHeight = remember(wallpaper.id) { Animatable(0f) }
     // Drag offset in px, tracked synchronously so the release decision is
     // correct even though the Animatable settles asynchronously.
-    var dragOffsetPx by remember(wallpaper.id) { mutableStateOf(0f) }
+    var dragOffsetPx by remember(wallpaper.id) { mutableFloatStateOf(0f) }
     // Once the user has touched the panel we stop auto-snapping it to the
     // measured heights — the panel is theirs from then on.
     var userInteracted by remember(wallpaper.id) { mutableStateOf(false) }
@@ -733,8 +736,8 @@ private fun BottomPanel(
     // events so a quick flick settles the panel even when the pull distance
     // is small. Without this, expanding a tall panel (many tags) would need
     // a long drag because the settle threshold scales with content height.
-    var dragVelocityPxPerSec by remember(wallpaper.id) { mutableStateOf(0f) }
-    var lastDragTimestamp by remember(wallpaper.id) { mutableStateOf(0L) }
+    var dragVelocityPxPerSec by remember(wallpaper.id) { mutableFloatStateOf(0f) }
+    var lastDragTimestamp by remember(wallpaper.id) { mutableLongStateOf(0L) }
 
     // Settle the panel to the target height. Runs on first layout and again
     // whenever the measured heights change (e.g. the real detail loads and

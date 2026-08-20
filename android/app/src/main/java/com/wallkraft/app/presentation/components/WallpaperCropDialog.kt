@@ -1,5 +1,6 @@
 package com.wallkraft.app.presentation.components
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -71,6 +72,7 @@ import androidx.compose.ui.util.lerp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.graphics.createBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
@@ -93,6 +95,7 @@ import java.io.File
  * full screen, so what you see is exactly what gets applied (1:1 with the
  * screen). The position (home/lock/both) is chosen here too.
  */
+@SuppressLint("InlinedApi")
 @Composable
 fun WallpaperCropDialog(
     imageFile: File,
@@ -407,7 +410,7 @@ fun WallpaperCropDialog(
                             if (applying) return@Button
                             applying = true
                             scope.launch {
-                                val crop = Bitmap.createBitmap(
+                                val crop = createBitmap(
                                     frameWpx.toInt(),
                                     frameHpx.toInt(),
                                     Bitmap.Config.ARGB_8888,

@@ -13,6 +13,8 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -32,8 +34,8 @@ object WallpaperActions {
     fun download(context: Context, wallpaper: Wallpaper): Long {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         // Detect actual file extension from the URL instead of hardcoding .jpg.
-        val extension = Uri.parse(wallpaper.path).lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
-        val request = DownloadManager.Request(Uri.parse(wallpaper.path))
+        val extension = wallpaper.path.toUri().lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
+        val request = DownloadManager.Request(wallpaper.path.toUri())
             .setTitle(context.getString(R.string.download_notification_title, wallpaper.id))
             .setDescription(wallpaper.resolution)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -173,7 +175,7 @@ object WallpaperActions {
 
     fun openInBrowser(context: Context, wallpaper: Wallpaper) {
         context.startActivity(
-            Intent(Intent.ACTION_VIEW, Uri.parse(wallpaper.url))
+            Intent(Intent.ACTION_VIEW, wallpaper.url.toUri())
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
     }
@@ -276,7 +278,7 @@ object WallpaperActions {
 
     /** The file extension for [wallpaper]'s image, from its URL (defaults to jpg). */
     private fun extensionFor(wallpaper: Wallpaper): String =
-        Uri.parse(wallpaper.path).lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
+        wallpaper.path.toUri().lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
 
     /**
      * Ensures [wallpaper]'s full-res image is in Coil's disk cache, then returns
