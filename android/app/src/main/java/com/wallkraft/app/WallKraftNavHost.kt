@@ -103,7 +103,7 @@ fun WallKraftNavHost(container: AppContainer) {
             if (!hideBottomBar) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.height(80.dp),
+                    modifier = Modifier.height(56.dp),
                 ) {
                     tabs.forEach { tab ->
                         val selected =
