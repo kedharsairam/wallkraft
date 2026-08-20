@@ -5,6 +5,19 @@ All notable changes to WallKraft will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-08-20
+
+### Changed
+- **Detail bottom panel redesigned** — the collapsed bar now shows only three elements: a drag handle, the uploader row (avatar + name), and a "More details" pull hint. Stat pills and tags are hidden until the panel is expanded, giving the collapsed state a clean, minimal look.
+- **Panel anchored to screen bottom** — the bottom nav bar is hidden on the detail screen so the panel sits flush with the device's bottom edge. The panel grows upward as it expands.
+- **Gesture bar clearance** — the collapsed panel height now accounts for the gesture navigation bar, so the "More details" hint always sits above the white pill and never overlaps it.
+
+### Fixed
+- **Panel content misaligned on open** — AnimatedVisibility's internal Box was center-aligning oversized children, pushing the handle/uploader/hint ~257px above the visible clip region. Replaced with `animateFloatAsState` + `graphicsLayer` alpha fade, eliminating the internal layout entirely.
+- **Collapsed content clipped incorrectly** — Box also center-aligns children taller than itself, even with `contentAlignment = TopStart`. Replaced the inner measurement Box with a custom `Layout` composable that measures content at full panel height but places it at y=0, ensuring the handle/uploader/hint always render at the top of the panel.
+- **Stats peeking in collapsed state** — the live panel was hardcoding `collapsed = false`, so stat pills and tags were always rendered and only hidden by the clip region. Now passes the actual collapsed state so stats/tags are not rendered at all when collapsed.
+- **Collapse-offset logic removed** — the old `bottomOffsetPx` / `collapseInsetPx` system that shifted the collapsed bar up by the bottom inset is gone. The panel is now simply anchored to the bottom bar at all times.
+
 ## [1.9.0] - 2026-08-14
 
 ### Changed

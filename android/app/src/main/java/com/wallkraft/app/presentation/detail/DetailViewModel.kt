@@ -20,6 +20,13 @@ data class DetailUiState(
     val error: String? = null,
     /** Set of favorite wallpaper IDs, so the fullscreen pager can mark each page. */
     val favoriteIds: Set<String> = emptySet(),
+    /**
+     * True once the detail API call has succeeded. The screen renders a grid
+     * preview before that completes, and that preview has no uploader — this
+     * flag is what lets the UI distinguish "still loading the uploader" from
+     * "loaded, and there genuinely is no uploader (deleted account)".
+     */
+    val isDetailLoaded: Boolean = false,
 )
 
 class DetailViewModel(
@@ -78,7 +85,9 @@ class DetailViewModel(
             _uiState.update { it.copy(isLoading = _uiState.value.wallpaper == null, error = null) }
             wallpaperRepository.wallpaper(id)
                 .onSuccess { wallpaper ->
-                    _uiState.update { it.copy(wallpaper = wallpaper, isLoading = false) }
+                    _uiState.update {
+                        it.copy(wallpaper = wallpaper, isLoading = false, isDetailLoaded = true)
+                    }
                 }
                 .onFailure { e ->
                     // Keep the preview (if any) so the user still sees the

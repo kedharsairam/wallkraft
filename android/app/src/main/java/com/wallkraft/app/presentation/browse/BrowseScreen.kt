@@ -51,6 +51,7 @@ fun BrowseScreen(
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     initialQuery: String = "",
+    title: String = "",
 ) {
     val viewModel: BrowseViewModel = viewModel(
         factory = viewModelFactory {
@@ -69,7 +70,12 @@ fun BrowseScreen(
     // tag-as-browse entry passes null and gets its own state, so scrolling a
     // tag list never moves the original Browse position.
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
-    var searchText by remember { mutableStateOf(uiState.query) }
+    // [title] is a display-only label (e.g. an uploader's username) shown in
+    // the search bar instead of the raw query (e.g. "@username"). Any edit to
+    // the field abandons it — from then on the box is a normal search. This is
+    // initialized once per screen entry, so re-searching doesn't reapply it.
+    var titleActive by remember { mutableStateOf(title.isNotBlank()) }
+    var searchText by remember { mutableStateOf(title.ifBlank { uiState.query }) }
     val keyboard = LocalSoftwareKeyboardController.current
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
     // Data saver: skip the full-res prefetch on tap so opening a wallpaper
@@ -113,8 +119,17 @@ fun BrowseScreen(
         topBar = {
             SearchFilterBar(
                 query = searchText,
-                onQueryChange = { searchText = it },
-                onSearch = { viewModel.search(it) },
+                onQueryChange = { text ->
+                    titleActive = false
+                    searchText = text
+                },
+                onSearch = { text ->
+                    // While the title is active the field shows the friendly
+                    // name, but the real search is the raw query the entry was
+                    // opened with (e.g. "@username"). Pressing search without
+                    // editing just re-runs it.
+                    viewModel.search(if (titleActive) uiState.query else text)
+                },
                 filters = uiState.filters,
                 onFiltersChange = viewModel::setFilters,
             )
