@@ -2,6 +2,7 @@ package com.wallkraft.app.data.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -34,11 +35,11 @@ class EncryptedApiKeyStore(context: Context) {
     fun getApiKey(): String = prefs.getString(KEY_API_KEY, "").orEmpty()
 
     fun setApiKey(key: String) {
-        prefs.edit().putString(KEY_API_KEY, key).apply()
+        prefs.edit { putString(KEY_API_KEY, key) }
     }
 
     fun clearApiKey() {
-        prefs.edit().remove(KEY_API_KEY).apply()
+        prefs.edit { remove(KEY_API_KEY) }
     }
 
     companion object {

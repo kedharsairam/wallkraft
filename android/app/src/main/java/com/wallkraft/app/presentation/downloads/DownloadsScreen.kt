@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -98,7 +99,7 @@ fun DownloadsScreen(
                 title = {
                     Text(
                         if (selectionMode) {
-                            stringResource(R.string.selected_count, selectedIds.size)
+                            pluralStringResource(R.plurals.selected_count, selectedIds.size, selectedIds.size)
                         } else {
                             stringResource(R.string.downloads_title)
                         },
@@ -191,7 +192,7 @@ fun DownloadsScreen(
                     if (count == 1) {
                         stringResource(R.string.delete_confirm_title)
                     } else {
-                        stringResource(R.string.delete_selected_title, count)
+                        pluralStringResource(R.plurals.delete_selected_title, count, count)
                     },
                 )
             },
@@ -200,7 +201,7 @@ fun DownloadsScreen(
                     if (count == 1) {
                         stringResource(R.string.delete_confirm_message)
                     } else {
-                        stringResource(R.string.delete_selected_message, count)
+                        pluralStringResource(R.plurals.delete_selected_message, count, count)
                     },
                 )
             },
