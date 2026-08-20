@@ -38,10 +38,14 @@ fun Set<Category>.toCategoryParam(): String = buildString {
  * The default matches the Wallkraft Flutter behavior: all categories, sorted
  * by newest first. Purity is intentionally absent — Wallkraft is strictly
  * SFW-only (enforced in the API client and the repository).
+ * [color] is a hex color without # (e.g. "ff0000") for Wallhaven's colors param.
+ * [atleast] is a minimum resolution like "1920x1080" for Wallhaven's atleast param.
  */
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
     val sorting: Sorting = Sorting.DateAdded,
     val orientation: Orientation = Orientation.Both,
     val query: String = "",
+    val color: String? = null,
+    val atleast: String? = null,
 )

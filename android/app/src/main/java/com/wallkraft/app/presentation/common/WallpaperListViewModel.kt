@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.common
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -57,7 +58,7 @@ abstract class WallpaperListViewModel(
 
     /** Minimum time the refresh indicator stays visible, so it can animate away. */
     private companion object {
-        const val MIN_REFRESH_MS = 500L
+        const val MIN_REFRESH_MS = KraftConstants.MinRefreshMs
     }
 
     /**

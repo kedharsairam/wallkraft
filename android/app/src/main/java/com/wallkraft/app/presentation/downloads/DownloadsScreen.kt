@@ -13,6 +13,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -62,6 +64,7 @@ fun DownloadsScreen(
     var selectedIds by remember { mutableStateOf(emptySet<String>()) }
     var isSelecting by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<List<DownloadedFile>?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val selectionMode = isSelecting
 
@@ -83,17 +86,27 @@ fun DownloadsScreen(
     }
 
     // Drop selections that no longer exist on disk (e.g. a file was deleted
-    // from the Files app while we were away). Keeps the count honest.
+    // from the Files app while we were away). Keeps the count honest and
+    // informs the user instead of silently changing the number.
     LaunchedEffect(files) {
         val valid = files.mapTo(mutableSetOf()) { it.wallpaperId }
-        if (selectedIds.any { it !in valid }) {
+        val removed = selectedIds.count { it !in valid }
+        if (removed > 0) {
             selectedIds = selectedIds.intersect(valid)
+            snackbarHostState.showSnackbar(
+                context.resources.getQuantityString(
+                    R.plurals.files_removed_outside_app,
+                    removed,
+                    removed,
+                ),
+            )
         }
     }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {

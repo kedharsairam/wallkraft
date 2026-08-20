@@ -1,5 +1,6 @@
 package com.wallkraft.app.data.api
 
+import com.wallkraft.app.core.design.KraftConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,10 +23,18 @@ import kotlinx.coroutines.launch
  * because every retry fails fast before it can fetch a new header.
  */
 object RateLimitState {
-    private const val COOLDOWN_MS = 60_000L
+    private const val COOLDOWN_MS = KraftConstants.RateLimitCooldownMs
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    // Uses applicationScope when available to avoid leaking a process-wide scope;
+    // falls back to a default scope for unit tests where Application is not present.
+    private var appScope: CoroutineScope? = null
+    private val scope: CoroutineScope get() = appScope ?: CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var cooldownJob: Job? = null
+
+    /** Called from WallKraftApplication to bind the process-wide scope. */
+    fun attachScope(scope: CoroutineScope) {
+        appScope = scope
+    }
 
     private val _limited = MutableStateFlow(false)
     private val _remaining = MutableStateFlow(45)

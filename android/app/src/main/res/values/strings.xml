@@ -78,6 +78,10 @@
         <item quantity="one">This removes %d file from your device. The wallpaper stays on wallhaven.cc.</item>
         <item quantity="other">This removes %d files from your device. The wallpapers stay on wallhaven.cc.</item>
     </plurals>
+    <plurals name="files_removed_outside_app">
+        <item quantity="one">%d file was removed outside the app and deselected</item>
+        <item quantity="other">%d files were removed outside the app and deselected</item>
+    </plurals>
 
     <!-- Detail -->
     <string name="back">Back</string>

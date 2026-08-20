@@ -27,6 +27,7 @@ android {
         targetSdk = 36
         versionCode = 13
         versionName = "1.10.0"
+        resourceConfigurations += setOf("en")
     }
 
     signingConfigs {

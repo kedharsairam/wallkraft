@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import coil3.imageLoader
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -67,8 +68,7 @@ fun DownloadedList(
     onToggleSelect: (DownloadedFile) -> Unit = {},
 ) {
     val context = LocalContext.current
-    val gridImageLoader = GridImageLoader.get()
-        ?: ImageLoader.Builder(context.applicationContext).build()
+    val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),

@@ -22,15 +22,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil3.ImageLoader
+import coil3.imageLoader
 import coil3.request.ImageRequest
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 
 /** How many tiles ahead of the viewport to prefetch into the image cache. */
-private const val PREFETCH_AHEAD = 4
+private const val PREFETCH_AHEAD = KraftConstants.GridPrefetchAhead
 
 /**
  * The staggered wallpaper grid with infinite-scroll pagination.
@@ -55,8 +57,7 @@ fun WallpaperGrid(
     val gridState = state
 
     val context = LocalContext.current
-    val gridImageLoader = GridImageLoader.get()
-        ?: ImageLoader.Builder(context.applicationContext).build()
+    val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
 
     // Lower fling friction than the platform default so a swipe glides further
     // and coasts to a stop — the "smooth, glides for longer" feel of the
@@ -74,7 +75,7 @@ fun WallpaperGrid(
                 // Preload the next page well before the end (20 items out) so
                 // the slow Wallhaven API has time to respond before the user
                 // actually reaches the bottom — no visible wait at the end.
-                if (total > 0 && lastVisible >= total - 20) onLoadMore()
+                if (total > 0 && lastVisible >= total - KraftConstants.GridPrefetchThreshold) onLoadMore()
             }
     }
 
@@ -83,12 +84,13 @@ fun WallpaperGrid(
     // after the user pauses scrolling — prefetching on every scroll frame would
     // flood Coil's shared queue and make the tiles that actually need to load
     // wait behind the prefetch jobs (slower loading).
+    @OptIn(FlowPreview::class)
     LaunchedEffect(gridState, wallpapers) {
         snapshotFlow {
             gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
         }
             .distinctUntilChanged()
-            .debounce(150)
+            .debounce(KraftConstants.GridPrefetchDebounceMs)
             .collect { lastVisible ->
                 if (lastVisible < 0) return@collect
                 val start = lastVisible + 1
