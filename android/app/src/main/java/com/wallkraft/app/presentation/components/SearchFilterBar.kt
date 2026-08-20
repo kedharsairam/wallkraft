@@ -73,7 +73,7 @@ private val RoundedCornerShapeDp = RoundedCornerShape(KraftRadius.Standard)
  * ModalBottomSheet grouped list (Apple HIG sheet) so every filter stays
  * accessible without crowding the header.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun SearchFilterBar(
     query: String,
@@ -228,80 +228,124 @@ fun SearchFilterBar(
                     modifier = Modifier.padding(bottom = KraftSpacing.Spacing4),
                 )
 
-                // Categories
+                // Categories — multi-select chips (Apple home app style, not list rows)
                 FilterSectionLabel("Categories")
-                Category.entries.forEach { cat ->
-                    FilterSheetItem(
-                        label = cat.displayName(),
-                        checked = cat in filters.categories,
-                        onClick = {
-                            val current = filters.categories
-                            val updated = if (cat in current) {
-                                if (current.size > 1) current - cat else current
-                            } else current + cat
-                            onFiltersChange(filters.copy(categories = updated))
-                        },
-                    )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Category.entries.forEach { cat ->
+                        val checked = cat in filters.categories
+                        androidx.compose.material3.FilterChip(
+                            selected = checked,
+                            onClick = {
+                                val current = filters.categories
+                                val updated = if (cat in current) {
+                                    if (current.size > 1) current - cat else current
+                                } else current + cat
+                                onFiltersChange(filters.copy(categories = updated))
+                            },
+                            label = { Text(cat.displayName()) },
+                            leadingIcon = if (checked) {
+                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                        )
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Sorting
+                // Sorting — FlowRow single-select chips
                 FilterSectionLabel("Sort by")
-                Sorting.entries.forEach { s ->
-                    FilterSheetItem(
-                        label = s.displayName(),
-                        checked = filters.sorting == s,
-                        onClick = { onFiltersChange(filters.copy(sorting = s)) },
-                    )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Sorting.entries.forEach { s ->
+                        androidx.compose.material3.FilterChip(
+                            selected = filters.sorting == s,
+                            onClick = { onFiltersChange(filters.copy(sorting = s)) },
+                            label = { Text(s.displayName()) },
+                            leadingIcon = if (filters.sorting == s) {
+                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                        )
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Orientation
+                // Orientation — FlowRow chips
                 FilterSectionLabel("Orientation")
-                Orientation.entries.forEach { o ->
-                    FilterSheetItem(
-                        label = o.displayName(),
-                        checked = filters.orientation == o,
-                        onClick = { onFiltersChange(filters.copy(orientation = o)) },
-                    )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Orientation.entries.forEach { o ->
+                        androidx.compose.material3.FilterChip(
+                            selected = filters.orientation == o,
+                            onClick = { onFiltersChange(filters.copy(orientation = o)) },
+                            label = { Text(o.displayName()) },
+                            leadingIcon = if (filters.orientation == o) {
+                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                        )
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Color
+                // Color — palette circles in FlowRow, not list rows
                 FilterSectionLabel("Color")
-                ColorOption.entries.forEach { c ->
-                    FilterSheetItem(
-                        label = c.displayName(),
-                        checked = filters.color == c.hex,
-                        onClick = { onFiltersChange(filters.copy(color = c.hex)) },
-                        trailing = if (c.hex != null) {
-                            {
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(
-                                            try {
-                                                androidx.compose.ui.graphics.Color("#${c.hex}".toColorInt())
-                                            } catch (_: Exception) {
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            },
-                                        ),
-                                )
-                            }
-                        } else null,
-                    )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    ColorOption.entries.forEach { c ->
+                        val checked = filters.color == c.hex
+                        androidx.compose.material3.FilterChip(
+                            selected = checked,
+                            onClick = { onFiltersChange(filters.copy(color = c.hex)) },
+                            label = { Text(c.displayName()) },
+                            leadingIcon = if (c.hex != null) {
+                                {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .clip(androidx.compose.foundation.shape.CircleShape)
+                                            .background(
+                                                try {
+                                                    androidx.compose.ui.graphics.Color("#${c.hex}".toColorInt())
+                                                } catch (_: Exception) {
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                },
+                                            ),
+                                    )
+                                }
+                            } else null,
+                        )
+                    }
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-                // Resolution
+                // Resolution — chips FlowRow
                 FilterSectionLabel("Minimum resolution")
-                AtleastOption.entries.forEach { a ->
-                    FilterSheetItem(
-                        label = a.displayName(),
-                        checked = filters.atleast == a.value,
-                        onClick = { onFiltersChange(filters.copy(atleast = a.value)) },
-                    )
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    AtleastOption.entries.forEach { a ->
+                        androidx.compose.material3.FilterChip(
+                            selected = filters.atleast == a.value,
+                            onClick = { onFiltersChange(filters.copy(atleast = a.value)) },
+                            label = { Text(a.displayName()) },
+                            leadingIcon = if (filters.atleast == a.value) {
+                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                        )
+                    }
                 }
 
                 Row(

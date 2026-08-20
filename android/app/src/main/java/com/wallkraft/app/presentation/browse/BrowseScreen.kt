@@ -26,10 +26,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
+import kotlinx.coroutines.launch
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.presentation.components.EmptyState
@@ -85,10 +87,31 @@ fun BrowseScreen(
         prefetchFullRes = !container.settings.current().dataSaverMode
     }
 
-    // Refresh downloaded IDs when screen becomes visible.
+    // Refresh downloaded IDs when screen becomes visible — a wallpaper downloaded
+    // from the detail screen (or outside the app) should show its badge immediately
+    // when the user returns to Browse, without needing to restart.
+    // MediaStore query can be heavy, so we do it off the main thread.
     val context = androidx.compose.ui.platform.LocalContext.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
-        downloadedIds = WallpaperActions.downloadedIds(context)
+        downloadedIds = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            WallpaperActions.downloadedIds(context)
+        }
+    }
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                // Fire-and-forget off main thread to avoid jank when resuming.
+                lifecycleOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    val ids = WallpaperActions.downloadedIds(context)
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        downloadedIds = ids
+                    }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // A new search or filter change replaces the whole list, so jump back to
