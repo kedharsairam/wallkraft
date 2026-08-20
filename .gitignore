@@ -28,9 +28,3 @@ verify_out.txt
 
 # Built APKs (hand-copied release artifacts)
 dist/
-
-# Rust (Windows app)
-windows/target/
-
-# Generated winget manifests (re-generate with tools/publish-winget.ps1)
-winget-out/
