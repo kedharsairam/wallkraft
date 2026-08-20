@@ -56,9 +56,7 @@ class WallhavenApi(
             .addPathSegment("search")
             .apply {
                 addQueryParameter("categories", filters.categories.toCategoryParam())
-                // Purity is hard-locked to SFW (100). Wallkraft never
-                // requests sketchy or NSFW content, by design.
-                addQueryParameter("purity", "100")
+                addQueryParameter("purity", filters.purity.apiValue)
                 addQueryParameter("sorting", filters.sorting.value)
                 addQueryParameter("page", page.toString())
                 if (filters.query.isNotBlank()) addQueryParameter("q", filters.query)
@@ -66,10 +64,6 @@ class WallhavenApi(
                 if (filters.orientation != Orientation.Both) {
                     addQueryParameter("ratios", filters.orientation.value)
                 }
-                // Wallhaven colors is a hex without #, e.g. "ff0000" for red.
-                if (!filters.color.isNullOrBlank()) addQueryParameter("colors", filters.color)
-                // Minimum resolution, e.g. "1920x1080" — Wallhaven's atleast param.
-                if (!filters.atleast.isNullOrBlank()) addQueryParameter("atleast", filters.atleast)
             }
             .build()
         return execute(url.toString())

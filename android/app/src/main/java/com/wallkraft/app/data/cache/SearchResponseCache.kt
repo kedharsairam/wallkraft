@@ -66,7 +66,7 @@ class SearchResponseCache(
     }
 
     private fun WallhavenFilters.signature(): String =
-        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${color.orEmpty()}|${atleast.orEmpty()}"
+        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.apiValue}"
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries
