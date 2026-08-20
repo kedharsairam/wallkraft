@@ -110,13 +110,7 @@ private fun DownloadedRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(KraftRadius.Standard))
-            .background(
-                if (selected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerLow
-                },
-            )
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable { onClick() }
             .padding(KraftSpacing.Spacing8),
         verticalAlignment = Alignment.CenterVertically,

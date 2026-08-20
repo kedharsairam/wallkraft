@@ -526,8 +526,16 @@ private fun DetailContent(
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
                 ) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.35f)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White, modifier = Modifier.size(20.dp))
+                        }
                     }
                 }
             }
@@ -644,7 +652,7 @@ private fun DetailContent(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
+                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
             ) {
                 ReelsActionItem(
                     onClick = onToggleFavorite,
@@ -1043,15 +1051,14 @@ private fun DetailPanelContent(
             .padding(horizontal = KraftSpacing.Spacing16)
             .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
-        // Drag handle — signals the panel can be swiped. A touch wider and
-        // brighter than before, with a soft shadow so it reads on any image.
+        // Drag handle — Apple HIG 36×5, 0.4 alpha + soft shadow for legibility.
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .size(width = 40.dp, height = 4.dp)
-                .shadow(4.dp, RoundedCornerShape(2.dp), clip = false)
-                .clip(RoundedCornerShape(2.dp))
-                .background(Color.White.copy(alpha = 0.6f)),
+                .size(width = 36.dp, height = 5.dp)
+                .shadow(4.dp, RoundedCornerShape(2.5.dp), clip = false)
+                .clip(RoundedCornerShape(2.5.dp))
+                .background(Color.White.copy(alpha = 0.4f)),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
 
