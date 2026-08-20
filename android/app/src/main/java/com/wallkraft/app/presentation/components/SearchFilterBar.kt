@@ -8,31 +8,38 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.core.graphics.toColorInt
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
+import androidx.core.graphics.toColorInt
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,14 +67,13 @@ import com.wallkraft.app.util.displayName
 private val RoundedCornerShapeDp = RoundedCornerShape(KraftRadius.Standard)
 
 /**
- * The search field + filter dropdown row shared by the Browse tab and the
- * Tag screen. Both screens need identical search/filter controls; this keeps
- * the UI in one place so behavior stays consistent.
- *
- * [query] is the current search text (hoisted by the caller so it survives
- * recomposition), [onSearch] fires on the search button / IME action, and
- * [onFiltersChange] fires whenever a filter dropdown changes.
+ * The search field + filter sheet shared by Browse and Tag screens.
+ * Single-row chrome (search + Filters button) saves 252px vs the old 2-row
+ * dropdowns — gallery-first, not control-panel. Filters live in a
+ * ModalBottomSheet grouped list (Apple HIG sheet) so every filter stays
+ * accessible without crowding the header.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchFilterBar(
     query: String,
@@ -78,16 +84,21 @@ fun SearchFilterBar(
     modifier: Modifier = Modifier,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+    var showSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Dropdown expansion state for filter buttons.
-    var categoriesExpanded by remember { mutableStateOf(false) }
-    var sortExpanded by remember { mutableStateOf(false) }
-    var orientationExpanded by remember { mutableStateOf(false) }
-    var colorExpanded by remember { mutableStateOf(false) }
-    var atleastExpanded by remember { mutableStateOf(false) }
+    val activeCount = remember(filters) {
+        var c = 0
+        if (filters.categories.size != Category.entries.size) c++
+        if (filters.sorting != Sorting.DateAdded) c++
+        if (filters.orientation != Orientation.Both) c++
+        if (filters.color != null) c++
+        if (filters.atleast != null) c++
+        c
+    }
 
     Column(modifier = modifier) {
-        // Search row: field (with magnifier + clear) + physical search button.
+        // Search row: field (with magnifier + clear) + Search button + Filters button.
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -110,7 +121,7 @@ fun SearchFilterBar(
                         onSearch(query)
                     },
                 ),
-                textStyle = MaterialTheme.typography.labelMedium.copy(
+                textStyle = MaterialTheme.typography.bodyLarge.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -123,7 +134,7 @@ fun SearchFilterBar(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
                             .padding(horizontal = KraftSpacing.Spacing12),
                     ) {
                         Icon(
@@ -140,7 +151,7 @@ fun SearchFilterBar(
                             if (query.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.search_hint),
-                                    style = MaterialTheme.typography.labelMedium,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -174,109 +185,96 @@ fun SearchFilterBar(
             ) {
                 Text(stringResource(R.string.search_action))
             }
+            Spacer(Modifier.width(KraftSpacing.Spacing8))
+            Button(
+                onClick = { showSheet = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (activeCount > 0) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (activeCount > 0) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurface,
+                ),
+                modifier = Modifier.height(44.dp),
+            ) {
+                Icon(Icons.Filled.Tune, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(if (activeCount > 0) "Filters • $activeCount" else "Filters")
+            }
         }
 
-        // Filter dropdown row: Categories, Sort, Orientation.
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing4),
+        // Hairline separator so the header reads as a distinct surface above the grid.
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+        )
+    }
+
+    if (showSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSheet = false },
+            sheetState = sheetState,
+            shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
         ) {
-            FilterDropdownButton(
-                label = categoriesLabel(filters.categories),
-                expanded = categoriesExpanded,
-                onExpandedChange = { categoriesExpanded = it },
-                modifier = Modifier.weight(1f),
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8)
+                    .padding(bottom = KraftSpacing.Spacing24),
+                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
             ) {
+                Text(
+                    text = "Filters",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing4),
+                )
+
+                // Categories
+                FilterSectionLabel("Categories")
                 Category.entries.forEach { cat ->
-                    DropdownMenuItem(
-                        text = { Text(cat.displayName()) },
-                        leadingIcon = {
-                            if (cat in filters.categories) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                            }
-                        },
+                    FilterSheetItem(
+                        label = cat.displayName(),
+                        checked = cat in filters.categories,
                         onClick = {
                             val current = filters.categories
                             val updated = if (cat in current) {
-                                // Never allow deselecting the last category —
-                                // an empty mask ("000") returns zero results.
                                 if (current.size > 1) current - cat else current
-                            } else {
-                                current + cat
-                            }
+                            } else current + cat
                             onFiltersChange(filters.copy(categories = updated))
                         },
                     )
                 }
-            }
-            FilterDropdownButton(
-                label = filters.sorting.displayName(),
-                expanded = sortExpanded,
-                onExpandedChange = { sortExpanded = it },
-                modifier = Modifier.weight(1f),
-            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // Sorting
+                FilterSectionLabel("Sort by")
                 Sorting.entries.forEach { s ->
-                    DropdownMenuItem(
-                        text = { Text(s.displayName()) },
-                        leadingIcon = {
-                            if (filters.sorting == s) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                            }
-                        },
-                        onClick = {
-                            onFiltersChange(filters.copy(sorting = s))
-                            sortExpanded = false
-                        },
+                    FilterSheetItem(
+                        label = s.displayName(),
+                        checked = filters.sorting == s,
+                        onClick = { onFiltersChange(filters.copy(sorting = s)) },
                     )
                 }
-            }
-            FilterDropdownButton(
-                label = filters.orientation.displayName(),
-                expanded = orientationExpanded,
-                onExpandedChange = { orientationExpanded = it },
-                modifier = Modifier.weight(1f),
-            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // Orientation
+                FilterSectionLabel("Orientation")
                 Orientation.entries.forEach { o ->
-                    DropdownMenuItem(
-                        text = { Text(o.displayName()) },
-                        leadingIcon = {
-                            if (filters.orientation == o) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                            }
-                        },
-                        onClick = {
-                            onFiltersChange(filters.copy(orientation = o))
-                            orientationExpanded = false
-                        },
+                    FilterSheetItem(
+                        label = o.displayName(),
+                        checked = filters.orientation == o,
+                        onClick = { onFiltersChange(filters.copy(orientation = o)) },
                     )
                 }
-            }
-        }
-        // Second filter row: Color + Min resolution (Wallhaven colors/atleast).
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing4),
-        ) {
-            FilterDropdownButton(
-                label = colorLabel(filters.color),
-                expanded = colorExpanded,
-                onExpandedChange = { colorExpanded = it },
-                modifier = Modifier.weight(1f),
-            ) {
-                // All + 12 palette colors matching Wallhaven's palette.
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // Color
+                FilterSectionLabel("Color")
                 ColorOption.entries.forEach { c ->
-                    DropdownMenuItem(
-                        text = { Text(c.displayName()) },
-                        leadingIcon = {
-                            if (filters.color == c.hex) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                            }
-                        },
-                        trailingIcon = if (c.hex != null) {
+                    FilterSheetItem(
+                        label = c.displayName(),
+                        checked = filters.color == c.hex,
+                        onClick = { onFiltersChange(filters.copy(color = c.hex)) },
+                        trailing = if (c.hex != null) {
                             {
                                 Box(
                                     modifier = Modifier
@@ -284,9 +282,7 @@ fun SearchFilterBar(
                                         .clip(RoundedCornerShape(4.dp))
                                         .background(
                                             try {
-                                                androidx.compose.ui.graphics.Color(
-                                                    "#${c.hex}".toColorInt(),
-                                                )
+                                                androidx.compose.ui.graphics.Color("#${c.hex}".toColorInt())
                                             } catch (_: Exception) {
                                                 MaterialTheme.colorScheme.surfaceVariant
                                             },
@@ -294,48 +290,96 @@ fun SearchFilterBar(
                                 )
                             }
                         } else null,
-                        onClick = {
-                            onFiltersChange(filters.copy(color = c.hex))
-                            colorExpanded = false
-                        },
                     )
                 }
-            }
-            FilterDropdownButton(
-                label = atleastLabel(filters.atleast),
-                expanded = atleastExpanded,
-                onExpandedChange = { atleastExpanded = it },
-                modifier = Modifier.weight(1f),
-            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // Resolution
+                FilterSectionLabel("Minimum resolution")
                 AtleastOption.entries.forEach { a ->
-                    DropdownMenuItem(
-                        text = { Text(a.displayName()) },
-                        leadingIcon = {
-                            if (filters.atleast == a.value) {
-                                Icon(Icons.Filled.Check, contentDescription = null)
-                            }
-                        },
-                        onClick = {
-                            onFiltersChange(filters.copy(atleast = a.value))
-                            atleastExpanded = false
-                        },
+                    FilterSheetItem(
+                        label = a.displayName(),
+                        checked = filters.atleast == a.value,
+                        onClick = { onFiltersChange(filters.copy(atleast = a.value)) },
                     )
                 }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+                ) {
+                    TextButton(
+                        onClick = {
+                            onFiltersChange(WallhavenFilters(query = filters.query))
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Reset") }
+                    Button(
+                        onClick = { showSheet = false },
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Done") }
+                }
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
             }
         }
+    }
+}
 
-        // Hairline separator so the header reads as a distinct surface
-        // above the scrolling grid.
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+@Composable
+private fun FilterSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = KraftSpacing.Spacing4),
+    )
+}
+
+@Composable
+private fun FilterSheetItem(
+    label: String,
+    checked: Boolean,
+    onClick: () -> Unit,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KraftRadius.Standard))
+            .background(
+                if (checked) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.surfaceContainerLow,
+            )
+            .clickable { onClick() }
+            .padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (checked) MaterialTheme.colorScheme.onPrimaryContainer
+            else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
         )
+        if (trailing != null) {
+            Spacer(Modifier.width(KraftSpacing.Spacing8))
+            trailing()
+            Spacer(Modifier.width(KraftSpacing.Spacing8))
+        }
+        if (checked) {
+            Icon(
+                imageVector = Icons.Filled.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 
 /**
  * A compact dropdown button for the filter row: a label + chevron that opens a
- * [DropdownMenu] anchored beneath it. The label always shows the current value
- * so the user knows what filter is applied at a glance.
+ * [DropdownMenu] anchored beneath it. Kept for legacy previews; sheet is primary.
  */
 @Composable
 private fun FilterDropdownButton(
