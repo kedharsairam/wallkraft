@@ -1,8 +1,6 @@
-# Retrofit/OkHttp
--dontwarn okhttp3.**
+# OkHttp
+-dontwarn okhttp3.internal.**
 -dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
 -dontwarn javax.annotation.**
 
 # kotlinx.serialization
@@ -19,6 +17,8 @@
 
 # Room
 -keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao class * { *; }
 -dontwarn androidx.room.paging.**
 
 # Coil

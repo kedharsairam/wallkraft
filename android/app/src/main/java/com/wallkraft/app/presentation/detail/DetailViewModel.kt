@@ -82,7 +82,7 @@ class DetailViewModel(
             // Only show the spinner when there's nothing on screen yet (no
             // preview). With a preview, the image is already visible, so the
             // background refresh must not flash a spinner over it.
-            _uiState.update { it.copy(isLoading = _uiState.value.wallpaper == null, error = null) }
+            _uiState.update { it.copy(isLoading = it.wallpaper == null, error = null) }
             wallpaperRepository.wallpaper(id)
                 .onSuccess { wallpaper ->
                     _uiState.update {

@@ -233,7 +233,6 @@ fun WallKraftNavHost(container: AppContainer) {
                     onUploaderClick = { username ->
                         navController.navigate(Routes.browse("@$username", title = username))
                     },
-                    onZoomChanged = {},
                     navBarPadding = navBarPadding,
                 )
             }

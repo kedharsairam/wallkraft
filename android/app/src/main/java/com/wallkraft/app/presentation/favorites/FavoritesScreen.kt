@@ -81,13 +81,11 @@ fun FavoritesScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Selection mode state
+    // Selection mode state — derived from selectedIds to prevent desync
     var selectedIds by remember { mutableStateOf(emptySet<String>()) }
-    var isSelecting by remember { mutableStateOf(false) }
+    val selectionMode = selectedIds.isNotEmpty()
     var pendingRemove by remember { mutableStateOf<List<Wallpaper>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val selectionMode = isSelecting
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -105,7 +103,6 @@ fun FavoritesScreen(
                     {
                         IconButton(onClick = {
                             selectedIds = emptySet()
-                            isSelecting = false
                         }) {
                             Icon(
                                 imageVector = Icons.Outlined.Close,
@@ -147,7 +144,9 @@ fun FavoritesScreen(
                             )
                         }
                     } else if (favorites.isNotEmpty()) {
-                        TextButton(onClick = { isSelecting = true }) {
+                        TextButton(onClick = {
+                            selectedIds = favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
+                        }) {
                             Text(stringResource(R.string.select))
                         }
                     }
@@ -183,7 +182,6 @@ fun FavoritesScreen(
                 downloadedIds = downloadedFiles.keys,
                 prefetchFullRes = prefetchFullRes,
                 onLongClick = { wallpaper ->
-                    isSelecting = true
                     selectedIds = setOf(wallpaper.id)
                 },
                 selectionMode = selectionMode,
@@ -195,7 +193,7 @@ fun FavoritesScreen(
                         selectedIds + wallpaper.id
                     }
                 },
-                modifier = Modifier.padding(innerPadding).padding(bottom = navBarPadding),
+                modifier = Modifier.padding(innerPadding),
             )
         }
     }
@@ -237,7 +235,6 @@ fun FavoritesScreen(
                         wallpapersToRemove.forEach { viewModel.remove(it.id) }
                         val removedIds = wallpapersToRemove.mapTo(mutableSetOf()) { it.id }
                         selectedIds = selectedIds - removedIds
-                        if (selectedIds.isEmpty()) isSelecting = false
                         pendingRemove = null
                     },
                 ) {

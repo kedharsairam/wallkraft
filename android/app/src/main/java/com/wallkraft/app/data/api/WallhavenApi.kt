@@ -131,8 +131,9 @@ class WallhavenApi(
                     throw WallpaperError.Api("Request failed: ${e.message}")
                 }
             }
-            // Unreachable — the loop only exits via return/throw. Satisfies the
-            // type checker that this block returns T.
+            // The loop only exits via return/throw — this satisfies the type
+            // checker but is never reached.
+            @Suppress("KotlinUnreachableCode")
             error("unreachable")
         }
 
