@@ -97,18 +97,10 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
 
     var showApiDialog by remember { mutableStateOf(false) }
     var cacheSizeText by remember { mutableStateOf("—") }
-    var favSizeText by remember { mutableStateOf("—") }
-    var favCount by remember { mutableStateOf(0) }
 
-    // Compute cache sizes
+    // Compute cache size
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            val favDir = File(context.filesDir, "favorites")
-            val files = favDir.listFiles()?.filter { !it.name.endsWith(".tmp") } ?: emptyList()
-            val bytes = files.sumOf { it.length() }
-            val count = files.size
-            favCount = count
-            favSizeText = formatBytes(bytes)
             val cacheDir = context.cacheDir
             val searchCache = File(cacheDir, "search_cache")
             val coilCache = File(cacheDir, "coil")
@@ -116,7 +108,6 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
             listOf(searchCache, coilCache, File(cacheDir, "image_cache")).forEach { dir ->
                 if (dir.exists()) total += dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }
-            // Also count generic cache files
             cacheSizeText = formatBytes(total)
         }
     }
@@ -302,12 +293,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                             style = MaterialTheme.typography.titleSmall,
                         )
                         Text(
-                            text = "${stringResource(R.string.cache_description)} â€¢ $cacheSizeText",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = stringResource(R.string.favorites_storage_format, favCount, favSizeText),
+                            text = "${stringResource(R.string.cache_description)} \u2022 $cacheSizeText",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
