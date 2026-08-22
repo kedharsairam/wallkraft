@@ -14,6 +14,7 @@ import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -284,8 +285,8 @@ fun WallpaperCropDialog(
                     panY = panY.coerceIn(-maxPanY, maxPanY)
                 },
                 onDoubleTap = {
-                    // Toggle: at fit → zoom to fill-frame (centered); zoomed →
-                    // return to fit. Mirrors the detail screen's first double-tap.
+                    // Toggle: at fit (1x, full image) -> fill (no bars);
+                    // at fill or zoomed -> back to fit (1x).
                     if (zoom <= 1.01f) {
                         animateTo(fillZoom, 0f, 0f)
                     } else {
@@ -313,16 +314,18 @@ fun WallpaperCropDialog(
                     ),
             )
 
-            // Close button: top-left, on a dark circle so it's visible on any
-            // wallpaper. The only chrome above the image.
+            // Close button: top-left glass pill — same Kraft glass as detail
+            // screen (Black 0.38 + White 0.14 border, 12dp), so chrome is
+            // consistent across app.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .statusBarsPadding()
-                    .padding(KraftSpacing.Spacing16)
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .padding(KraftSpacing.Spacing12)
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(KraftRadius.Standard))
+                    .background(KraftColors.GlassDark)
+                    .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
                     .clickable(onClick = onDismiss),
                 contentAlignment = Alignment.Center,
             ) {
@@ -330,7 +333,7 @@ fun WallpaperCropDialog(
                     imageVector = Icons.Filled.Close,
                     contentDescription = stringResource(R.string.cancel),
                     tint = Color.White,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
 

@@ -7,8 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-- **Windows app discontinued** — WallKraft is now Android-only. The `windows/` directory (Rust + Slint), Windows CI/release workflows, NSIS installer, winget manifests, and all Windows documentation have been removed. Future releases ship only `WallKraft-<version>-android-arm64.apk`.
+## [1.11.0] - 2026-08-22
+
+### Changed
+- **Bottom bar redesigned** — 90dp height, 32dp icon-only tabs (no labels), no capsule indicator, clean minimal look.
+- **Settings screen rewritten** — grouped cards (Appearance, Browsing, Data, Advanced, About); all 4 filters (Categories, Purity, Sorting, Orientation) now in Browsing card; cache display + clear; API key dialog with eye toggle; simplified About (version + GitHub only).
+- **Filter order unified** — Categories → Purity → Sorting → Orientation in both Settings and the filter sheet.
+- **Filter labels unified** — "Categories" / "Purity" / "Sorting" / "Orientation" everywhere via `displayName()`.
+- **Filter spacing tightened** — chip gaps 8→6dp, label top 8→6dp, dividers 16→12dp in both Settings and filter sheet.
+- **Purity now persisted** — multi-select purity (SFW / Sketchy / Naughty) saved across sessions; old installs default to SFW.
+- **Detail bottom panel gradient** — subtle dark-blue tint (`#0A1420`) added for better readability on dark wallpapers.
+- **Empty state centering** — icon + text block now properly centered vertically on all screens (Favorites, Downloads, Browse).
+
+### Added
+- **Favorites: multi-select & delete** — long-press any wallpaper to enter selection mode; select all, deselect, batch remove from favorites with confirmation dialog.
+- **Downloads: long-press to select** — long-press any download row to enter selection mode directly.
+- **WallpaperCard: long-press support** — `onLongClick` parameter with selection check overlay (blue circle + checkmark).
+- **WallpaperGrid: selection pass-through** — `onLongClick`, `selectionMode`, `selectedIds`, `onToggleSelect` params for grid-based selection.
+- **Unified top bar** — `KraftTopBar` component used across all screens (Browse, Favorites, Downloads, Settings).
+- **`KraftTopBar.kt`** — new shared top bar component.
+
+### Fixed
+- **Zoom pan bounding** — Fit-aware clamp in ZoomableImage; first double-tap centers fill symmetrically, no black-bar drift.
+- **Crop dialog zoom** — identical 3-level cycle (fit → fill → native) as detail screen, centered fill on toggle.
+- **Search purity param** — `toPurityParam()` now correctly sends `110`/`100` etc.; repository filters match.
+- **Default categories** — `100 → 111` (General + Anime + People); tag/uploader searches force all categories.
+- **Settings build** — removed unresolved `LocalClipboard` import; added `Color` + `size` imports to NavHost.
+- **EmptyState spacing** — removed internal `Spacing32` padding; horizontal padding on text only.
 
 ## [1.10.0] - 2026-08-20
 

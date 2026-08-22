@@ -1,6 +1,8 @@
 package com.wallkraft.app.presentation.browse
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +25,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -130,10 +133,17 @@ fun BrowseScreen(
         }
     }
 
-    // Dismiss the keyboard when the user starts scrolling the grid.
+    val focusManager = LocalFocusManager.current
+
+    // Dismiss the keyboard + clear cursor when the user starts scrolling the grid.
     LaunchedEffect(effectiveGridState) {
         snapshotFlow { effectiveGridState.isScrollInProgress }
-            .collect { scrolling -> if (scrolling) keyboard?.hide() }
+            .collect { scrolling ->
+                if (scrolling) {
+                    keyboard?.hide()
+                    focusManager.clearFocus()
+                }
+            }
     }
 
     Scaffold(
@@ -158,7 +168,15 @@ fun BrowseScreen(
             )
         },
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                ) { focusManager.clearFocus() },
+        ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 if (uiState.rateLimited) {
                     RateLimitBanner(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16))

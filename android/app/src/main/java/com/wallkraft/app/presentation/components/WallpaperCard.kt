@@ -1,7 +1,8 @@
 package com.wallkraft.app.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,12 +38,16 @@ import com.wallkraft.app.domain.model.Wallpaper
 /**
  * A single wallpaper tile in the staggered grid.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WallpaperCard(
     wallpaper: Wallpaper,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     downloadedIds: Set<String> = emptySet(),
+    onLongClick: (() -> Unit)? = null,
+    selectionMode: Boolean = false,
+    selected: Boolean = false,
 ) {
     // Use the wallpaper's true aspect ratio so the full image always fits the
     // tile — no cropping, no zooming. The generous clamp only guards against
@@ -57,7 +64,16 @@ fun WallpaperCard(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(KraftRadius.Standard))
-            .clickable { onClick() },
+            .then(
+                if (onLongClick != null) {
+                    Modifier.combinedClickable(
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                    )
+                } else {
+                    Modifier.combinedClickable(onClick = onClick)
+                },
+            ),
     ) {
         AsyncImage(
             // Ratio-preserving thumbnail (`thumbs.original`, ~300px): tiny
@@ -83,7 +99,7 @@ fun WallpaperCard(
         )
 
         // Downloaded indicator badge.
-        if (wallpaper.id in downloadedIds) {
+        if (wallpaper.id in downloadedIds && !selectionMode) {
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -98,6 +114,29 @@ fun WallpaperCard(
                     contentDescription = stringResource(R.string.favorites_downloaded),
                     tint = Color.White,
                     modifier = Modifier.size(12.dp),
+                )
+            }
+        }
+
+        // Selection check overlay.
+        if (selectionMode) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(KraftSpacing.Spacing4)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (selected) MaterialTheme.colorScheme.primary
+                        else Color.Black.copy(alpha = 0.4f),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

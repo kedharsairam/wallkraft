@@ -9,6 +9,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
@@ -31,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -103,7 +105,7 @@ fun WallKraftNavHost(container: AppContainer) {
             if (!hideBottomBar) {
                 NavigationBar(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    modifier = Modifier.height(64.dp),
+                    modifier = Modifier.height(90.dp),
                 ) {
                     tabs.forEach { tab ->
                         val selected =
@@ -133,21 +135,14 @@ fun WallKraftNavHost(container: AppContainer) {
                             icon = {
                                 Icon(
                                     imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(tab.labelRes),
-                                    style = MaterialTheme.typography.labelSmall,
+                                    contentDescription = stringResource(tab.labelRes),
+                                    modifier = Modifier.size(32.dp),
                                 )
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
                                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                indicatorColor = MaterialTheme.colorScheme.background,
+                                indicatorColor = Color.Transparent,
                             ),
                         )
                     }

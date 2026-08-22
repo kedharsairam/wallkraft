@@ -6,6 +6,7 @@ import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.model.toCategoryParam
+import com.wallkraft.app.domain.model.toPurityParam
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperError
 import kotlinx.coroutines.CancellationException
@@ -56,7 +57,7 @@ class WallhavenApi(
             .addPathSegment("search")
             .apply {
                 addQueryParameter("categories", filters.categories.toCategoryParam())
-                addQueryParameter("purity", filters.purity.apiValue)
+                addQueryParameter("purity", filters.purity.toPurityParam())
                 addQueryParameter("sorting", filters.sorting.value)
                 addQueryParameter("page", page.toString())
                 if (filters.query.isNotBlank()) addQueryParameter("q", filters.query)

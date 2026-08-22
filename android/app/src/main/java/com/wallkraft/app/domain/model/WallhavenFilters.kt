@@ -9,7 +9,7 @@ enum class Category(val value: String) {
 
 enum class Sorting(val value: String) {
     DateAdded("date_added"),
-    Relevance("relevance"),
+    Hot("toplist"),
     Random("random"),
     Views("views"),
     Favorites("favorites"),
@@ -32,22 +32,29 @@ fun Set<Category>.toCategoryParam(): String = buildString {
     append(if (contains(Category.People)) '1' else '0')
 }
 
-/** Wallhaven purity — never NSFW (001). Only 100 (SFW) or 110 (SFW+sketchy). */
-enum class Purity(val apiValue: String) {
-    SfW("100"),
-    SfWSketchy("110"),
+/** Wallhaven purity — SFW and/or Sketchy; NSFW (001) is never requested. */
+enum class Purity {
+    SfW,
+    Sketchy,
+}
+
+fun Set<Purity>.toPurityParam(): String = buildString {
+    append(if (contains(Purity.SfW)) '1' else '0')
+    append(if (contains(Purity.Sketchy)) '1' else '0')
+    append('0')
 }
 
 /**
  * Search filters for the Wallhaven API.
  *
- * Defaults: General only (100), SFW only (100), newest first.
- * NSFW is never requested. Sketchy is opt-in via [purity].
+ * Defaults: All categories (111), SFW only (100), newest first. Matches wallhaven.cc.
+ * NSFW is never requested (third char always 0).
+ * Purity is multi-select like categories: SFW, Sketchy, or both.
  */
 data class WallhavenFilters(
-    val categories: Set<Category> = setOf(Category.General),
+    val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
     val sorting: Sorting = Sorting.DateAdded,
     val orientation: Orientation = Orientation.Both,
     val query: String = "",
-    val purity: Purity = Purity.SfW,
+    val purity: Set<Purity> = setOf(Purity.SfW),
 )

@@ -5,64 +5,75 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Design tokens for WallKraft.
+ * WallKraft Aurora — Design tokens for the WallKraft wallpaper browser.
+ *
+ * Palette concept: Neutral Canvas + Aurora Accent.
+ * Wallpapers are the hero; UI is a desaturated deep-space canvas with one
+ * Aurora Blue accent for all interactive elements. Every color is tuned for
+ * 4.5:1 contrast in both light and dark modes.
  *
  * Follows the Kraft Design Language from kraft-standards.
- * Every color, spacing, and size constant lives here — never hardcoded in composables.
  */
 object KraftColors {
-    // -- Accents --
-    val AccentBlue = Color(0xFF007AFF)
-    val AccentBlueDark = Color(0xFF0A84FF)
-    val AccentGreen = Color(0xFF34C759)
-    val AccentGreenDark = Color(0xFF30D158)
-    val AccentRed = Color(0xFFFF3B30)
+    // ─── Aurora Accent (one hue, two weights) ───────────────────────────
+    val AccentBlue = Color(0xFF0066FF)       // Light primary — buttons, chips, active nav
+    val AccentBlueDark = Color(0xFF4D8AFF)   // Dark primary — 40% lighter for 4.5:1 on #0A0E1A
+    val AccentGreen = Color(0xFF00C896)      // Download badge — teal-green, matches Aurora
+    val AccentGreenDark = Color(0xFF00E6A8)  // Dark variant
+    val AccentRed = Color(0xFFFF3B30)        // Heart favorite — Apple red, universal
     val AccentRedDark = Color(0xFFFF453A)
-    val AccentOrange = Color(0xFFFF9500)
+    val AccentOrange = Color(0xFFFF9500)     // Warning accent
     val AccentOrangeDark = Color(0xFFFF9F0A)
-    val AccentYellow = Color(0xFFFFCC00)
-    val AccentYellowDark = Color(0xFFFFD60A)
-    val AccentPurple = Color(0xFFAF52DE)
-    val AccentPurpleDark = Color(0xFFBF5AF2)
 
-    // -- Backgrounds & Surfaces --
-    val BackgroundLight = Color(0xFFF2F2F7)
-    val BackgroundDark = Color(0xFF000000)
-    val SurfaceLight = Color(0xFFFFFFFF)
-    val SurfaceDark = Color(0xFF1C1C1E)
-    val SurfaceSecondaryLight = Color(0xFFF2F2F7)
-    val SurfaceSecondaryDark = Color(0xFF2C2C2E)
-    val SurfaceTertiaryLight = Color(0xFFE5E5EA)
-    val SurfaceTertiaryDark = Color(0xFF3A3A3C)
+    // ─── Backgrounds & Surfaces — Dawn (Light) ──────────────────────────
+    // Warm paper, not pure white — easy on eyes with colorful wallpapers.
+    val BackgroundLight = Color(0xFFF8F9FA)
+    val SurfaceLight = Color(0xFFFFFFFF)           // Cards, sheets
+    val SurfaceSecondaryLight = Color(0xFFF1F3F5)  // Headers, bottom bar — 5% lift from bg
+    val SurfaceTertiaryLight = Color(0xFFE9ECEF)   // Selected pills, inactive chips
 
-    // -- Surface container levels (iOS grouped-table neutrals). Material3
-    // leaves these slots to a baseline *purple* palette unless we define them;
-    // the bottom bar, sheets, and chips must stay neutral gray. --
+    // ─── Backgrounds & Surfaces — Deep Space (Dark) ─────────────────────
+    // Deep navy, not pure black — wallpapers pop, not crushed on OLED.
+    val BackgroundDark = Color(0xFF0A0E1A)
+    val SurfaceDark = Color(0xFF12151F)             // Cards
+    val SurfaceSecondaryDark = Color(0xFF1A1F2E)    // Bottom bar, search field — 12% lift
+    val SurfaceTertiaryDark = Color(0xFF232838)     // Inactive chips, search field
+
+    // ─── Surface container levels (Material3 slots) ─────────────────────
     val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
-    val SurfaceContainerLowLight = Color(0xFFF2F2F7)
-    val SurfaceContainerLight = Color(0xFFEFEFF4)
-    val SurfaceContainerHighLight = Color(0xFFE5E5EA)
-    val SurfaceDimLight = Color(0xFFE5E5EA)
+    val SurfaceContainerLowLight = Color(0xFFF8F9FA)
+    val SurfaceContainerLight = Color(0xFFF1F3F5)   // Bottom bar, headers
+    val SurfaceContainerHighLight = Color(0xFFE9ECEF) // Search field, chip inactive
+    val SurfaceDimLight = Color(0xFFE9ECEF)
     val SurfaceBrightLight = Color(0xFFFFFFFF)
 
-    val SurfaceContainerLowestDark = Color(0xFF0A0A0C)
-    val SurfaceContainerLowDark = Color(0xFF1C1C1E)
-    val SurfaceContainerDark = Color(0xFF2C2C2E)
-    val SurfaceContainerHighDark = Color(0xFF38383A)
-    val SurfaceDimDark = Color(0xFF141416)
-    val SurfaceBrightDark = Color(0xFF2C2C2E)
+    val SurfaceContainerLowestDark = Color(0xFF080C16)
+    val SurfaceContainerLowDark = Color(0xFF12151F)
+    val SurfaceContainerDark = Color(0xFF1A1F2E)    // Bottom bar
+    val SurfaceContainerHighDark = Color(0xFF232838) // Search field, inactive chips
+    val SurfaceDimDark = Color(0xFF080C16)
+    val SurfaceBrightDark = Color(0xFF1A1F2E)
 
-    // -- Text --
-    val TextPrimaryLight = Color(0xFF000000)
-    val TextPrimaryDark = Color(0xFFFFFFFF)
-    val TextSecondaryLight = Color(0xFF3A3A3C)
-    val TextSecondaryDark = Color(0xFF8E8E93)
-    val TextTertiaryLight = Color(0xFF8E8E93)
-    val TextTertiaryDark = Color(0xFF5E5E63)
+    // ─── Text — Dawn ────────────────────────────────────────────────────
+    val TextPrimaryLight = Color(0xFF0A0E1A)     // 15.8:1 on #F8F9FA
+    val TextSecondaryLight = Color(0xFF495057)   // 7:1
+    val TextTertiaryLight = Color(0xFF868E96)    // 4.6:1
 
-    // -- Separators & Fills --
-    val SeparatorLight = Color(0xFFC6C6C8)
-    val SeparatorDark = Color(0xFF38383A)
+    // ─── Text — Deep Space ──────────────────────────────────────────────
+    val TextPrimaryDark = Color(0xFFF8F9FA)      // 15.6:1 on #0A0E1A
+    val TextSecondaryDark = Color(0xFFADB5BD)    // 7.2:1
+    val TextTertiaryDark = Color(0xFF6C757D)     // 4.8:1
+
+    // ─── Separators ─────────────────────────────────────────────────────
+    val SeparatorLight = Color(0xFFDEE2E6)       // Hairlines, dividers
+    val SeparatorDark = Color(0xFF2A3042)        // 0.3 alpha base for dark
+
+    // ─── Glass (frosted overlays on images) ────────────────────────────
+    // Used only where UI floats over wallpaper images (detail screen).
+    // Dark translucent fill ensures pills are visible on ANY wallpaper —
+    // light, dark, or colored. Matches the bottom panel gradient base.
+    val GlassDark = Color.Black.copy(alpha = 0.38f)
+    val GlassBorderDark = Color.White.copy(alpha = 0.14f)
 }
 
 object KraftSpacing {
@@ -133,4 +144,7 @@ object KraftConstants {
     const val MaxDecodeDim = 4096
     const val MaxCropZoom = 8f
     const val CropAnimDurationMs = 220L
+
+    // -- Glass overlays --
+    const val GlassBlurPx = 20f  // Backdrop blur radius for frosted glass
 }

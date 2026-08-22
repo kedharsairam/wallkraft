@@ -3,7 +3,9 @@ package com.wallkraft.app.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.domain.model.AppSettings
+import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -95,6 +97,17 @@ class SettingsViewModel(
 
     fun setOrientation(orientation: Orientation) {
         viewModelScope.launch { settingsRepository.update { it.copy(orientation = orientation) } }
+    }
+
+    fun setCategories(categories: Set<Category>) {
+        // Never allow empty — at least one category must be selected.
+        if (categories.isEmpty()) return
+        viewModelScope.launch { settingsRepository.update { it.copy(categories = categories) } }
+    }
+
+    fun setPurity(purity: Set<Purity>) {
+        if (purity.isEmpty()) return
+        viewModelScope.launch { settingsRepository.update { it.copy(purity = purity) } }
     }
 
     fun setDataSaverMode(enabled: Boolean) {

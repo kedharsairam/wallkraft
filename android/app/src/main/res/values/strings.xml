@@ -16,16 +16,19 @@
     <string name="no_results_hint_filters">Try adjusting your filters.</string>
     <string name="no_results_hint_query">Nothing matched \"%1$s\". Try a different search.</string>
 
-    <!-- Filter dropdowns -->
+    <!-- Filters -->
+    <string name="filters">Filters</string>
     <string name="filter_all">All</string>
     <string name="sorting_date_added">Date added</string>
-    <string name="sorting_relevance">Relevance</string>
+    <string name="sorting_hot">Hot</string>
     <string name="sorting_random">Random</string>
     <string name="sorting_views">Views</string>
     <string name="sorting_favorites">Favorites</string>
     <string name="category_general">General</string>
     <string name="category_anime">Anime</string>
     <string name="category_people">People</string>
+    <string name="purity_sfw">SFW</string>
+    <string name="purity_sketchy">Sketchy</string>
     <string name="orientation_both">Both</string>
     <string name="orientation_portrait">Portrait</string>
     <string name="orientation_landscape">Landscape</string>
@@ -36,15 +39,37 @@
     <string name="api_key_description">Optional. Unlocks higher rate limits and exclusive content with your account key.</string>
     <string name="api_key_hint">Paste your API key</string>
     <string name="appearance">Appearance</string>
+    <string name="browsing_title">Browsing</string>
+    <string name="data_title">Data</string>
+    <string name="advanced_title">Advanced</string>
+    <string name="about_title">About</string>
     <string name="data_saver_title">Data saver</string>
     <string name="data_saver_description">Load full-resolution images only when you zoom, set, or share. Saves mobile data.</string>
     <string name="loading_full_resolution">Loading full resolution…</string>
+    <string name="default_categories">Default categories</string>
+    <string name="default_purity">Default purity</string>
     <string name="default_sorting">Default sorting</string>
     <string name="default_orientation">Default orientation</string>
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="version_format">WallKraft v%1$s</string>
+    <string name="cache_title">Cache</string>
+    <string name="cache_description">Temporary search results and image cache. Favorites are kept.</string>
+    <string name="clear_cache">Clear cache</string>
+    <string name="cache_cleared">Cache cleared</string>
+    <string name="favorites_storage_format">%1$d wallpapers • %2$s</string>
+    <string name="api_key_advanced_description">Optional key for higher limits. Tap to edit.</string>
+    <string name="api_key_dialog_title">Wallhaven API key</string>
+    <string name="api_key_dialog_save">Save</string>
+    <string name="api_key_saved">API key saved</string>
+    <string name="api_key_not_set">Not set</string>
+    <string name="licenses_title">Open-source licenses</string>
+    <string name="privacy_title">Privacy policy</string>
+    <string name="github_title">GitHub</string>
+    <string name="rate_app_title">Rate WallKraft</string>
+    <string name="version_tap_hint">Tap to copy</string>
+    <string name="copied">Copied</string>
 
     <!-- Favorites -->
     <string name="favorites_title">Favorites</string>
@@ -81,6 +106,18 @@
     <plurals name="files_removed_outside_app">
         <item quantity="one">%d file was removed outside the app and deselected</item>
         <item quantity="other">%d files were removed outside the app and deselected</item>
+    </plurals>
+
+    <!-- Favorites selection -->
+    <string name="remove_favorites_confirm_title">Remove from favorites?</string>
+    <string name="remove_favorites_confirm_message">This removes the wallpaper from your favorites. You can re-add it from Browse.</string>
+    <plurals name="remove_favorites_selected_title">
+        <item quantity="one">Remove %d favorite?</item>
+        <item quantity="other">Remove %d favorites?</item>
+    </plurals>
+    <plurals name="remove_favorites_selected_message">
+        <item quantity="one">This removes %d wallpaper from your favorites.</item>
+        <item quantity="other">This removes %d wallpapers from your favorites.</item>
     </plurals>
 
     <!-- Detail -->

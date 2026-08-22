@@ -3,6 +3,7 @@ package com.wallkraft.app.data.cache
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.WallpaperResponse
+import com.wallkraft.app.domain.model.toPurityParam
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
@@ -66,7 +67,7 @@ class SearchResponseCache(
     }
 
     private fun WallhavenFilters.signature(): String =
-        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.apiValue}"
+        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.toPurityParam()}"
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries
