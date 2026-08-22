@@ -33,7 +33,7 @@ class SearchResponseCacheTest {
 
     private fun filters(
         query: String = "",
-        purity: Purity = Purity.SfW,
+        purity: Set<Purity> = setOf(Purity.SfW),
     ) = WallhavenFilters(
         categories = setOf(Category.General),
         sorting = Sorting.DateAdded,
@@ -87,8 +87,8 @@ class SearchResponseCacheTest {
 
     @Test
     fun purity_isPartOfKey() {
-        val base = filters(query = "q", purity = Purity.SfW)
-        val withSketchy = filters(query = "q", purity = Purity.SfWSketchy)
+        val base = filters(query = "q", purity = setOf(Purity.SfW))
+        val withSketchy = filters(query = "q", purity = setOf(Purity.SfW, Purity.Sketchy))
         cache.put(base, 1, response(listOf("base")))
         assertNull(cache.get(withSketchy, 1))
         cache.put(withSketchy, 1, response(listOf("sketchy")))
