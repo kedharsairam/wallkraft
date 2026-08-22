@@ -284,15 +284,7 @@ fun WallpaperCropDialog(
                     panX = panX.coerceIn(-maxPanX, maxPanX)
                     panY = panY.coerceIn(-maxPanY, maxPanY)
                 },
-                onDoubleTap = {
-                    // Toggle: at fit (1x, full image) -> fill (no bars);
-                    // at fill or zoomed -> back to fit (1x).
-                    if (zoom <= 1.01f) {
-                        animateTo(fillZoom, 0f, 0f)
-                    } else {
-                        animateTo(1f, 0f, 0f)
-                    }
-                },
+                onDoubleTap = { /* Disabled in crop dialog — pinch-to-zoom only */ },
                 modifier = Modifier
                     .fillMaxSize(),
             )
