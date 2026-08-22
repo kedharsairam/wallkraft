@@ -7,7 +7,7 @@ No ads, no analytics, no trackers — your data stays on your device.
 ## Features
 
 - **Browse** — infinite-scroll staggered grid of wallpapers from Wallhaven
-- **Search & Filter** — text search with category, purity (SFW / Sketchy / Naughty), sort, and orientation filters; all filters persisted across sessions
+- **Search & Filter** — text search with category, purity (SFW / Sketchy), sort, and orientation filters; all filters persisted across sessions
 - **Detail View** — full-resolution view with pinch-to-zoom and pan; 3-level double-tap cycle (fit → fill → native)
 - **Set as Wallpaper** — crop and position the image, then apply to home, lock, or both screens
 - **Favorites** — save wallpapers locally with **long-press multi-select & batch delete**; full-res copies stored for offline viewing

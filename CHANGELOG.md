@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Filter order unified** — Categories → Purity → Sorting → Orientation in both Settings and the filter sheet.
 - **Filter labels unified** — "Categories" / "Purity" / "Sorting" / "Orientation" everywhere via `displayName()`.
 - **Filter spacing tightened** — chip gaps 8→6dp, label top 8→6dp, dividers 16→12dp in both Settings and filter sheet.
-- **Purity now persisted** — multi-select purity (SFW / Sketchy / Naughty) saved across sessions; old installs default to SFW.
+- **Purity now persisted** — multi-select purity (SFW / Sketchy) saved across sessions; old installs default to SFW.
 - **Detail bottom panel gradient** — subtle dark-blue tint (`#0A1420`) added for better readability on dark wallpapers.
 - **Empty state centering** — icon + text block now properly centered vertically on all screens (Favorites, Downloads, Browse).
 
