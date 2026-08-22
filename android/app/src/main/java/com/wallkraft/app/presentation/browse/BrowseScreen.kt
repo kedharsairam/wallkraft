@@ -80,7 +80,7 @@ fun BrowseScreen(
     // the field abandons it — from then on the box is a normal search. This is
     // initialized once per screen entry, so re-searching doesn't reapply it.
     var titleActive by remember { mutableStateOf(title.isNotBlank()) }
-    var searchText by remember { mutableStateOf(title.ifBlank { uiState.query }) }
+    var searchText by remember { mutableStateOf(title.ifBlank { uiState.filters.query }) }
     val keyboard = LocalSoftwareKeyboardController.current
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
     // Data saver: skip the full-res prefetch on tap so opening a wallpaper
@@ -121,13 +121,10 @@ fun BrowseScreen(
     // the top instead of leaving the user staring at a stale scroll position.
     // Track the last-seen values so re-entering this tab (which recreates the
     // LaunchedEffect) doesn't reset the scroll — only an actual change should.
-    var lastScrolledQuery by remember { mutableStateOf(uiState.query) }
     var lastScrolledFilters by remember { mutableStateOf(uiState.filters) }
-    LaunchedEffect(uiState.query, uiState.filters) {
-        val query = uiState.query
+    LaunchedEffect(uiState.filters) {
         val filters = uiState.filters
-        if (query != lastScrolledQuery || filters != lastScrolledFilters) {
-            lastScrolledQuery = query
+        if (filters != lastScrolledFilters) {
             lastScrolledFilters = filters
             effectiveGridState.scrollToItem(0)
         }
@@ -161,7 +158,7 @@ fun BrowseScreen(
                     // name, but the real search is the raw query the entry was
                     // opened with (e.g. "@username"). Pressing search without
                     // editing just re-runs it.
-                    viewModel.search(if (titleActive) uiState.query else text)
+                    viewModel.search(if (titleActive) uiState.filters.query else text)
                 },
                 filters = uiState.filters,
                 onFiltersChange = viewModel::setFilters,
@@ -200,10 +197,10 @@ fun BrowseScreen(
                         uiState.wallpapers.isEmpty() ->
                             EmptyState(
                                 title = stringResource(R.string.no_results_title),
-                                message = if (uiState.query.isBlank()) {
+                                message = if (uiState.filters.query.isBlank()) {
                                     stringResource(R.string.no_results_hint_filters)
                                 } else {
-                                    stringResource(R.string.no_results_hint_query, uiState.query)
+                                    stringResource(R.string.no_results_hint_query, uiState.filters.query)
                                 },
                             )
                         else -> WallpaperGrid(

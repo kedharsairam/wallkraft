@@ -1,6 +1,5 @@
 package com.wallkraft.app.presentation.common
 
-import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.core.design.KraftConstants
@@ -9,7 +8,6 @@ import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
-import com.wallkraft.app.util.toUserMessage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +15,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+/**
+ * Abstraction over elapsed-time measurement. Production uses
+ * [SystemClock.elapsedRealtime]; tests inject a fake for deterministic control.
+ */
+fun interface ElapsedClock {
+    /** Milliseconds since some arbitrary epoch (monotonic, non-decreasing). */
+    fun elapsedMs(): Long
+}
 
 /**
  * Shared state for any screen that shows a paginated wallpaper grid fed by
@@ -30,7 +37,6 @@ data class WallpaperListUiState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val filters: WallhavenFilters = WallhavenFilters(),
-    val query: String = "",
     val currentPage: Int = 1,
     val lastPage: Int = 1,
     val hasMore: Boolean = true,
@@ -52,6 +58,7 @@ abstract class WallpaperListViewModel(
     settingsRepository: SettingsRepository,
     private val errorMessage: (Throwable) -> String,
     private val initialQuery: String = "",
+    private val clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },
 ) : ViewModel() {
 
     protected val _uiState = MutableStateFlow(WallpaperListUiState())
@@ -73,7 +80,7 @@ abstract class WallpaperListViewModel(
         // Seed the query synchronously so the search box already shows it on
         // the very first frame (e.g. the tag when opened from a detail screen).
         _uiState.update {
-            it.copy(query = initialQuery, filters = it.filters.copy(query = initialQuery))
+            it.copy(filters = it.filters.copy(query = initialQuery))
         }
         viewModelScope.launch {
             val settings = settingsRepository.current()
@@ -109,7 +116,9 @@ abstract class WallpaperListViewModel(
     fun setFilters(filters: WallhavenFilters) {
         _uiState.update {
             it.copy(
-                filters = filters.copy(query = it.query),
+                // Preserve the current query — the filter sheet only changes
+                // purity/sorting/orientation/category, never the search text.
+                filters = filters.copy(query = it.filters.query),
                 wallpapers = emptyList(),
             )
         }
@@ -124,7 +133,7 @@ abstract class WallpaperListViewModel(
         loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true, error = null) }
             val filters = _uiState.value.filters
-            val startedAt = SystemClock.elapsedRealtime()
+            val startedAt = clock.elapsedMs()
             try {
                 // forceRefresh bypasses the response cache so the user gets
                 // live data, not a replay of the last fetch.
@@ -152,7 +161,7 @@ abstract class WallpaperListViewModel(
                 // round-trip can leave Material3's PullToRefreshBox stuck
                 // showing the spinner (isRefreshing toggles true→false within
                 // a single frame).
-                val elapsed = SystemClock.elapsedRealtime() - startedAt
+                val elapsed = clock.elapsedMs() - startedAt
                 if (elapsed < MIN_REFRESH_MS) delay(MIN_REFRESH_MS - elapsed)
                 _uiState.update { it.copy(isRefreshing = false) }
             }

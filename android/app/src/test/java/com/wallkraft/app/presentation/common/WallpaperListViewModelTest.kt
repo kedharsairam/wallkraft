@@ -183,13 +183,72 @@ class WallpaperListViewModelTest {
         assertEquals(1, vm.uiState.value.wallpapers.size)
     }
 
+    @Test
+    fun `refresh replaces wallpaper list`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        var page1Loaded = false
+        repo.onSearch = { _, page ->
+            if (page == 1 && !page1Loaded) {
+                page1Loaded = true
+                Result.success(WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-old", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = 1, lastPage = 2),
+                ))
+            } else {
+                Result.success(WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-new", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = 1, lastPage = 1),
+                ))
+            }
+        }
+        val clock = FakeClock(1000)
+        val vm = TestVM(repo, clock = clock)
+        advanceUntilIdle()
+
+        assertEquals("wp-old", vm.uiState.value.wallpapers[0].id)
+
+        clock.advanceBy(600)
+        vm.refresh()
+        advanceUntilIdle()
+
+        assertEquals("wp-new", vm.uiState.value.wallpapers[0].id)
+        assertFalse(vm.uiState.value.isRefreshing)
+    }
+
+    @Test
+    fun `refresh stays visible for minimum duration`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        repo.onSearch = { _, _ ->
+            Result.success(WallpaperResponse(
+                data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
+                meta = WallpaperMeta(currentPage = 1, lastPage = 1),
+            ))
+        }
+        val clock = FakeClock(0)
+        val vm = TestVM(repo, clock = clock)
+        advanceUntilIdle()
+
+        // Advance clock past MIN_REFRESH_MS (500ms) so the delay resolves
+        clock.advanceBy(600)
+        vm.refresh()
+        advanceUntilIdle()
+
+        assertFalse(vm.uiState.value.isRefreshing)
+    }
+
     // --- Helpers ---
+
+    private class FakeClock(private var now: Long = 0) : ElapsedClock {
+        override fun elapsedMs(): Long = now
+        fun advanceBy(ms: Long) { now += ms }
+    }
 
     private class TestVM(
         repository: WallpaperRepository,
         initialQuery: String = "",
         errorMessage: (Throwable) -> String = { "error" },
-    ) : WallpaperListViewModel(repository, FakeSettingsRepo(), errorMessage, initialQuery)
+        clock: ElapsedClock = FakeClock(),
+    ) : WallpaperListViewModel(repository, FakeSettingsRepo(), errorMessage, initialQuery, clock)
 
     private class FakeRepo : WallpaperRepository {
         val searchRequests = mutableListOf<Triple<WallhavenFilters, Int, Boolean>>()
