@@ -111,7 +111,7 @@ fun WallpaperGrid(
     }
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         state = gridState,
         contentPadding = PaddingValues(
             start = KraftSpacing.ScreenEdge,
