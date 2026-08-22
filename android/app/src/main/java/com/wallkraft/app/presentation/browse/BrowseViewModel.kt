@@ -1,12 +1,10 @@
 package com.wallkraft.app.presentation.browse
 
-import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
+import com.wallkraft.app.presentation.common.ElapsedClock
 import com.wallkraft.app.presentation.common.WallpaperListViewModel
-import com.wallkraft.app.util.toUserMessage
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 /**
  * The Browse tab. All pagination, refresh, and filter handling lives in
@@ -23,12 +21,12 @@ class BrowseViewModel(
     settingsRepository: SettingsRepository,
     errorMessage: (Throwable) -> String,
     initialQuery: String = "",
-) : WallpaperListViewModel(repository, settingsRepository, errorMessage, initialQuery) {
+    clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },
+) : WallpaperListViewModel(repository, settingsRepository, errorMessage, initialQuery, clock) {
 
     fun search(newQuery: String) {
         _uiState.update {
             it.copy(
-                query = newQuery,
                 filters = it.filters.copy(query = newQuery),
                 // A new query replaces the whole list: drop the old results so
                 // a failure shows the error state instead of silently keeping
