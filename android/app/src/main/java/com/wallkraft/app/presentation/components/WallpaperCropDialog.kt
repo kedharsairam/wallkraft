@@ -237,6 +237,9 @@ fun WallpaperCropDialog(
                 frameWpx / (bmp.width * fitScale),
                 frameHpx / (bmp.height * fitScale),
             ).coerceIn(1f, MAX_CROP_ZOOM)
+            // 1:1 native resolution — where 1 image pixel = 1 screen pixel.
+            // Always deeper than fill, same as the detail screen's nativeRelative.
+            val nativeZoom = (1f / fitScale).coerceIn(fillZoom * 1.2f, MAX_CROP_ZOOM)
 
             fun animateTo(targetZoom: Float, targetPanX: Float, targetPanY: Float) {
                 animJob?.cancel()
@@ -284,7 +287,15 @@ fun WallpaperCropDialog(
                     panX = panX.coerceIn(-maxPanX, maxPanX)
                     panY = panY.coerceIn(-maxPanY, maxPanY)
                 },
-                onDoubleTap = { /* Disabled in crop dialog — pinch-to-zoom only */ },
+                onDoubleTap = {
+                    // 3-state cycle matching the detail screen:
+                    // fit (1x) -> fill (no bars) -> native (1:1 pixels) -> fit
+                    when {
+                        zoom <= 1.01f -> animateTo(fillZoom, 0f, 0f)
+                        zoom <= fillZoom * 1.1f -> animateTo(nativeZoom, 0f, 0f)
+                        else -> animateTo(1f, 0f, 0f)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxSize(),
             )
