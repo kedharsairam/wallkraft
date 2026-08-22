@@ -99,16 +99,16 @@
 
 ## Phase 5: Hardening
 
-**Status:** ⬜ Not started
-**Estimated time:** 30 minutes
-**Risk:** Zero
+**Status:** ✅ All 4 items complete
+**Time taken:** ~10 minutes
+**Risk:** Zero — manifest/config changes only
 
 | # | Task | File(s) | Status | Notes |
 |---|---|---|---|---|
-| 32 | Add `ACCESS_NETWORK_STATE` permission | `AndroidManifest.xml` | ⬜ | Better error messages |
-| 33 | Add `android:enableOnBackInvokedCallback` | `AndroidManifest.xml` | ⬜ | Android 13+ predictive back |
-| 34 | Fix BOM version inconsistency | `build.gradle.kts:139` | ⬜ | `ui-test-junit4` hardcoded vs BOM |
-| 35 | Verify Compose BOM version exists | `build.gradle.kts:101` | ⬜ | `2025.04.00` — may not exist |
+| 32 | Add `ACCESS_NETWORK_STATE` permission | `AndroidManifest.xml` | ✅ | Enables connectivity checks for better error messages. |
+| 33 | Add `android:enableOnBackInvokedCallback` | `AndroidManifest.xml` | ✅ | Android 13+ predictive back gesture support. |
+| 34 | Fix BOM version inconsistency | `build.gradle.kts:139` | ✅ | Removed hardcoded `1.7.6` from `ui-test-junit4`, now uses BOM. |
+| 35 | Verify Compose BOM version exists | `build.gradle.kts:101` | ✅ | `2025.04.00` is valid (released April 9, 2025). |
 
 ---
 
@@ -150,6 +150,13 @@
 - **Landscape support:** Changed `StaggeredGridCells.Fixed(2)` → `Adaptive(150dp)` in `WallpaperGrid` + `ShimmerGrid`. Grid auto-adjusts: 2 cols portrait, 3-4 cols landscape/tablet.
 - **Haptic feedback:** Added `HapticFeedbackType.LongPress` on grid tile long-press (`WallpaperCard`) and download list long-press (`DownloadedList`). Fixed missing `LocalContext` + `ColorPainter` imports in DownloadedList.
 - **Skipped:** Rate-limit countdown timer (already has auto-clear cooldown, countdown too complex for marginal gain), settings caching (low priority), share action (already works correctly), animations (defer to v2.0).
+- **All 95 tests pass, build successful**
+
+### August 22, 2026 — Session 6: Phase 5 — Hardening
+- **Permissions:** Added `ACCESS_NETWORK_STATE` for connectivity checks.
+- **Predictive back:** Added `android:enableOnBackInvokedCallback="true"` to activity.
+- **BOM fix:** Removed hardcoded `ui-test-junit4:1.7.6`, now uses BOM version.
+- **BOM verified:** `2025.04.00` is valid (released April 9, 2025).
 - **All 95 tests pass, build successful**
 
 ---
