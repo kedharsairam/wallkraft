@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-08-22
+
+### Changed
+- **Dual query fix** — removed `query` field from `WallpaperListUiState`; all screens now use `filters.query` only, eliminating an entire class of sync bugs.
+- **Clock abstraction** — `ElapsedClock` interface injected into `WallpaperListViewModel` so `refresh()` is testable in pure JUnit without Android framework.
+- **Fake progress bar replaced** — detail screen now shows an indeterminate shimmer pulse instead of a fake determinate 0→1 animation.
+- **Landscape support** — `StaggeredGridCells.Fixed(2)` replaced with `Adaptive(150dp)` in `WallpaperGrid` + `ShimmerGrid`; grid auto-adjusts 2→3→4 columns by width.
+- **Crop dialog double-tap** — now matches detail screen: 3-state cycle (fit → fill → native → fit).
+- **Compose BOM version inconsistency fixed** — `ui-test-junit4` hardcoded version removed, now uses BOM-managed version.
+
+### Added
+- **Haptic feedback on long-press** — `HapticFeedbackType.LongPress` on grid tile long-press (`WallpaperCard`) and download list long-press (`DownloadedList`).
+- **`ACCESS_NETWORK_STATE` permission** — enables connectivity checks for better error messages.
+- **Predictive back gesture** — `android:enableOnBackInvokedCallback="true"` for Android 13+.
+- **`ElapsedClock` abstraction** — injectable time source for testable refresh timing.
+- **27 new tests** — `WallpaperListViewModelTest` (10), `BrowseViewModelTest` (6), `ErrorMessagesTest` (11), `WallpaperActionsDataTest` (4), `FavoriteImageStoreTest` (3 fixed). Total: 66 → 94 tests.
+
+### Fixed
+- **Moji-bake encoding** — `"â€""` → `"—"` in SettingsScreen (corrupted UTF-8 bytes).
+- **Double padding** — FavoritesScreen bottom padding was applied twice.
+- **Detail race condition** — `_uiState.value.wallpaper` → `it.wallpaper` inside update lambda.
+- **Main-thread deletion** — DownloadsScreen file deletion wrapped in `scope.launch { withContext(Dispatchers.IO) }`.
+- **Selection state desync** — FavoritesScreen and DownloadsScreen now derive `selectionMode` from `selectedIds.isNotEmpty()`.
+- **Missing permission** — `WRITE_EXTERNAL_STORAGE` with `maxSdkVersion="28"` added.
+- **Dead callback removed** — `onZoomChanged = {}` removed from WallKraftNavHost.
+- **ProGuard tightened** — narrowed `okhttp3.**` → `okhttp3.internal.**`, added Room entity/DAO keep rules.
+- **`security-crypto` upgraded** — from `1.1.0-alpha06` to `1.1.0` stable.
+
 ## [1.11.0] - 2026-08-22
 
 ### Changed
