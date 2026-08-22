@@ -96,8 +96,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     val snackbarHostState = remember { SnackbarHostState() }
 
     var showApiDialog by remember { mutableStateOf(false) }
-    var cacheSizeText by remember { mutableStateOf("â€”") }
-    var favSizeText by remember { mutableStateOf("â€”") }
+    var cacheSizeText by remember { mutableStateOf("—") }
+    var favSizeText by remember { mutableStateOf("—") }
     var favCount by remember { mutableStateOf(0) }
 
     // Compute cache sizes
@@ -155,7 +155,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
             }
 
-            // Browsing â€” all 4 browse filters
+            // Browsing — all 4 browse filters
             SettingsGroup(title = stringResource(R.string.browsing_title)) {
                 Text(
                     text = "Categories",
@@ -360,7 +360,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
             }
 
-            // About â€” minimal: version + GitHub. Privacy/licenses/rate not needed
+            // About — minimal: version + GitHub. Privacy/licenses/rate not needed
             // for a private, non-store app; GitHub is the source of truth.
             SettingsGroup(title = stringResource(R.string.about_title)) {
                 Row(

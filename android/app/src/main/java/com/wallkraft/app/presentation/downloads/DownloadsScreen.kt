@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +41,9 @@ import com.wallkraft.app.presentation.components.DownloadedList
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.util.DownloadedFile
 import com.wallkraft.app.util.WallpaperActions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * The Downloads tab: every wallpaper file the app has saved to the public
@@ -58,13 +62,12 @@ fun DownloadsScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     var files by remember { mutableStateOf(emptyList<DownloadedFile>()) }
     var selectedIds by remember { mutableStateOf(emptySet<String>()) }
-    var isSelecting by remember { mutableStateOf(false) }
+    val selectionMode = selectedIds.isNotEmpty()
     var pendingDelete by remember { mutableStateOf<List<DownloadedFile>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val selectionMode = isSelecting
 
     // Load immediately on first composition — a fresh navigation entry is
     // already RESUMED when the observer below registers, so ON_RESUME alone
@@ -117,7 +120,6 @@ fun DownloadsScreen(
                     {
                         IconButton(onClick = {
                             selectedIds = emptySet()
-                            isSelecting = false
                         }) {
                             Icon(
                                 imageVector = Icons.Outlined.Close,
@@ -156,7 +158,9 @@ fun DownloadsScreen(
                             )
                         }
                     } else if (files.isNotEmpty()) {
-                        TextButton(onClick = { isSelecting = true }) {
+                        TextButton(onClick = {
+                            selectedIds = files.mapTo(mutableSetOf()) { it.wallpaperId }
+                        }) {
                             Text(stringResource(R.string.select))
                         }
                     }
@@ -190,7 +194,6 @@ fun DownloadsScreen(
                     }
                 },
                 onEnterSelection = { file ->
-                    isSelecting = true
                     selectedIds = setOf(file.wallpaperId)
                 },
                 modifier = Modifier.padding(innerPadding).padding(bottom = navBarPadding),
@@ -223,12 +226,15 @@ fun DownloadsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        filesToDelete.forEach { WallpaperActions.delete(context, it) }
-                        val deletedIds = filesToDelete.mapTo(mutableSetOf()) { it.wallpaperId }
-                        files = files.filterNot { it.wallpaperId in deletedIds }
-                        selectedIds = selectedIds - deletedIds
-                        if (files.isEmpty()) isSelecting = false
-                        pendingDelete = null
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                filesToDelete.forEach { WallpaperActions.delete(context, it) }
+                            }
+                            val deletedIds = filesToDelete.mapTo(mutableSetOf()) { it.wallpaperId }
+                            files = files.filterNot { it.wallpaperId in deletedIds }
+                            selectedIds = selectedIds - deletedIds
+                            pendingDelete = null
+                        }
                     },
                 ) {
                     Text(stringResource(R.string.delete))
