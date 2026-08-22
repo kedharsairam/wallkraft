@@ -53,6 +53,10 @@ fun WallpaperGrid(
     // When false (data saver on), tapping a tile does NOT prefetch the
     // full-res image — the detail screen defers it until the user zooms.
     prefetchFullRes: Boolean = true,
+    onLongClick: ((Wallpaper) -> Unit)? = null,
+    selectionMode: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    onToggleSelect: ((Wallpaper) -> Unit)? = null,
 ) {
     val gridState = state
 
@@ -124,23 +128,32 @@ fun WallpaperGrid(
             WallpaperCard(
                 wallpaper = wallpaper,
                 onClick = {
-                    // Warm the full-res image before the detail screen opens so
-                    // it appears instantly (the detail screen already seeds a
-                    // preview from the thumbnail; this gets the full-res into
-                    // the cache ahead of time). enqueue with no target = fetch
-                    // into the cache without drawing. Skipped in data saver
-                    // mode — the detail screen defers the download instead.
-                    if (prefetchFullRes) {
-                        val fullUrl = wallpaper.path ?: wallpaper.thumbnail
-                        if (fullUrl != null) {
-                            gridImageLoader.enqueue(
-                                ImageRequest.Builder(context).data(fullUrl).build(),
-                            )
+                    if (selectionMode) {
+                        onToggleSelect?.invoke(wallpaper)
+                    } else {
+                        // Warm the full-res image before the detail screen opens so
+                        // it appears instantly (the detail screen already seeds a
+                        // preview from the thumbnail; this gets the full-res into
+                        // the cache ahead of time). enqueue with no target = fetch
+                        // into the cache without drawing. Skipped in data saver
+                        // mode — the detail screen defers the download instead.
+                        if (prefetchFullRes) {
+                            val fullUrl = wallpaper.path ?: wallpaper.thumbnail
+                            if (fullUrl != null) {
+                                gridImageLoader.enqueue(
+                                    ImageRequest.Builder(context).data(fullUrl).build(),
+                                )
+                            }
                         }
+                        onOpen(wallpaper)
                     }
-                    onOpen(wallpaper)
+                },
+                onLongClick = onLongClick?.let { longClick ->
+                    { longClick(wallpaper) }
                 },
                 downloadedIds = downloadedIds,
+                selectionMode = selectionMode,
+                selected = wallpaper.id in selectedIds,
             )
         }
         item(span = StaggeredGridItemSpan.FullLine) { footer() }

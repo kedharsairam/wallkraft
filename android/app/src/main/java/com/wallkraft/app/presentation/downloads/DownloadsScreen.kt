@@ -8,7 +8,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +16,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import com.wallkraft.app.core.design.KraftTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +51,6 @@ import com.wallkraft.app.util.WallpaperActions
  * Selection mode lets the user pick several files (or all of them) and
  * delete them in one confirmation, instead of confirming each file.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadsScreen(
     onOpenWallpaper: (Wallpaper) -> Unit,
@@ -108,18 +106,15 @@ fun DownloadsScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (selectionMode) {
-                            pluralStringResource(R.plurals.selected_count, selectedIds.size, selectedIds.size)
-                        } else {
-                            stringResource(R.string.downloads_title)
-                        },
-                    )
-                },
-                navigationIcon = {
-                    if (selectionMode) {
+            val title = if (selectionMode) {
+                pluralStringResource(R.plurals.selected_count, selectedIds.size, selectedIds.size)
+            } else {
+                stringResource(R.string.downloads_title)
+            }
+            KraftTopBar(
+                title = title,
+                navigationIcon = if (selectionMode) {
+                    {
                         IconButton(onClick = {
                             selectedIds = emptySet()
                             isSelecting = false
@@ -130,7 +125,7 @@ fun DownloadsScreen(
                             )
                         }
                     }
-                },
+                } else null,
                 actions = {
                     if (selectionMode) {
                         val allSelected = files.isNotEmpty() && selectedIds.size == files.size
@@ -174,7 +169,10 @@ fun DownloadsScreen(
                 title = stringResource(R.string.no_downloads_title),
                 message = stringResource(R.string.no_downloads_message),
                 icon = Icons.Outlined.Download,
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                modifier = Modifier.fillMaxSize().padding(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding(),
+                ),
             )
         } else {
             DownloadedList(
@@ -190,6 +188,10 @@ fun DownloadsScreen(
                     } else {
                         selectedIds + file.wallpaperId
                     }
+                },
+                onEnterSelection = { file ->
+                    isSelecting = true
+                    selectedIds = setOf(file.wallpaperId)
                 },
                 modifier = Modifier.padding(innerPadding).padding(bottom = navBarPadding),
             )

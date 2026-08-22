@@ -33,16 +33,20 @@ class WallpaperRepositoryImpl(
 
             // 2. Network fetch.
             val response = api.search(filters, page)
-            // Defense in depth: even though the API client only ever requests
-            // SFW (purity=100), never surface anything the API reports as
-            // sketchy or NSFW. Also dedupe by id — the Wallhaven search API
-            // can return the same wallpaper twice across pages, and the
-            // staggered grid keys items by id.
-            val sfwOnly = response.data
-                .filter { it.isSfw }
+            // Defense in depth: only surface purities the user asked for.
+            // SFW (100), Sketchy (010), or both (110) — NSFW (001) is never
+            // requested and never shown, even if the API somehow returns it.
+            // Also dedupe by id — the Wallhaven search API can return the
+            // same wallpaper twice across pages.
+            val allowed = buildSet {
+                if (com.wallkraft.app.domain.model.Purity.SfW in filters.purity) add("sfw")
+                if (com.wallkraft.app.domain.model.Purity.Sketchy in filters.purity) add("sketchy")
+            }
+            val filtered = response.data
+                .filter { it.purity in allowed }
                 .distinctBy { it.id }
             val processed = WallpaperResponse(
-                data = sfwOnly,
+                data = filtered,
                 meta = response.meta,
             )
             searchCache.put(filters, page, processed)

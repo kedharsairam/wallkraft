@@ -4,6 +4,7 @@ import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -76,10 +77,20 @@ abstract class WallpaperListViewModel(
         }
         viewModelScope.launch {
             val settings = settingsRepository.current()
+            // Tag/uploader searches (initialQuery non-blank from navigation) should
+            // show all categories like wallhaven.cc does — otherwise a People tag
+            // with a General-only filter returns empty. Search-bar queries keep
+            // the user's chosen categories.
+            val initialCategories = if (initialQuery.isNotBlank()) {
+                setOf(Category.General, Category.Anime, Category.People)
+            } else {
+                settings.categories
+            }
             _uiState.update {
                 it.copy(
                     filters = WallhavenFilters(
-                        categories = settings.categories,
+                        categories = initialCategories,
+                        purity = settings.purity,
                         sorting = settings.sorting,
                         orientation = settings.orientation,
                         query = initialQuery,

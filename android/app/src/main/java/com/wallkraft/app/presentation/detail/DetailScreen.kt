@@ -84,6 +84,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -120,6 +121,7 @@ import coil3.compose.SubcomposeAsyncImage
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
@@ -203,6 +205,7 @@ fun DetailScreen(
                     )
                 } else {
                     DetailContent(
+                        container = container,
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
                         isUploaderDeleted = uiState.isDetailLoaded && wallpaper.uploaderName.isBlank(),
@@ -340,6 +343,7 @@ val setTarget = setWallpaperTarget
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DetailContent(
+    container: AppContainer,
     wallpaper: Wallpaper,
     isFavorite: Boolean,
     isUploaderDeleted: Boolean,
@@ -358,6 +362,9 @@ private fun DetailContent(
 ) {
     val context = LocalContext.current
     var isZoomed by remember { mutableStateOf(false) }
+    var isSharing by remember { mutableStateOf(false) }
+    val contentScope = rememberCoroutineScope()
+    val hapticLocal = LocalHapticFeedback.current
 
     // Hide the system bars while zoomed so the image is truly edge-to-edge.
     val window = (context as? Activity)?.window
@@ -382,31 +389,22 @@ private fun DetailContent(
     BoxWithConstraints(modifier = modifier.background(Color.Black)) {
         val viewW = maxWidth.value
         val viewH = maxHeight.value
-        // Exact fill scale: at 1x the image (ContentScale.Fit) shows at
-        // min(viewW/aspect, viewH) tall; scaling by this makes its height
-        // exactly the viewport height — top-to-bottom, never beyond.
-        val fillScale = if (aspect <= 0f) 1f else {
-            val displayedH = min(viewW / aspect, viewH)
-            (viewH / displayedH).coerceAtLeast(1f).coerceAtMost(8f)
-        }
-        // First double-tap must always produce a visible zoom. If the image is
-        // smaller than the screen (landscape), fill it top-to-bottom exactly.
-        // If it already fills the screen (portrait), zoom in 2x instead — a
-        // fill scale of 1.0 would otherwise make the first double-tap a no-op.
-        val firstLevel = if (fillScale > 1.05f) fillScale else 2f
-        // Second double-tap = 1:1 native resolution: scale the image so each
-        // image pixel maps to one screen pixel. The image is displayed at
-        // `displayedH` tall at 1x (fit); to show it at its real pixel height
-        // we scale by nativeH / displayedH. Clamped so it always zooms deeper
-        // than the fill level (never a no-op or a zoom-out).
+        // Fit size at 1x: ContentScale.Fit inside the viewport.
+        val displayedW = if (aspect <= 0f) viewW else min(viewW, viewH * aspect)
         val displayedH = if (aspect <= 0f) viewH else min(viewW / aspect, viewH)
-        val resolutionLevel = if (aspect <= 0f || displayedH <= 0f) {
-            (firstLevel * 2f).coerceAtMost(8f)
+        // Fill scale (relative to 1x fit) where the image covers the entire
+        // viewport — no black bars. Narrow fills height, wide fills width.
+        val fillRelative = if (displayedW <= 0f || displayedH <= 0f) 1f
+            else maxOf(viewW / displayedW, viewH / displayedH).coerceIn(1f, 8f)
+        // 1:1 native resolution (pixel zoom), always deeper than fill.
+        val nativeRelative = if (aspect <= 0f || displayedH <= 0f) {
+            (fillRelative * 2f).coerceAtMost(8f)
         } else {
-            (h / displayedH).coerceIn(firstLevel * 1.2f, 8f)
+            (h / displayedH).coerceIn(fillRelative * 1.2f, 8f)
         }
-        val zoomLevels = remember(viewW, viewH, resolutionLevel) {
-            listOf(firstLevel, resolutionLevel, 1f)
+        // Double-tap cycle: fit (1x, full image) -> fill (no bars) -> native -> fit
+        val zoomLevels = remember(fillRelative, nativeRelative) {
+            listOf(fillRelative, nativeRelative, 1f)
         }
 
         // -- No hero transition: the detail opens instantly showing the
@@ -445,6 +443,8 @@ private fun DetailContent(
             placeholderModel = wallpaper.thumbnail,
             contentDescription = wallpaper.resolution,
             zoomLevels = zoomLevels,
+            imageWidth = wallpaper.dimensionX,
+            imageHeight = wallpaper.dimensionY,
             onZoomChanged = { newScale ->
                 val zoomed = newScale > 1.01f
                 // First zoom is the user asking for detail — request the
@@ -524,18 +524,23 @@ private fun DetailContent(
                     .statusBarsPadding(),
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.35f)),
                         contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(KraftRadius.Standard))
+                            .background(KraftColors.GlassDark)
+                            .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
+                            .clickable(onClick = onBack),
                     ) {
-                        IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White, modifier = Modifier.size(20.dp))
-                        }
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = Color.White,
+                            modifier = Modifier.size(22.dp),
+                        )
                     }
                 }
             }
@@ -640,45 +645,67 @@ private fun DetailContent(
             enter = fadeIn(animationSpec = tween(250)),
             exit = fadeOut(animationSpec = tween(200)),
             modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = KraftSpacing.Spacing12)
-                // Fixed position, independent of the drag: it floats just
-                // above the collapsed bar's top edge and only fades out while
-                // the panel is expanded — it never rides along with the drag.
-                // The bar's visual top sits `collapsedHeightPx` above the
-                // content area bottom, since the bar is anchored to the
-                // bottom bar.
-                .padding(bottom = with(density) { collapsedHeightPx.toDp() } + KraftSpacing.Spacing16),
+                .align(Alignment.CenterEnd)
+                .padding(end = KraftSpacing.Spacing12),
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
             ) {
-                ReelsActionItem(
+                GlassPill(
                     onClick = onToggleFavorite,
                     icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    label = formatCount(wallpaper.favorites),
                     contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
-                    tint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                    iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
                 )
-                ReelsActionItem(
+                GlassPill(
                     onClick = onDownload,
                     icon = Icons.Filled.Download,
-                    label = stringResource(R.string.download),
                     contentDescription = stringResource(R.string.download),
                 )
-                ReelsActionItem(
+                GlassPill(
                     onClick = onSetWallpaper,
                     icon = Icons.Filled.Wallpaper,
-                    label = stringResource(R.string.set_as_wallpaper),
                     contentDescription = stringResource(R.string.set_as_wallpaper),
                 )
-                ReelsActionItem(
-                    onClick = onShare,
-                    icon = Icons.Filled.Share,
-                    label = stringResource(R.string.share),
-                    contentDescription = stringResource(R.string.share),
-                )
+                if (isSharing) {
+                    val shape = RoundedCornerShape(KraftRadius.Standard)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(shape)
+                            .background(KraftColors.GlassDark)
+                            .border(1.dp, KraftColors.GlassBorderDark, shape),
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White,
+                        )
+                    }
+                } else {
+                    GlassPill(
+                        onClick = {
+                            if (isSharing) return@GlassPill
+                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                            isSharing = true
+                            contentScope.launch {
+                                try {
+                                    WallpaperActions.share(
+                                        context,
+                                        wallpaper,
+                                        container.favoriteImageStore.fileFor(wallpaper.id),
+                                    )
+                                } finally {
+                                    isSharing = false
+                                }
+                            }
+                        },
+                        icon = Icons.Filled.Share,
+                        contentDescription = stringResource(R.string.share),
+                    )
+                }
             }
         }
 
@@ -806,7 +833,10 @@ private fun BottomPanel(
                 .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(Color.Black.copy(alpha = 0.45f), Color.Black.copy(alpha = 0.96f)),
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.45f),
+                            Color(0xFF0A1420).copy(alpha = 0.96f),
+                        ),
                     ),
                 )
                 .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
@@ -921,72 +951,33 @@ private fun BottomPanel(
     }
 }
 
-/** A circular, semi-transparent action button for the right-edge stack. */
+/**
+ * Frosted glass action pill — icon-only, Apple Control Center style.
+ * Uniform 48dp rounded square. Translucent fill + border adapts to any wallpaper.
+ */
 @Composable
-private fun ReelsActionButton(
+private fun GlassPill(
     onClick: () -> Unit,
     icon: ImageVector,
     contentDescription: String?,
-    tint: Color = Color.White,
+    iconTint: Color = Color.White,
     modifier: Modifier = Modifier,
 ) {
+    val shape = RoundedCornerShape(KraftRadius.Standard)
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(48.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.35f))
+            .clip(shape)
+            .background(KraftColors.GlassDark)
+            .border(1.dp, KraftColors.GlassBorderDark, shape)
             .clickable(onClick = onClick),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            tint = tint,
-            modifier = Modifier.size(24.dp),
-        )
-    }
-}
-
-/**
- * An Instagram-style action: the circular button plus a small caption label
- * centered beneath it. The favorite button's label is the wallpaper's favorite
- * count; the others carry their action name. The item has a fixed width so
- * every button in the stack aligns on the same axis regardless of how wide its
- * label is. The label has a subtle drop shadow so it stays readable over
- * bright image areas.
- */
-@Composable
-private fun ReelsActionItem(
-    onClick: () -> Unit,
-    icon: ImageVector,
-    label: String,
-    contentDescription: String?,
-    tint: Color = Color.White,
-    modifier: Modifier = Modifier,
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.width(88.dp),
-    ) {
-        ReelsActionButton(
-            onClick = onClick,
-            icon = icon,
-            contentDescription = contentDescription,
-            tint = tint,
-        )
-        Spacer(Modifier.height(KraftSpacing.Spacing4))
-        Text(
-            text = label,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = Color.White,
-                shadow = Shadow(
-                    color = Color.Black.copy(alpha = 0.6f),
-                    offset = Offset(0f, 1f),
-                    blurRadius = 3f,
-                ),
-            ),
+            tint = iconTint,
+            modifier = Modifier.size(22.dp),
         )
     }
 }
@@ -1084,6 +1075,7 @@ private fun DetailPanelContent(
                 UploaderState.Loaded -> UploaderRow(
                     name = wallpaper.uploaderName,
                     avatarUrl = wallpaper.uploaderAvatarUrl,
+                    createdAt = wallpaper.createdAt,
                     loadAvatar = loadAvatar,
                     onClick = { onUploaderClick(wallpaper.uploaderName) },
                     clickable = clickable,
@@ -1137,15 +1129,20 @@ private fun DetailPanelContent(
             Column {
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
 
-                // Stat pills: resolution, file size, category. (Favorites moved
-                // to the right-edge action stack, so it's not repeated here.)
+                // Stat pills: resolution, file size, views, favorites — category
+                // is implied by tags and adds no decision value.
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 ) {
                     StatPill(wallpaper.resolution)
                     StatPill(wallpaper.fileSizeFormatted())
-                    StatPill(wallpaperCategoryLabel(wallpaper.category))
+                    if (wallpaper.views > 0) {
+                        StatPill("${formatCount(wallpaper.views)} views")
+                    }
+                    if (wallpaper.favorites > 0) {
+                        StatPill("${formatCount(wallpaper.favorites)} favorites")
+                    }
                 }
 
                 if (wallpaper.tags.isNotEmpty()) {
@@ -1199,11 +1196,13 @@ private fun StatPill(text: String) {
 private fun UploaderRow(
     name: String,
     avatarUrl: String,
+    createdAt: String = "",
     loadAvatar: Boolean,
     onClick: () -> Unit,
     clickable: Boolean,
 ) {
     val viewByDesc = stringResource(R.string.view_by_uploader, name)
+    val timeAgo = remember(createdAt) { relativeTime(createdAt) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -1214,7 +1213,7 @@ private fun UploaderRow(
         UploaderAvatar(avatarUrl = avatarUrl, name = name, loadAvatar = loadAvatar)
         Spacer(Modifier.width(KraftSpacing.Spacing12))
         Text(
-            text = name,
+            text = if (timeAgo != null) "$name • $timeAgo" else name,
             style = MaterialTheme.typography.titleSmall.copy(
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
@@ -1223,7 +1222,7 @@ private fun UploaderRow(
             overflow = TextOverflow.Ellipsis,
             // Cap the width so a very long username ellipsizes instead of
             // overflowing the panel; the tap target stays compact.
-            modifier = Modifier.widthIn(max = 240.dp),
+            modifier = Modifier.widthIn(max = 260.dp),
         )
     }
 }
@@ -1348,10 +1347,10 @@ private fun DeletedUploaderRow() {
     }
 }
 
-/** Deterministic avatar color per username, picked from the Kraft accents. */
+/** Deterministic avatar color per username, picked from the Aurora palette. */
 private val avatarPalette = listOf(
     KraftColors.AccentBlue,
-    KraftColors.AccentPurple,
+    KraftColors.AccentBlueDark,
     KraftColors.AccentOrange,
     KraftColors.AccentGreen,
     KraftColors.AccentRed,
@@ -1359,3 +1358,30 @@ private val avatarPalette = listOf(
 
 private fun avatarColor(name: String): Color =
     avatarPalette[(name.hashCode() and Int.MAX_VALUE) % avatarPalette.size]
+
+/** Parses Wallhaven `created_at` (yyyy-MM-dd HH:mm:ss UTC) to a short relative time. */
+private fun relativeTime(createdAt: String): String? {
+    if (createdAt.isBlank()) return null
+    return try {
+        val fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val ldt = java.time.LocalDateTime.parse(createdAt, fmt)
+        val instant = ldt.atZone(java.time.ZoneId.of("UTC")).toInstant()
+        val now = java.time.Instant.now()
+        val d = java.time.Duration.between(instant, now)
+        if (d.isNegative) return null
+        val mins = d.toMinutes()
+        val hours = d.toHours()
+        val days = d.toDays()
+        when {
+            mins < 1 -> "just now"
+            mins < 60 -> "${mins}m ago"
+            hours < 24 -> "${hours}h ago"
+            days < 7 -> "${days}d ago"
+            days < 30 -> "${days / 7}w ago"
+            days < 365 -> "${days / 30}mo ago"
+            else -> "${days / 365}y ago"
+        }
+    } catch (_: Exception) {
+        null
+    }
+}

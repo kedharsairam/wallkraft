@@ -5,6 +5,7 @@ import androidx.compose.ui.res.stringResource
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.ThemeMode
 
@@ -14,7 +15,7 @@ import com.wallkraft.app.domain.model.ThemeMode
 fun Sorting.displayName(): String = stringResource(
     when (this) {
         Sorting.DateAdded -> R.string.sorting_date_added
-        Sorting.Relevance -> R.string.sorting_relevance
+        Sorting.Hot -> R.string.sorting_hot
         Sorting.Random -> R.string.sorting_random
         Sorting.Views -> R.string.sorting_views
         Sorting.Favorites -> R.string.sorting_favorites
@@ -45,6 +46,14 @@ fun ThemeMode.displayName(): String = stringResource(
         ThemeMode.System -> R.string.theme_system
         ThemeMode.Light -> R.string.theme_light
         ThemeMode.Dark -> R.string.theme_dark
+    },
+)
+
+@Composable
+fun Purity.displayName(): String = stringResource(
+    when (this) {
+        Purity.SfW -> R.string.purity_sfw
+        Purity.Sketchy -> R.string.purity_sketchy
     },
 )
 

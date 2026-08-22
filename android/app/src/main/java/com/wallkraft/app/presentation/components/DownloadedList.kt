@@ -1,7 +1,8 @@
 package com.wallkraft.app.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -66,6 +67,7 @@ fun DownloadedList(
     selectionMode: Boolean = false,
     selectedIds: Set<String> = emptySet(),
     onToggleSelect: (DownloadedFile) -> Unit = {},
+    onEnterSelection: (DownloadedFile) -> Unit = {},
 ) {
     val context = LocalContext.current
     val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
@@ -87,6 +89,7 @@ fun DownloadedList(
                 onClick = {
                     if (selectionMode) onToggleSelect(file) else onOpen(file)
                 },
+                onLongClick = { onEnterSelection(file) },
                 onOpenLocation = { onOpenLocation(file) },
                 onDelete = { onDelete(file) },
                 selectionMode = selectionMode,
@@ -96,11 +99,13 @@ fun DownloadedList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DownloadedRow(
     file: DownloadedFile,
     imageLoader: ImageLoader,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onOpenLocation: () -> Unit,
     onDelete: () -> Unit,
     selectionMode: Boolean,
@@ -111,7 +116,10 @@ private fun DownloadedRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(KraftRadius.Standard))
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick,
+            )
             .padding(KraftSpacing.Spacing8),
         verticalAlignment = Alignment.CenterVertically,
     ) {

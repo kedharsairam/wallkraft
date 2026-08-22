@@ -7,17 +7,18 @@ No ads, no analytics, no trackers — your data stays on your device.
 ## Features
 
 - **Browse** — infinite-scroll staggered grid of wallpapers from Wallhaven
-- **Search & Filter** — text search with category, sort, and orientation filters
-- **Detail View** — full-resolution view with pinch-to-zoom and pan
+- **Search & Filter** — text search with category, purity (SFW / Sketchy / Naughty), sort, and orientation filters; all filters persisted across sessions
+- **Detail View** — full-resolution view with pinch-to-zoom and pan; 3-level double-tap cycle (fit → fill → native)
 - **Set as Wallpaper** — crop and position the image, then apply to home, lock, or both screens
-- **Favorites** — save wallpapers locally; full-res copies are stored for offline viewing
-- **Downloads** — track downloaded files, open their location, and delete them — including **batch select & delete**
+- **Favorites** — save wallpapers locally with **long-press multi-select & batch delete**; full-res copies stored for offline viewing
+- **Downloads** — track downloaded files with **long-press multi-select & batch delete**; open file location
 - **Share** — share the actual image file with any app
 - **Data Saver** — optional mode that defers full-resolution downloads until you zoom
 - **Offline-first** — search results and favorites are cached so the app keeps working without a connection
 - **Fullscreen Viewer** — immersive viewing with gesture controls
 - **Pull to Refresh** — refresh the feed with a pull gesture
 - **Dark Mode** — follows your system theme (light, dark, or system)
+- **Grouped Settings** — Appearance, Browsing (all 4 filters), Data (cache + saver), Advanced (API key), About
 - **Localized** — English and Hindi
 
 ## Tech Stack

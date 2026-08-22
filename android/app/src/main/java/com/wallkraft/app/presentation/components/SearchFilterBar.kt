@@ -1,4 +1,4 @@
-package com.wallkraft.app.presentation.components
+﻿package com.wallkraft.app.presentation.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -47,13 +49,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -68,7 +74,7 @@ private val RoundedCornerShapeDp = RoundedCornerShape(KraftRadius.Standard)
 
 /**
  * The search field + filter sheet shared by Browse and Tag screens.
- * Single-row chrome (search + Filters button) saves 252px — gallery-first.
+ * Single-row chrome (search + Filters button) saves 252px â€” gallery-first.
  * Filters live in a ModalBottomSheet with chip FlowRows (not list rows).
  */
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -82,16 +88,24 @@ fun SearchFilterBar(
     modifier: Modifier = Modifier,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // Draft filters â€” staged inside the sheet, only committed on Apply.
+    var draftFilters by remember { mutableStateOf(filters) }
+    androidx.compose.runtime.LaunchedEffect(showSheet) {
+        if (showSheet) draftFilters = filters
+    }
+
+    // Kept for Reset/Apply enable logic; visual filter button is now always blue
+    // per design â€” no greyâ†’blue shift. Default categories is now All (111).
     val activeCount = remember(filters) {
         var c = 0
-        // Default is General only (100); any extra category or missing General is active.
-        if (filters.categories != setOf(Category.General)) c++
+        if (filters.categories != setOf(Category.General, Category.Anime, Category.People)) c++
         if (filters.sorting != Sorting.DateAdded) c++
         if (filters.orientation != Orientation.Both) c++
-        if (filters.purity != Purity.SfW) c++
+        if (filters.purity != setOf(Purity.SfW)) c++
         c
     }
 
@@ -115,6 +129,7 @@ fun SearchFilterBar(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         keyboard?.hide()
+                        focusManager.clearFocus()
                         onSearch(query)
                     },
                 ),
@@ -173,29 +188,20 @@ fun SearchFilterBar(
                 },
             )
             Spacer(Modifier.width(KraftSpacing.Spacing8))
-            Button(
-                onClick = {
-                    keyboard?.hide()
-                    onSearch(query)
-                },
-                modifier = Modifier.height(44.dp),
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(KraftRadius.Standard))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { showSheet = true },
             ) {
-                Text(stringResource(R.string.search_action))
-            }
-            Spacer(Modifier.width(KraftSpacing.Spacing8))
-            Button(
-                onClick = { showSheet = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (activeCount > 0) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = if (activeCount > 0) MaterialTheme.colorScheme.onPrimary
-                    else MaterialTheme.colorScheme.onSurface,
-                ),
-                modifier = Modifier.height(44.dp),
-            ) {
-                Icon(Icons.Filled.Tune, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text(if (activeCount > 0) "Filters • $activeCount" else "Filters")
+                Icon(
+                    imageVector = Icons.Filled.Tune,
+                    contentDescription = stringResource(R.string.filters),
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(20.dp),
+                )
             }
         }
 
@@ -216,127 +222,125 @@ fun SearchFilterBar(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8)
                     .padding(bottom = KraftSpacing.Spacing24),
-                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
             ) {
                 Text(
                     text = "Filters",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing4),
                 )
+                Spacer(Modifier.height(12.dp))
 
-                // Categories — multi-select chips. Default General only.
                 FilterSectionLabel("Categories")
+                Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { cat ->
-                        val checked = cat in filters.categories
+                        val checked = cat in draftFilters.categories
                         androidx.compose.material3.FilterChip(
                             selected = checked,
                             onClick = {
-                                val current = filters.categories
+                                val current = draftFilters.categories
                                 val updated = if (cat in current) {
                                     if (current.size > 1) current - cat else current
                                 } else current + cat
-                                onFiltersChange(filters.copy(categories = updated))
+                                draftFilters = draftFilters.copy(categories = updated)
                             },
                             label = { Text(cat.displayName()) },
-                            leadingIcon = if (checked) {
-                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
                         )
                     }
                 }
+                Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                Spacer(Modifier.height(12.dp))
 
-                // Sorting — single-select chips
-                FilterSectionLabel("Sort by")
+                FilterSectionLabel("Purity")
+                Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Purity.entries.forEach { p ->
+                        val checked = p in draftFilters.purity
+                        androidx.compose.material3.FilterChip(
+                            selected = checked,
+                            onClick = {
+                                val current = draftFilters.purity
+                                val updated = if (p in current) {
+                                    if (current.size > 1) current - p else current
+                                } else current + p
+                                draftFilters = draftFilters.copy(purity = updated)
+                            },
+                            label = { Text(p.displayName()) },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                Spacer(Modifier.height(12.dp))
+
+                FilterSectionLabel("Sorting")
+                Spacer(Modifier.height(6.dp))
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { s ->
                         androidx.compose.material3.FilterChip(
-                            selected = filters.sorting == s,
-                            onClick = { onFiltersChange(filters.copy(sorting = s)) },
+                            selected = draftFilters.sorting == s,
+                            onClick = { draftFilters = draftFilters.copy(sorting = s) },
                             label = { Text(s.displayName()) },
-                            leadingIcon = if (filters.sorting == s) {
-                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
                         )
                     }
                 }
+                Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                Spacer(Modifier.height(12.dp))
 
-                // Orientation — chips
+                // Orientation â€” chips
                 FilterSectionLabel("Orientation")
+                Spacer(Modifier.height(6.dp))
                 androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Orientation.entries.forEach { o ->
                         androidx.compose.material3.FilterChip(
-                            selected = filters.orientation == o,
-                            onClick = { onFiltersChange(filters.copy(orientation = o)) },
+                            selected = draftFilters.orientation == o,
+                            onClick = { draftFilters = draftFilters.copy(orientation = o) },
                             label = { Text(o.displayName()) },
-                            leadingIcon = if (filters.orientation == o) {
-                                { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                            } else null,
                         )
                     }
                 }
+                Spacer(Modifier.height(12.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                Spacer(Modifier.height(12.dp))
 
-                // Purity — SFW vs SFW+Sketchy (never NSFW). Default SFW only.
-                FilterSectionLabel("Content")
-                androidx.compose.foundation.layout.FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    androidx.compose.material3.FilterChip(
-                        selected = filters.purity == Purity.SfW,
-                        onClick = { onFiltersChange(filters.copy(purity = Purity.SfW)) },
-                        label = { Text("SFW") },
-                        leadingIcon = if (filters.purity == Purity.SfW) {
-                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        } else null,
-                    )
-                    androidx.compose.material3.FilterChip(
-                        selected = filters.purity == Purity.SfWSketchy,
-                        onClick = { onFiltersChange(filters.copy(purity = Purity.SfWSketchy)) },
-                        label = { Text("SFW + Sketchy") },
-                        leadingIcon = if (filters.purity == Purity.SfWSketchy) {
-                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        } else null,
-                    )
-                }
-                Text(
-                    text = "NSFW is never shown.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = KraftSpacing.Spacing8),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
                 ) {
                     TextButton(
                         onClick = {
-                            onFiltersChange(WallhavenFilters(query = filters.query))
+                            draftFilters = WallhavenFilters(query = filters.query)
                         },
                         modifier = Modifier.weight(1f),
                     ) { Text("Reset") }
                     Button(
-                        onClick = { showSheet = false },
+                        onClick = {
+                            if (draftFilters != filters) onFiltersChange(draftFilters)
+                            showSheet = false
+                        },
+                        enabled = draftFilters != filters,
                         modifier = Modifier.weight(1f),
-                    ) { Text("Done") }
+                    ) { Text("Apply") }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
@@ -348,7 +352,6 @@ private fun FilterSectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = KraftSpacing.Spacing4),
     )
 }
 
@@ -442,3 +445,6 @@ private fun categoriesLabel(categories: Set<Category>): String = when {
     categories.size == 1 -> categories.first().displayName()
     else -> "${categories.first().displayName()} +${categories.size - 1}"
 }
+
+
+

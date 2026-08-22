@@ -4,12 +4,19 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
+import com.wallkraft.app.core.design.KraftTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -20,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -37,7 +45,6 @@ import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.util.DownloadedFile
 import com.wallkraft.app.util.WallpaperActions
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
     container: AppContainer,
@@ -74,28 +81,174 @@ fun FavoritesScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    // Selection mode state
+    var selectedIds by remember { mutableStateOf(emptySet<String>()) }
+    var isSelecting by remember { mutableStateOf(false) }
+    var pendingRemove by remember { mutableStateOf<List<Wallpaper>?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val selectionMode = isSelecting
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.favorites_title)) }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            val title = if (selectionMode) {
+                pluralStringResource(R.plurals.selected_count, selectedIds.size, selectedIds.size)
+            } else {
+                stringResource(R.string.favorites_title)
+            }
+            KraftTopBar(
+                title = title,
+                navigationIcon = if (selectionMode) {
+                    {
+                        IconButton(onClick = {
+                            selectedIds = emptySet()
+                            isSelecting = false
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Close,
+                                contentDescription = stringResource(R.string.cancel),
+                            )
+                        }
+                    }
+                } else null,
+                actions = {
+                    if (selectionMode) {
+                        val allSelected = favorites.isNotEmpty() &&
+                            selectedIds.size == favorites.size
+                        TextButton(
+                            onClick = {
+                                selectedIds = if (allSelected) {
+                                    emptySet()
+                                } else {
+                                    favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
+                                }
+                            },
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (allSelected) R.string.deselect_all else R.string.select_all,
+                                ),
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                pendingRemove = favorites
+                                    .filter { it.wallpaper.id in selectedIds }
+                                    .map { it.wallpaper }
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription = stringResource(R.string.delete),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    } else if (favorites.isNotEmpty()) {
+                        TextButton(onClick = { isSelecting = true }) {
+                            Text(stringResource(R.string.select))
+                        }
+                    }
+                },
+            )
+        },
     ) { innerPadding ->
         if (favorites.isEmpty()) {
             EmptyState(
                 title = stringResource(R.string.no_favorites_title),
                 message = stringResource(R.string.no_favorites_message),
                 icon = Icons.Outlined.FavoriteBorder,
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             )
         } else {
             WallpaperGrid(
                 wallpapers = favorites.map { it.wallpaper },
-                onOpen = onOpenWallpaper,
+                onOpen = { wallpaper ->
+                    if (selectionMode) {
+                        selectedIds = if (wallpaper.id in selectedIds) {
+                            selectedIds - wallpaper.id
+                        } else {
+                            selectedIds + wallpaper.id
+                        }
+                    } else {
+                        onOpenWallpaper(wallpaper)
+                    }
+                },
                 onLoadMore = {},
                 state = gridState,
                 downloadedIds = downloadedFiles.keys,
                 prefetchFullRes = prefetchFullRes,
+                onLongClick = { wallpaper ->
+                    isSelecting = true
+                    selectedIds = setOf(wallpaper.id)
+                },
+                selectionMode = selectionMode,
+                selectedIds = selectedIds,
+                onToggleSelect = { wallpaper ->
+                    selectedIds = if (wallpaper.id in selectedIds) {
+                        selectedIds - wallpaper.id
+                    } else {
+                        selectedIds + wallpaper.id
+                    }
+                },
                 modifier = Modifier.padding(innerPadding).padding(bottom = navBarPadding),
             )
         }
+    }
+
+    // Remove confirmation dialog
+    pendingRemove?.let { wallpapersToRemove ->
+        val count = wallpapersToRemove.size
+        AlertDialog(
+            onDismissRequest = { pendingRemove = null },
+            title = {
+                Text(
+                    if (count == 1) {
+                        stringResource(R.string.remove_favorites_confirm_title)
+                    } else {
+                        pluralStringResource(
+                            R.plurals.remove_favorites_selected_title,
+                            count,
+                            count,
+                        )
+                    },
+                )
+            },
+            text = {
+                Text(
+                    if (count == 1) {
+                        stringResource(R.string.remove_favorites_confirm_message)
+                    } else {
+                        pluralStringResource(
+                            R.plurals.remove_favorites_selected_message,
+                            count,
+                            count,
+                        )
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        wallpapersToRemove.forEach { viewModel.remove(it.id) }
+                        val removedIds = wallpapersToRemove.mapTo(mutableSetOf()) { it.id }
+                        selectedIds = selectedIds - removedIds
+                        if (selectedIds.isEmpty()) isSelecting = false
+                        pendingRemove = null
+                    },
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRemove = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 }

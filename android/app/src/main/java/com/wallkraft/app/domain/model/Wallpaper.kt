@@ -56,6 +56,8 @@ data class Wallpaper(
     @SerialName("ratio") val ratio: String = "16:9",
     @SerialName("file_size") val fileSize: Long = 0,
     @SerialName("favorites") val favorites: Int = 0,
+    @SerialName("views") val views: Int = 0,
+    @SerialName("created_at") val createdAt: String = "",
     @SerialName("category") val category: String = "general",
     @SerialName("purity") val purity: String = "sfw",
     @SerialName("tags") val tags: List<Tag> = emptyList(),

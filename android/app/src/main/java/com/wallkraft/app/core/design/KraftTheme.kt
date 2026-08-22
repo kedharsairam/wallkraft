@@ -11,17 +11,25 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/** Light and dark color schemes for WallKraft, built from [KraftColors]. */
+/**
+ * WallKraft Aurora — Material3 color schemes built from [KraftColors].
+ *
+ * Light mode ("Dawn Canvas"): warm paper backgrounds, deep navy text,
+ * Aurora Blue accent for all interactive elements.
+ *
+ * Dark mode ("Deep Space"): deep navy backgrounds, light text,
+ * Aurora Blue Dark accent for all interactive elements.
+ */
 object KraftColorSchemes {
     val Light = lightColorScheme(
         primary = KraftColors.AccentBlue,
         onPrimary = Color.White,
         primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.15f),
-        onPrimaryContainer = KraftColors.AccentBlueDark,
-        secondary = KraftColors.AccentPurple,
+        onPrimaryContainer = KraftColors.AccentBlue,
+        secondary = KraftColors.AccentBlue,
         onSecondary = Color.White,
-        secondaryContainer = KraftColors.AccentPurple.copy(alpha = 0.15f),
-        onSecondaryContainer = KraftColors.AccentPurple,
+        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.15f),
+        onSecondaryContainer = KraftColors.AccentBlue,
         tertiary = KraftColors.AccentOrange,
         onTertiary = Color.White,
         error = KraftColors.AccentRed,
@@ -47,15 +55,15 @@ object KraftColorSchemes {
 
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlueDark,
-        onPrimary = Color.White,
+        onPrimary = Color(0xFF0A0E1A),
         primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.25f),
         onPrimaryContainer = KraftColors.AccentBlueDark,
-        secondary = KraftColors.AccentPurpleDark,
-        onSecondary = Color.White,
-        secondaryContainer = KraftColors.AccentPurple.copy(alpha = 0.25f),
-        onSecondaryContainer = KraftColors.AccentPurpleDark,
+        secondary = KraftColors.AccentBlueDark,
+        onSecondary = Color(0xFF0A0E1A),
+        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.25f),
+        onSecondaryContainer = KraftColors.AccentBlueDark,
         tertiary = KraftColors.AccentOrangeDark,
-        onTertiary = Color.White,
+        onTertiary = Color(0xFF0A0E1A),
         error = KraftColors.AccentRedDark,
         onError = Color.White,
         errorContainer = KraftColors.AccentRed.copy(alpha = 0.25f),
@@ -149,7 +157,7 @@ object KraftTypography {
     )
 }
 
-/** Wraps [MaterialTheme] with the Kraft design system for the given [darkTheme]. */
+/** Wraps [MaterialTheme] with the WallKraft Aurora design system. */
 @Composable
 fun KraftTheme(
     darkTheme: Boolean,
