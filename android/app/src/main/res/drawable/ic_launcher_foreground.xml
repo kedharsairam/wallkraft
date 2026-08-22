@@ -4,17 +4,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Sun -->
+    <!-- Back layer: 3 overlapping rounded rectangles (photos/wallpapers stacked) -->
+    <!-- Back layer — furthest back, most transparent -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,30 m-9,0 a9,9 0 1,1 18,0 a9,9 0 1,1 -18,0" />
-    <!-- Back mountain -->
+        android:fillAlpha="0.35"
+        android:pathData="M26,24 h44 a6,6 0 0,1 6,6 v32 a6,6 0 0,1 -6,6 h-44 a6,6 0 0,1 -6,-6 v-32 a6,6 0 0,1 6,-6 z" />
+    <!-- Middle layer — center, semi-transparent -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillAlpha="0.55"
-        android:pathData="M14,76 L42,48 L58,64 L72,52 L94,76 Z" />
-    <!-- Front mountain -->
+        android:fillAlpha="0.65"
+        android:pathData="M32,32 h44 a6,6 0 0,1 6,6 v32 a6,6 0 0,1 -6,6 h-44 a6,6 0 0,1 -6,-6 v-32 a6,6 0 0,1 6,-6 z" />
+    <!-- Front layer — closest, fully opaque -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M26,78 L50,54 L72,78 Z" />
+        android:pathData="M38,40 h44 a6,6 0 0,1 6,6 v32 a6,6 0 0,1 -6,6 h-44 a6,6 0 0,1 -6,-6 v-32 a6,6 0 0,1 6,-6 z" />
 </vector>
