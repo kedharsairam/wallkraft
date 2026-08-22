@@ -44,7 +44,7 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
     )
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         contentPadding = PaddingValues(KraftSpacing.Spacing8),
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalItemSpacing = KraftSpacing.Spacing8,

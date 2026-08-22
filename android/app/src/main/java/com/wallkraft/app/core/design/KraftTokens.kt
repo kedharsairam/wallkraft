@@ -94,6 +94,9 @@ object KraftSpacing {
 
     /** Screen edge padding on mobile. */
     val ScreenEdge = Spacing16
+
+    /** Minimum tile width for adaptive grid columns (landscape + tablet). */
+    val GridTileMin = 150.dp
 }
 
 object KraftRadius {

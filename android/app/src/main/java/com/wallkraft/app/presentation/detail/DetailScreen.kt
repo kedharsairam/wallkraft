@@ -411,7 +411,6 @@ private fun DetailContent(
         // thumbnail, and the full-res image loads right away behind a subtle
         // top loading bar. Simple and predictable — no animation to get wrong.
         var fullResLoaded by remember { mutableStateOf(false) }
-        val heroScope = rememberCoroutineScope()
         // Data saver defers the full-res download until the user zooms (the
         // moment they actually need the detail). A local file — like the
         // offline favorite copy — costs zero data, so it loads immediately.
@@ -421,21 +420,6 @@ private fun DetailContent(
         // never start a download against the default.
         var fullResRequested by remember(imageModel, dataSaverEnabled) {
             mutableStateOf(dataSaverEnabled == false || imageModel is File)
-        }
-        // Determinate progress 0f..1f. Coil doesn't expose real download
-        // progress, so we animate it smoothly toward 1 and snap to 1 the
-        // instant the full-res image is ready — a clean left-to-right fill.
-        // Keyed on [fullResRequested] so the bar restarts from 0 when data
-        // saver defers the load until the user zooms.
-        val fullResProgress = remember { Animatable(0f) }
-        LaunchedEffect(fullResRequested) {
-            if (fullResRequested) {
-                fullResProgress.snapTo(0f)
-                fullResProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(1500, easing = LinearEasing),
-                )
-            }
         }
 
         ZoomableImage(
@@ -455,16 +439,15 @@ private fun DetailContent(
             },
             onLoaded = {
                 fullResLoaded = true
-                heroScope.launch { fullResProgress.snapTo(1f) }
             },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
         )
 
         // Subtle loading bar at the very top while the full-res image loads.
-        // Determinate: fills left-to-right from 0 to 100, then fades out.
-        // Only shown when the full-res is actually being requested — in data
-        // saver mode that's once the user zooms, not on open.
+        // Indeterminate: pulses across the top to signal activity without
+        // faking progress. Only shown when the full-res is actually being
+        // requested — in data saver mode that's once the user zooms.
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
             enter = fadeIn(animationSpec = tween(200)),
@@ -472,7 +455,6 @@ private fun DetailContent(
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
-                progress = { fullResProgress.value },
                 modifier = Modifier.fillMaxWidth().height(2.dp),
                 color = KraftColors.AccentGreen,
                 trackColor = Color.Transparent,
