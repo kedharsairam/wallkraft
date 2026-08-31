@@ -40,17 +40,21 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Wallpaper
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.util.DownloadedFile
 import com.wallkraft.app.util.WallpaperActions
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun FavoritesScreen(
     container: AppContainer,
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
 ) {
     val viewModel: FavoritesViewModel = viewModel(
         factory = viewModelFactory {
@@ -194,6 +198,8 @@ fun FavoritesScreen(
                     }
                 },
                 modifier = Modifier.padding(innerPadding),
+                sharedTransitionScope = sharedTransitionScope,
+                animatedVisibilityScope = animatedVisibilityScope,
             )
         }
     }

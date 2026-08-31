@@ -39,6 +39,10 @@ import com.wallkraft.app.domain.model.Wallpaper
 
 /**
  * A single wallpaper tile in the staggered grid.
+ *
+ * [sharedElementModifier] is built by the parent ([WallpaperGrid]) inside
+ * [androidx.compose.animation.SharedTransitionScope] and applied to the image
+ * so it can participate in the container-transform shared element transition.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -50,6 +54,7 @@ fun WallpaperCard(
     onLongClick: (() -> Unit)? = null,
     selectionMode: Boolean = false,
     selected: Boolean = false,
+    sharedElementModifier: Modifier = Modifier,
 ) {
     // Use the wallpaper's true aspect ratio so the full image always fits the
     // tile — no cropping, no zooming. The generous clamp only guards against
@@ -88,7 +93,11 @@ fun WallpaperCard(
             // detail screen. Null (no thumbs at all) shows the placeholder.
             model = wallpaper.thumbnail,
             contentDescription = wallpaper.resolution,
-            contentScale = ContentScale.Crop,
+            // ContentScale.Fit matches the detail screen so the shared element
+            // transition renders identical content on both sides. The tile's
+            // aspect ratio already matches the image's true ratio, so Fit
+            // looks identical to Crop — no visible change to the grid.
+            contentScale = ContentScale.Fit,
             // No crossfade in the grid: fading every tile as it scrolls into
             // view adds per-frame compositing work and makes scrolling feel
             // janky. Tiles pop in instantly instead — smoothness comes from
@@ -99,6 +108,9 @@ fun WallpaperCard(
             placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier
+                // sharedElement MUST come first — coordinate-changing modifiers
+                // (graphicsLayer, offset, alpha) go after it per Compose docs.
+                .then(sharedElementModifier)
                 .fillMaxWidth()
                 .aspectRatio(ratio)
                 .background(MaterialTheme.colorScheme.surfaceVariant),

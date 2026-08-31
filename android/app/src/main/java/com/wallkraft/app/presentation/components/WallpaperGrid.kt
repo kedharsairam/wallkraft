@@ -1,5 +1,9 @@
 package com.wallkraft.app.presentation.components
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,7 +44,12 @@ private const val PREFETCH_AHEAD = KraftConstants.GridPrefetchAhead
  *
  * [state] can be hoisted by the caller so the scroll position survives tab
  * switches (each screen must pass its own).
+ *
+ * [sharedTransitionScope] and [animatedVisibilityScope] enable the
+ * container-transform shared element transition from grid tile to detail
+ * screen. Pass null to disable.
  */
+@OptIn(androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun WallpaperGrid(
     wallpapers: List<Wallpaper>,
@@ -50,22 +59,19 @@ fun WallpaperGrid(
     footer: @Composable () -> Unit = {},
     state: LazyStaggeredGridState = rememberLazyStaggeredGridState(),
     downloadedIds: Set<String> = emptySet(),
-    // When false (data saver on), tapping a tile does NOT prefetch the
-    // full-res image — the detail screen defers it until the user zooms.
     prefetchFullRes: Boolean = true,
     onLongClick: ((Wallpaper) -> Unit)? = null,
     selectionMode: Boolean = false,
     selectedIds: Set<String> = emptySet(),
     onToggleSelect: ((Wallpaper) -> Unit)? = null,
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
     val gridState = state
 
     val context = LocalContext.current
     val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
 
-    // Lower fling friction than the platform default so a swipe glides further
-    // and coasts to a stop — the "smooth, glides for longer" feel of the
-    // reference app instead of the default's quick, grippy stop.
     val flingBehavior = remember(gridState) { SmoothFlingBehavior() }
 
     LaunchedEffect(gridState) {
@@ -76,18 +82,10 @@ fun WallpaperGrid(
         }
             .distinctUntilChanged()
             .collect { (lastVisible, total) ->
-                // Preload the next page well before the end (20 items out) so
-                // the slow Wallhaven API has time to respond before the user
-                // actually reaches the bottom — no visible wait at the end.
                 if (total > 0 && lastVisible >= total - KraftConstants.GridPrefetchThreshold) onLoadMore()
             }
     }
 
-    // Prefetch a few thumbnails ahead of the viewport so tiles are already in
-    // the memory cache when they scroll into view. Debounced so it only runs
-    // after the user pauses scrolling — prefetching on every scroll frame would
-    // flood Coil's shared queue and make the tiles that actually need to load
-    // wait behind the prefetch jobs (slower loading).
     @OptIn(FlowPreview::class)
     LaunchedEffect(gridState, wallpapers) {
         snapshotFlow {
@@ -101,8 +99,6 @@ fun WallpaperGrid(
                 val end = minOf(start + PREFETCH_AHEAD, wallpapers.size)
                 for (i in start until end) {
                     val url = wallpapers[i].thumbnail ?: continue
-                    // enqueue with no target = prefetch into the cache without
-                    // drawing, so the tile is ready when it scrolls into view.
                     gridImageLoader.enqueue(
                         ImageRequest.Builder(context).data(url).build(),
                     )
@@ -125,18 +121,28 @@ fun WallpaperGrid(
         modifier = modifier.fillMaxSize(),
     ) {
         items(wallpapers, key = { it.id }) { wallpaper ->
+            // Build the shared element modifier inside the SharedTransitionScope
+            // so it can participate in the container-transform animation.
+            // The official API requires both SharedContentState AND
+            // animatedVisibilityScope.
+            val sharedElementModifier: Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                with(sharedTransitionScope) {
+                    Modifier.sharedElement(
+                        state = rememberSharedContentState(key = wallpaper.id),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        boundsTransform = { _, _ -> tween(220) },
+                    )
+                }
+            } else {
+                Modifier
+            }
+
             WallpaperCard(
                 wallpaper = wallpaper,
                 onClick = {
                     if (selectionMode) {
                         onToggleSelect?.invoke(wallpaper)
                     } else {
-                        // Warm the full-res image before the detail screen opens so
-                        // it appears instantly (the detail screen already seeds a
-                        // preview from the thumbnail; this gets the full-res into
-                        // the cache ahead of time). enqueue with no target = fetch
-                        // into the cache without drawing. Skipped in data saver
-                        // mode — the detail screen defers the download instead.
                         if (prefetchFullRes) {
                             val fullUrl = wallpaper.path ?: wallpaper.thumbnail
                             if (fullUrl != null) {
@@ -154,6 +160,7 @@ fun WallpaperGrid(
                 downloadedIds = downloadedIds,
                 selectionMode = selectionMode,
                 selected = wallpaper.id in selectedIds,
+                sharedElementModifier = sharedElementModifier,
             )
         }
         item(span = StaggeredGridItemSpan.FullLine) { footer() }

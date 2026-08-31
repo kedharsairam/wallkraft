@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.1] - 2026-08-31
+
+### Added
+- **Shared element container-transform transition** — tapping a grid tile now animates the image from its exact grid position to full-screen detail (and back) over 220ms, matching Wallhavener's signature interaction.
+- **Smooth black background fill** — the detail background fades from transparent to black in sync with the shared element bounds animation, so the transition feels like one continuous motion instead of a jump + overlay.
+
+### Changed
+- **Modifier chain order** — `sharedElement` modifier placed before `graphicsLayer` and layout modifiers per Compose docs, eliminating the coordinate-conflict bug that blocked the transition in v1.12.0.
+- **Grid ContentScale** — `WallpaperCard` now uses `ContentScale.Fit` (matching `ZoomableImage`), so shared-element content is identical on both sides of the transition. No visible grid change since tile aspect ratios already match image ratios.
+- **Detail enter/exit transitions** — replaced `fadeIn`/`fadeOut` with `EnterTransition.None` + manual `Animatable` background alpha, giving precise control over the background fade timing independent of the navigation transition.
+
+### Fixed
+- **Shared element not animating** — root cause was `graphicsLayer` (pinch-zoom scale/translation) placed BEFORE `sharedElement` in `ZoomableImage`, which overrode the bounds animation. Moving `sharedElement` first fixes the tile→full-screen morph.
+- **Background snapping to black instantly** — the old `fadeIn(tween(220))` faded the entire composable (including the solid-black background), making it appear instantly. Now the background alpha is animated separately from 0→1 over the same 220ms duration.
+
 ## [1.12.0] - 2026-08-22
 
 ### Changed
