@@ -56,6 +56,7 @@ fun ZoomableImage(
     zoomLevels: List<Float> = listOf(2.5f, MAX_SCALE),
     imageWidth: Int = 0,
     imageHeight: Int = 0,
+    sharedElementModifier: Modifier = Modifier,
 ) {
     var elementSize by remember { mutableStateOf(IntSize.Zero) }
     var viewportSize by remember { mutableStateOf(IntSize.Zero) }
@@ -154,8 +155,12 @@ fun ZoomableImage(
             .onSizeChanged { viewportSize = it },
         contentAlignment = Alignment.Center,
     ) {
+        // sharedElement MUST come before graphicsLayer — Compose docs require
+        // coordinate-changing modifiers (graphicsLayer, offset, alpha) to be
+        // placed AFTER sharedElement so the bounds animation isn't overridden.
         Box(
             modifier = Modifier
+                .then(sharedElementModifier)
                 .fillMaxSize()
                 .onSizeChanged { elementSize = it }
                 .graphicsLayer {

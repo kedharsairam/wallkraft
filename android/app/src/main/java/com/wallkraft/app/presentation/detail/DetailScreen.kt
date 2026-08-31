@@ -2,6 +2,10 @@ package com.wallkraft.app.presentation.detail
 
 import android.app.Activity
 import android.view.WindowManager
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -137,7 +141,7 @@ import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DetailScreen(
     container: AppContainer,
@@ -149,6 +153,8 @@ fun DetailScreen(
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     previewThumb: String = "",
     previewPath: String = "",
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
     val viewModel: DetailViewModel = viewModel(
         factory = viewModelFactory {
@@ -186,6 +192,14 @@ fun DetailScreen(
     // be called inside the action callbacks below.
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
+    // Smooth background: animate from transparent → black over 220ms on enter,
+    // synchronized with the shared element's bounds animation. The alpha is
+    // read by DetailContent to color the background.
+    val backgroundAlpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        backgroundAlpha.animateTo(1f, animationSpec = tween(220))
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -204,16 +218,28 @@ fun DetailScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
+                    // Build the shared element modifier for the detail image so
+                    // it participates in the container-transform transition.
+                    val sharedElementModifier: Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
+                        with(sharedTransitionScope) {
+                            Modifier.sharedElement(
+                                state = rememberSharedContentState(key = wallpaper.id),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                boundsTransform = { _, _ -> tween(220) },
+                            )
+                        }
+                    } else {
+                        Modifier
+                    }
+
                     DetailContent(
                         container = container,
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
                         isUploaderDeleted = uiState.isDetailLoaded && wallpaper.uploaderName.isBlank(),
                         dataSaverEnabled = dataSaverEnabled,
-                        // Prefer the locally-cached favorite copy when it exists
-                        // so the image loads instantly and works offline; fall
-                        // back to the network URL otherwise.
                         imageModel = container.favoriteImageStore.fileFor(wallpaper.id) ?: wallpaper.path,
+                        backgroundAlpha = backgroundAlpha.value,
                         onToggleFavorite = {
                             // Subtle tick so the action feels acknowledged.
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -255,6 +281,7 @@ fun DetailScreen(
                         onZoomChanged = onZoomChanged,
                         navBarPadding = navBarPadding,
                         modifier = Modifier.fillMaxSize(),
+                        sharedElementModifier = sharedElementModifier,
                     )
                 }
             }
@@ -349,6 +376,7 @@ private fun DetailContent(
     isUploaderDeleted: Boolean,
     dataSaverEnabled: Boolean?,
     imageModel: Any,
+    backgroundAlpha: Float = 1f,
     onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onSetWallpaper: () -> Unit,
@@ -359,6 +387,7 @@ private fun DetailContent(
     onZoomChanged: (Boolean) -> Unit,
     navBarPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
+    sharedElementModifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     var isZoomed by remember { mutableStateOf(false) }
@@ -386,7 +415,7 @@ private fun DetailContent(
     val h = wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f
     val aspect = w / h
 
-    BoxWithConstraints(modifier = modifier.background(Color.Black)) {
+    BoxWithConstraints(modifier = modifier.background(Color.Black.copy(alpha = backgroundAlpha))) {
         val viewW = maxWidth.value
         val viewH = maxHeight.value
         // Fit size at 1x: ContentScale.Fit inside the viewport.
@@ -442,6 +471,7 @@ private fun DetailContent(
             },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
+            sharedElementModifier = sharedElementModifier,
         )
 
         // Subtle loading bar at the very top while the full-res image loads.

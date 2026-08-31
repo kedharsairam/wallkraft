@@ -1,11 +1,15 @@
 package com.wallkraft.app
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,7 +34,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -58,11 +61,6 @@ object Routes {
     const val SETTINGS = "settings"
     const val DETAIL = "detail/{id}?thumb={thumb}&path={path}"
 
-    /**
-     * [title] is a display-only label for the search bar (e.g. an uploader's
-     * username) that sits on top of the raw [query] (e.g. `@username`). It is
-     * abandoned the moment the user edits the search box.
-     */
     fun browse(query: String = "", title: String = "") =
         "browse?query=${Uri.encode(query)}&title=${Uri.encode(title)}"
     fun detail(id: String, thumb: String? = null, path: String? = null) =
@@ -83,7 +81,7 @@ private val tabs = listOf(
     Tab(Routes.SETTINGS, R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun WallKraftNavHost(container: AppContainer) {
     val navController = rememberNavController()
@@ -91,9 +89,6 @@ fun WallKraftNavHost(container: AppContainer) {
     val currentDestination = backStackEntry?.destination
     val isDetail = currentDestination?.route == Routes.DETAIL
 
-    // The detail screen is full-bleed: no bottom bar, so the bottom panel
-    // anchors to the screen's bottom edge. (Temporary — the bar may return
-    // once the panel is finalized.)
     val hideBottomBar = isDetail
 
     val browseGridState = rememberLazyStaggeredGridState()
@@ -113,13 +108,8 @@ fun WallKraftNavHost(container: AppContainer) {
                         NavigationBarItem(
                             selected = selected,
                             onClick = {
-                                // The Browse route carries an optional query; the
-                                // tab always navigates to the plain (no-query) version.
                                 val route = if (tab.route == Routes.BROWSE) Routes.browse() else tab.route
                                 if (isDetail) {
-                                    // We're on the pushed detail screen. Navigate to
-                                    // the tab WITHOUT popping the back stack, so the
-                                    // current image stays beneath and back returns to it.
                                     navController.navigate(route) {
                                         launchSingleTop = true
                                     }
@@ -150,91 +140,89 @@ fun WallKraftNavHost(container: AppContainer) {
             }
         },
     ) { innerPadding ->
-        // Only pass bottom padding (nav bar height) to screens.
-        // Top padding is handled by each screen's own statusBarsPadding().
         val navBarPadding = innerPadding.calculateBottomPadding()
 
-        NavHost(
-            navController = navController,
-            startDestination = Routes.BROWSE,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            composable(
-                route = Routes.BROWSE,
-                arguments = listOf(
-                    navArgument("query") { type = NavType.StringType; defaultValue = "" },
-                    navArgument("title") { type = NavType.StringType; defaultValue = "" },
-                ),
-            ) { entry ->
-                val query = entry.arguments?.getString("query").orEmpty()
-                val title = entry.arguments?.getString("title").orEmpty()
-                BrowseScreen(
-                    container = container,
-                    onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
-                    // The tab hoists its grid state so it survives tab switches;
-                    // a tag-as-browse entry passes null and gets its own state.
-                    gridState = if (query.isBlank()) browseGridState else null,
-                    navBarPadding = navBarPadding,
-                    initialQuery = query,
-                    title = title,
-                )
-            }
-            composable(Routes.FAVORITES) {
-                FavoritesScreen(
-                    container = container,
-                    onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
-                    gridState = favoritesGridState,
-                    navBarPadding = navBarPadding,
-                )
-            }
-            composable(Routes.DOWNLOADS) {
-                DownloadsScreen(
-                    onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
-                    navBarPadding = navBarPadding,
-                )
-            }
-            composable(Routes.SETTINGS) {
-                SettingsScreen(container = container, navBarPadding = navBarPadding)
-            }
-            composable(
-                route = Routes.DETAIL,
-                arguments = listOf(
-                    navArgument("id") { type = NavType.StringType },
-                    navArgument("thumb") { type = NavType.StringType; defaultValue = "" },
-                    navArgument("path") { type = NavType.StringType; defaultValue = "" },
-                ),
-                // A single, symmetric transition for both opening and closing: fade + a
-                // subtle scale, with the SAME duration and easing in every
-                // direction — so the detail opens and closes identically
-                // (mirrored), never feeling like two different animations.
-                enterTransition = {
-                    fadeIn(tween(250)) + scaleIn(initialScale = 0.96f, animationSpec = tween(250))
-                },
-                exitTransition = {
-                    fadeOut(tween(250)) + scaleOut(targetScale = 0.96f, animationSpec = tween(250))
-                },
-                popEnterTransition = {
-                    fadeIn(tween(250)) + scaleIn(initialScale = 0.96f, animationSpec = tween(250))
-                },
-                popExitTransition = {
-                    fadeOut(tween(250)) + scaleOut(targetScale = 0.96f, animationSpec = tween(250))
-                },
-            ) { entry ->
-                DetailScreen(
-                    container = container,
-                    wallpaperId = entry.arguments?.getString("id").orEmpty(),
-                    previewThumb = entry.arguments?.getString("thumb").orEmpty(),
-                    previewPath = entry.arguments?.getString("path").orEmpty(),
-                    onBack = { navController.popBackStack() },
-                    onTagClick = { tag -> navController.navigate(Routes.browse(tag)) },
-                    // Uploader tap opens that user's uploads — the `@username`
-                    // search operator — with the friendly name shown in the
-                    // search bar instead of the raw syntax.
-                    onUploaderClick = { username ->
-                        navController.navigate(Routes.browse("@$username", title = username))
-                    },
-                    navBarPadding = navBarPadding,
-                )
+        SharedTransitionLayout(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navController,
+                startDestination = Routes.BROWSE,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                composable(
+                    route = Routes.BROWSE,
+                    arguments = listOf(
+                        navArgument("query") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("title") { type = NavType.StringType; defaultValue = "" },
+                    ),
+                ) { entry ->
+                    val query = entry.arguments?.getString("query").orEmpty()
+                    val title = entry.arguments?.getString("title").orEmpty()
+                    BrowseScreen(
+                        container = container,
+                        onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
+                        gridState = if (query.isBlank()) browseGridState else null,
+                        navBarPadding = navBarPadding,
+                        initialQuery = query,
+                        title = title,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                    )
+                }
+                composable(Routes.FAVORITES) {
+                    FavoritesScreen(
+                        container = container,
+                        onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
+                        gridState = favoritesGridState,
+                        navBarPadding = navBarPadding,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                    )
+                }
+                composable(Routes.DOWNLOADS) {
+                    DownloadsScreen(
+                        onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
+                        navBarPadding = navBarPadding,
+                    )
+                }
+                composable(Routes.SETTINGS) {
+                    SettingsScreen(container = container, navBarPadding = navBarPadding)
+                }
+                composable(
+                    route = Routes.DETAIL,
+                    arguments = listOf(
+                        navArgument("id") { type = NavType.StringType },
+                        navArgument("thumb") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("path") { type = NavType.StringType; defaultValue = "" },
+                    ),
+                    // No enterTransition — the black background fades in
+                    // manually inside DetailContent, timed to match the shared
+                    // element's 220ms bounds animation. fadeIn/fadeOut would
+                    // make the entire screen (including background) snap to
+                    // visible instantly, which defeats the smooth effect.
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    // popExit: fade out non-shared content (background, chrome)
+                    // over 220ms. The shared element handles the image return
+                    // animation independently — it overrides the alpha for the
+                    // shared image during the transition.
+                    popExitTransition = { fadeOut(tween(220)) },
+                ) { entry ->
+                    DetailScreen(
+                        container = container,
+                        wallpaperId = entry.arguments?.getString("id").orEmpty(),
+                        previewThumb = entry.arguments?.getString("thumb").orEmpty(),
+                        previewPath = entry.arguments?.getString("path").orEmpty(),
+                        onBack = { navController.popBackStack() },
+                        onTagClick = { tag -> navController.navigate(Routes.browse(tag)) },
+                        onUploaderClick = { username ->
+                            navController.navigate(Routes.browse("@$username", title = username))
+                        },
+                        navBarPadding = navBarPadding,
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedVisibilityScope = this@composable,
+                    )
+                }
             }
         }
     }

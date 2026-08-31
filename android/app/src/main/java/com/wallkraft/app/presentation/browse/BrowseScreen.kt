@@ -48,7 +48,7 @@ import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.toUserMessage
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun BrowseScreen(
     container: AppContainer,
@@ -57,6 +57,8 @@ fun BrowseScreen(
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     initialQuery: String = "",
     title: String = "",
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
 ) {
     val viewModel: BrowseViewModel = viewModel(
         factory = viewModelFactory {
@@ -214,6 +216,8 @@ fun BrowseScreen(
                                 if (uiState.isAppending) GridAppendFooter()
                             },
                             modifier = Modifier.padding(bottom = navBarPadding),
+                            sharedTransitionScope = sharedTransitionScope,
+                            animatedVisibilityScope = animatedVisibilityScope,
                         )
                     }
                 }
