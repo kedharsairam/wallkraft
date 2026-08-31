@@ -20,12 +20,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +41,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.util.lerp
 
@@ -57,6 +62,8 @@ fun ZoomableImage(
     imageWidth: Int = 0,
     imageHeight: Int = 0,
     sharedElementModifier: Modifier = Modifier,
+    resetZoomSignal: Int = 0,
+    clipRadius: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     var elementSize by remember { mutableStateOf(IntSize.Zero) }
     var viewportSize by remember { mutableStateOf(IntSize.Zero) }
@@ -77,6 +84,15 @@ fun ZoomableImage(
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
     var zoomIndex by remember(zoomLevels) { mutableIntStateOf(zoomLevels.lastIndex) }
+    // Gate gestures until layout is ready and the shared-element fly-in (220ms)
+    // has settled — prevents the rare overshoot when you scroll fast, open, and
+    // double-tap on the very first frame while viewport/elementSize are still 0
+    // or the container-transform is still driving bounds.
+    var gesturesReady by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(280)
+        gesturesReady = true
+    }
 
     LaunchedEffect(scale) { onZoomChanged(scale) }
 
@@ -140,6 +156,15 @@ fun ZoomableImage(
         }
     }
 
+    // External reset (e.g. back while zoomed) — animate scale/offset → fit
+    // so the shared-element exit can carry a single smooth motion instead of
+    // snap-then-shrink. Same 220ms spec as bounds animation.
+    LaunchedEffect(resetZoomSignal) {
+        if (resetZoomSignal != 0 && (scale > 1.01f || offset != Offset.Zero)) {
+            animateTo(1f, Offset.Zero)
+        }
+    }
+
     val context = LocalContext.current
     val fullRequest = remember(model) {
         ImageRequest.Builder(context)
@@ -158,9 +183,11 @@ fun ZoomableImage(
         // sharedElement MUST come before graphicsLayer — Compose docs require
         // coordinate-changing modifiers (graphicsLayer, offset, alpha) to be
         // placed AFTER sharedElement so the bounds animation isn't overridden.
+        // Clip morphs 12dp→0dp in sync with backgroundAlpha so corners don't pop.
         Box(
             modifier = Modifier
                 .then(sharedElementModifier)
+                .then(if (clipRadius > 0.dp) Modifier.clip(RoundedCornerShape(clipRadius)) else Modifier)
                 .fillMaxSize()
                 .onSizeChanged { elementSize = it }
                 .graphicsLayer {
@@ -192,9 +219,13 @@ fun ZoomableImage(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(Unit) {
+                .pointerInput(gesturesReady, viewportSize, elementSize) {
+                    // Pinch/pan — ignore until layout ready and fly-in done.
+                    if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@pointerInput
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false)
+                        // Re-check after down — a fast open may still be settling.
+                        if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@awaitEachGesture
                         animJob?.cancel()
                         do {
                             val event = awaitPointerEvent()
@@ -219,9 +250,11 @@ fun ZoomableImage(
                         } while (event.changes.any { it.pressed })
                     }
                 }
-                .pointerInput(Unit) {
+                .pointerInput(gesturesReady, viewportSize, elementSize) {
                     detectTapGestures(
                         onDoubleTap = { tapped ->
+                            // Ignore until layout is valid and fly-in has settled.
+                            if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@detectTapGestures
                             zoomIndex = (zoomIndex + 1) % zoomLevels.size
                             val targetScale = zoomLevels[zoomIndex].coerceIn(1f, MAX_SCALE)
                             if (targetScale <= 1.01f) {
