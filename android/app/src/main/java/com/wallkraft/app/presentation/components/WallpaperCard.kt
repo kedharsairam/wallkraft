@@ -69,6 +69,12 @@ fun WallpaperCard(
     val gridImageLoader = GridImageLoader.get()
         ?: ImageLoader.Builder(context.applicationContext).build()
 
+    // Shared element stays on AsyncImage (not the outer Box) — putting it on
+    // a clipped Box breaks the return transition: Compose resolves the pop
+    // target to (0,0) instead of the actual tile position. Corner morphing
+    // is handled on the detail side (clipRadius on ZoomableImage) and the
+    // outer clip on the grid side stays static — the shared element masks
+    // the instant pop because it's drawing over the grid during transition.
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(KraftRadius.Standard))
@@ -110,6 +116,8 @@ fun WallpaperCard(
             modifier = Modifier
                 // sharedElement MUST come first — coordinate-changing modifiers
                 // (graphicsLayer, offset, alpha) go after it per Compose docs.
+                // On the image (NOT the outer Box) so pop return resolves
+                // the correct tile position in the LazyGrid.
                 .then(sharedElementModifier)
                 .fillMaxWidth()
                 .aspectRatio(ratio)

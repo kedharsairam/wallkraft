@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.2] - 2026-08-31
+
+### Changed
+- **Bottom bar synced to 220ms** — `NavigationBar` now uses `AnimatedVisibility` with `slideInVertically(tween(220))+fadeIn` / `slideOutVertically(tween(220))+fadeOut`, so it slides and fades in lockstep with the shared element instead of popping instantly.
+- **Detail chrome all 220ms** — every `AnimatedVisibility`, `animateFloatAsState`, `Animatable`, and `Crossfade` in `DetailContent` unified to `tween(220)`: top bar, right-edge pills, panel alpha, panel settle, loading indicators, uploader crossfade, pull hint. No more 200/250/300ms stragglers.
+- **Rounded corners morph on detail side** — `ZoomableImage` inner Box now takes `clipRadius = 12dp * (1 - backgroundAlpha)`, so corners morph 12dp→0dp on entry in sync with the background fade. Grid side keeps static clip (shared element masks the return).
+
+### Fixed
+- **Shared element return broken** — moving `sharedElementModifier` to the outer clipped `Box` in `WallpaperCard` broke Compose's bounds resolution during pop, causing images to jump to (0,0) before returning to the grid. Moved back to `AsyncImage` where it was working; corner morphing handled on detail side via `clipRadius`.
+
 ## [1.12.1] - 2026-08-31
 
 ### Added

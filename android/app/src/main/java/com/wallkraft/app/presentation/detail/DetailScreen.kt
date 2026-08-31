@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
@@ -395,6 +396,25 @@ private fun DetailContent(
     val contentScope = rememberCoroutineScope()
     val hapticLocal = LocalHapticFeedback.current
 
+    // Unified back while zoomed: animate internal zoom → fit and shared-element
+    // bounds viewport→tile together in a single 220ms motion. Without this the
+    // exit is two-step: snap to fit then shrink to tile.
+    var resetZoomSignal by remember { mutableIntStateOf(0) }
+    fun handleBack() {
+        if (isZoomed) {
+            resetZoomSignal++
+            contentScope.launch {
+                // One frame so ZoomableImage's LaunchedEffect(resetZoomSignal)
+                // starts its 220ms animateTo before we pop — both run concurrently.
+                kotlinx.coroutines.delay(16)
+                onBack()
+            }
+        } else {
+            onBack()
+        }
+    }
+    BackHandler(enabled = isZoomed) { handleBack() }
+
     // Hide the system bars while zoomed so the image is truly edge-to-edge.
     val window = (context as? Activity)?.window
     if (window != null) {
@@ -458,6 +478,8 @@ private fun DetailContent(
             zoomLevels = zoomLevels,
             imageWidth = wallpaper.dimensionX,
             imageHeight = wallpaper.dimensionY,
+            resetZoomSignal = resetZoomSignal,
+            clipRadius = KraftRadius.Standard * (1f - backgroundAlpha),
             onZoomChanged = { newScale ->
                 val zoomed = newScale > 1.01f
                 // First zoom is the user asking for detail — request the
@@ -480,8 +502,8 @@ private fun DetailContent(
         // requested — in data saver mode that's once the user zooms.
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
-            enter = fadeIn(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(200)),
+            enter = fadeIn(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(220)),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
@@ -496,8 +518,8 @@ private fun DetailContent(
         // reads as a broken image. Fades out the instant the image is ready.
         AnimatedVisibility(
             visible = isZoomed && fullResRequested && !fullResLoaded,
-            enter = fadeIn(animationSpec = tween(200)),
-            exit = fadeOut(animationSpec = tween(200)),
+            enter = fadeIn(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(220)),
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = KraftSpacing.Spacing24),
         ) {
             Surface(
@@ -523,11 +545,12 @@ private fun DetailContent(
             }
         }
 
-        // Top bar — back + open. Fades away when zoomed.
+        // Top bar — back + open. Fades away when zoomed. 220ms matches
+        // the shared-element + background so chrome never trails.
         AnimatedVisibility(
             visible = !isZoomed,
-            enter = fadeIn(animationSpec = tween(250)),
-            exit = fadeOut(animationSpec = tween(200)),
+            enter = fadeIn(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(220)),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             Box(
@@ -545,7 +568,7 @@ private fun DetailContent(
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .background(KraftColors.GlassDark)
                             .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
-                            .clickable(onClick = onBack),
+                            .clickable(onClick = { handleBack() }),
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
@@ -651,11 +674,12 @@ private fun DetailContent(
 
         // Right-edge vertical action stack (favorite, download, set wallpaper),
         // like Instagram reels. Floats just above the collapsed panel and hides
-        // while the panel is expanded. Fades away when zoomed.
+        // while the panel is expanded. Fades away when zoomed. 220ms matches
+        // shared-element so chrome never trails the image.
         AnimatedVisibility(
             visible = !isZoomed && !expanded,
-            enter = fadeIn(animationSpec = tween(250)),
-            exit = fadeOut(animationSpec = tween(200)),
+            enter = fadeIn(animationSpec = tween(220)),
+            exit = fadeOut(animationSpec = tween(220)),
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = KraftSpacing.Spacing12),
@@ -799,7 +823,7 @@ private fun BottomPanel(
             if (!userInteracted || target > panelHeight.value) {
                 panelHeight.animateTo(
                     targetValue = target,
-                    animationSpec = tween(250),
+                    animationSpec = tween(220),
                 )
             }
         }
@@ -823,7 +847,7 @@ private fun BottomPanel(
         // Using graphicsLayer alpha bypasses that internal layout entirely.
         val panelAlpha by animateFloatAsState(
             targetValue = if (isZoomed) 0f else 1f,
-            animationSpec = tween(250),
+            animationSpec = tween(220),
             label = "panelAlpha",
         )
 
@@ -924,10 +948,12 @@ private fun BottomPanel(
                             scope.launch {
                                 // Snap to where the finger released, then
                                 // animate to the target — no jump back.
+                                // 220ms matches shared-element so panel settles
+                                // in sync with chrome/background.
                                 panelHeight.snapTo(currentPx)
                                 panelHeight.animateTo(
                                     targetValue = if (settleExpanded) maxPanelHeightPx else collapsedHeightPx,
-                                    animationSpec = tween(300),
+                                    animationSpec = tween(220),
                                 )
                             }
                             dragOffsetPx = 0f
@@ -1079,7 +1105,7 @@ private fun DetailPanelContent(
         }
         Crossfade(
             targetState = uploaderState,
-            animationSpec = tween(200),
+            animationSpec = tween(220),
             label = "uploaderRow",
             modifier = Modifier,
         ) { state ->
@@ -1107,8 +1133,8 @@ private fun DetailPanelContent(
         Spacer(Modifier.height(KraftSpacing.Spacing8))
         AnimatedVisibility(
             visible = pullHintVisible,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = tween(200)),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = tween(200)),
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = tween(220)),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = tween(220)),
             modifier = Modifier,
         ) {
             Row(
