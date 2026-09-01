@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +27,10 @@ import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 
+/**
+ * Clean empty state — large icon, concise title, and
+ * optional action button. Used for no-results, empty favorites, etc.
+ */
 @Composable
 fun EmptyState(
     title: String,
@@ -39,41 +45,49 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(32.dp),
-                )
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = KraftSpacing.Spacing16, start = KraftSpacing.Spacing32, end = KraftSpacing.Spacing32),
+        // Large icon circle — prominent icon in empty states.
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(40.dp),
             )
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = KraftSpacing.Spacing8, start = KraftSpacing.Spacing32, end = KraftSpacing.Spacing32),
-            )
+        }
+        Spacer(Modifier.height(KraftSpacing.Spacing16))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing32),
+        )
+        Spacer(Modifier.height(KraftSpacing.Spacing8))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing32),
+        )
         if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction, modifier = Modifier.padding(top = KraftSpacing.Spacing16)) {
+            Spacer(Modifier.height(KraftSpacing.Spacing16))
+            TextButton(onClick = onAction) {
                 Text(actionLabel)
             }
         }
     }
 }
 
+/**
+ * Error state — wraps [EmptyState] with retry action and error-specific
+ * string resources.
+ */
 @Composable
 fun ErrorState(
     message: String,

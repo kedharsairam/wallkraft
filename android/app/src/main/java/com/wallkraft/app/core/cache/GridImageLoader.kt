@@ -1,9 +1,7 @@
-package com.wallkraft.app.presentation.components
+package com.wallkraft.app.core.cache
 
 import android.content.Context
 import coil3.ImageLoader
-import coil3.PlatformContext
-import coil3.memory.MemoryCache
 import coil3.request.crossfade
 
 /**

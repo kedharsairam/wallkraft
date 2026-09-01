@@ -3,7 +3,7 @@ package com.wallkraft.app.data.repository
 import com.wallkraft.app.data.db.FavoriteDao
 import com.wallkraft.app.data.db.FavoriteEntity
 import com.wallkraft.app.domain.model.Wallpaper
-import com.wallkraft.app.domain.repository.Favorite
+import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

@@ -82,7 +82,7 @@ import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.util.WallpaperPosition
+import com.wallkraft.app.domain.model.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -237,9 +237,6 @@ fun WallpaperCropDialog(
                 frameWpx / (bmp.width * fitScale),
                 frameHpx / (bmp.height * fitScale),
             ).coerceIn(1f, MAX_CROP_ZOOM)
-            // 1:1 native resolution — where 1 image pixel = 1 screen pixel.
-            // Always deeper than fill, same as the detail screen's nativeRelative.
-            val nativeZoom = (1f / fitScale).coerceIn(fillZoom * 1.2f, MAX_CROP_ZOOM)
 
             fun animateTo(targetZoom: Float, targetPanX: Float, targetPanY: Float) {
                 animJob?.cancel()
@@ -288,12 +285,11 @@ fun WallpaperCropDialog(
                     panY = panY.coerceIn(-maxPanY, maxPanY)
                 },
                 onDoubleTap = {
-                    // 3-state cycle matching the detail screen:
-                    // fit (1x) -> fill (no bars) -> native (1:1 pixels) -> fit
-                    when {
-                        zoom <= 1.01f -> animateTo(fillZoom, 0f, 0f)
-                        zoom <= fillZoom * 1.1f -> animateTo(nativeZoom, 0f, 0f)
-                        else -> animateTo(1f, 0f, 0f)
+                    // Simple toggle: zoomed → fit, fit → fill (no black bars).
+                    if (zoom > 1.01f) {
+                        animateTo(1f, 0f, 0f)
+                    } else {
+                        animateTo(fillZoom, 0f, 0f)
                     }
                 },
                 modifier = Modifier
@@ -342,7 +338,7 @@ fun WallpaperCropDialog(
 
             // Bottom panel: a distinct dark surface (translucent so the image
             // stays dimly visible for WYSIWYG cropping) with a hard top edge
-            // against the image — the Apple approach. The image stays the hero;
+            // against the image — the standard approach. The image stays the hero;
             // the controls live on their own readable layer. The surface
             // extends to the bottom of the frame; only the content is padded
             // above the nav bar.
@@ -377,7 +373,7 @@ fun WallpaperCropDialog(
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing16))
                     // Position choice: segmented control (Home | Lock | Both),
-                    // the Apple idiom for a mutually-exclusive pick.
+                    // the standard idiom for a mutually-exclusive pick.
                     SingleChoiceSegmentedButtonRow(
                         modifier = Modifier.fillMaxWidth(),
                     ) {

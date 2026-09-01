@@ -8,6 +8,7 @@ import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
+import com.wallkraft.app.util.ElapsedClock
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,15 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-/**
- * Abstraction over elapsed-time measurement. Production uses
- * [SystemClock.elapsedRealtime]; tests inject a fake for deterministic control.
- */
-fun interface ElapsedClock {
-    /** Milliseconds since some arbitrary epoch (monotonic, non-decreasing). */
-    fun elapsedMs(): Long
-}
 
 /**
  * Shared state for any screen that shows a paginated wallpaper grid fed by

@@ -52,7 +52,7 @@ fun ThemeMode.displayName(): String = stringResource(
 @Composable
 fun Purity.displayName(): String = stringResource(
     when (this) {
-        Purity.SfW -> R.string.purity_sfw
+        Purity.SFW -> R.string.purity_sfw
         Purity.Sketchy -> R.string.purity_sketchy
     },
 )

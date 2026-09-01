@@ -15,8 +15,8 @@ import coil3.request.crossfade
 import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.ThemeMode
-import com.wallkraft.app.presentation.components.GridImageLoader
-import com.wallkraft.app.presentation.components.ImageCache
+import com.wallkraft.app.core.cache.GridImageLoader
+import com.wallkraft.app.core.cache.ImageCache
 
 @Composable
 fun WallKraftApp(container: AppContainer) {

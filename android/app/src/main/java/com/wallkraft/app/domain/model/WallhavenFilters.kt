@@ -34,12 +34,12 @@ fun Set<Category>.toCategoryParam(): String = buildString {
 
 /** Wallhaven purity — SFW and/or Sketchy; NSFW (001) is never requested. */
 enum class Purity {
-    SfW,
+    SFW,
     Sketchy,
 }
 
 fun Set<Purity>.toPurityParam(): String = buildString {
-    append(if (contains(Purity.SfW)) '1' else '0')
+    append(if (contains(Purity.SFW)) '1' else '0')
     append(if (contains(Purity.Sketchy)) '1' else '0')
     append('0')
 }
@@ -56,5 +56,5 @@ data class WallhavenFilters(
     val sorting: Sorting = Sorting.DateAdded,
     val orientation: Orientation = Orientation.Both,
     val query: String = "",
-    val purity: Set<Purity> = setOf(Purity.SfW),
+    val purity: Set<Purity> = setOf(Purity.SFW),
 )

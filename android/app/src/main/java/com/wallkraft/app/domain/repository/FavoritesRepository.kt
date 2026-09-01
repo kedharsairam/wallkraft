@@ -1,13 +1,8 @@
 package com.wallkraft.app.domain.repository
 
+import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.flow.Flow
-
-/** A wallpaper the user has favorited, persisted locally. */
-data class Favorite(
-    val wallpaper: Wallpaper,
-    val addedAt: Long,
-)
 
 interface FavoritesRepository {
     fun observeAll(): Flow<List<Favorite>>

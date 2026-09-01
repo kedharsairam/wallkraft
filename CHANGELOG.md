@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-01
+
+### Changed
+- **File reorganization** — `Favorite` moved to `domain/model/Favorite.kt`, `WallpaperPosition` and `DownloadedFile` to `domain/model/`, `ImageCache` and `GridImageLoader` to `core/cache/`, `ElapsedClock` to `util/ElapsedClock.kt`. Each type now lives in the package that owns its responsibility.
+- **Naming consistency** — `Purity.SfW` renamed to `Purity.SFW`, `Wallpaper.isSfw` to `isSFW` across 6 files. Acronyms now follow standard casing conventions.
+- **Shimmer loading** — grid placeholder animation changed from pulse (alpha oscillation) to left-to-right sweep gradient, matching modern skeleton loading patterns.
+- **Empty state** — icon circle enlarged to 80dp with 40dp icon, title uses `titleLarge`, proper KDoc added.
+- **Detail panel** — drag handle alpha reduced to 0.3, panel background changed to `surfaceContainerLow`, uploader skeleton pulse range tightened to 0.3–0.5.
+- **Settings section headers** — typography changed to `labelLarge` for consistency with design tokens.
+- **Tab bar colors** — `HigInactiveGray` and `HigSeparator` moved to `KraftColors.TabBarInactive` and `KraftColors.TabBarSeparator` for centralized color management.
+- **Filter panel strings** — "Categories", "Purity", "Sorting", "Orientation", "Reset", "Apply" now use string resources for localization support.
+- **Rate limit default** — magic number `45` extracted to `KraftConstants.RateLimitDefaultRemaining`.
+
+### Fixed
+- **Mojibake in Settings** — bullet character `•` was displaying as garbled `â€¢` in cache description and API key display. Fixed encoding.
+- **Scope leak in DetailScreen** — `val setTarget` declaration was at wrong indentation level, leaking outside its intended block.
+- **Fully qualified enum references** — `WallpaperRepositoryImpl` now uses imported `Purity.SFW` instead of full path.
+- **Fully qualified imports in BrowseScreen** — 8 inline fully qualified references replaced with proper top-level imports.
+- **No-op padding** — removed `.padding(horizontal = 0.dp)` from tab bar.
+- **All references to "Apple" removed** — 26 comment references across 8 files replaced with neutral design language.
+
+### Removed
+- **Dead code** — `GlassPill` composable, `isDownloaded()`, `GlassBlurPx`, `FavoriteDao.getById()` (all previously unused).
+- **Haze library** — fully removed (dependencies, imports, params, usage).
+
 ## [1.12.2] - 2026-08-31
 
 ### Changed

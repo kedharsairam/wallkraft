@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +44,7 @@ import com.wallkraft.app.domain.model.Wallpaper
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
-import com.wallkraft.app.util.DownloadedFile
+import com.wallkraft.app.domain.model.DownloadedFile
 import com.wallkraft.app.util.WallpaperActions
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -243,6 +244,9 @@ fun FavoritesScreen(
                         selectedIds = selectedIds - removedIds
                         pendingRemove = null
                     },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) {
                     Text(stringResource(R.string.delete))
                 }

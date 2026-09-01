@@ -37,7 +37,7 @@ object RateLimitState {
     }
 
     private val _limited = MutableStateFlow(false)
-    private val _remaining = MutableStateFlow(45)
+    private val _remaining = MutableStateFlow(KraftConstants.RateLimitDefaultRemaining)
 
     val limited: StateFlow<Boolean> = _limited.asStateFlow()
     val remaining: StateFlow<Int> = _remaining.asStateFlow()
@@ -60,7 +60,7 @@ object RateLimitState {
 
     fun reset() {
         cooldownJob?.cancel()
-        _remaining.value = 45
+        _remaining.value = KraftConstants.RateLimitDefaultRemaining
         _limited.value = false
     }
 }

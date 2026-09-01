@@ -20,7 +20,9 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.size.Size
 import com.wallkraft.app.R
+import com.wallkraft.app.domain.model.DownloadedFile
 import com.wallkraft.app.domain.model.Wallpaper
+import com.wallkraft.app.domain.model.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -54,11 +56,6 @@ object WallpaperActions {
                 wm.setBitmap(bitmap, null, true, position.flags)
             }.isSuccess
         }
-
-    /**
-     * Returns true if a wallpaper has been downloaded to the Downloads folder. */
-    fun isDownloaded(context: Context, wallpaperId: String): Boolean =
-        downloadedFile(context, wallpaperId) != null
 
     /** Returns the set of downloaded wallpaper IDs. */
     fun downloadedIds(context: Context): Set<String> =
@@ -321,18 +318,4 @@ object WallpaperActions {
         ?: coilFetchToCache(context, wallpaper)
 }
 
-/** Which screen(s) to apply a wallpaper to. */
-enum class WallpaperPosition(val flags: Int) {
-    HOME(WallpaperManager.FLAG_SYSTEM),
-    LOCK(WallpaperManager.FLAG_LOCK),
-    BOTH(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK),
-}
 
-/** A wallpaper file the app has downloaded into the public Downloads folder. */
-data class DownloadedFile(
-    val wallpaperId: String,
-    val name: String,
-    val size: Long,
-    val uri: Uri,
-    val relativePath: String,
-)

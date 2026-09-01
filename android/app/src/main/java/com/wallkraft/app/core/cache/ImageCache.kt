@@ -1,4 +1,4 @@
-package com.wallkraft.app.presentation.components
+package com.wallkraft.app.core.cache
 
 import android.content.Context
 import coil3.disk.DiskCache

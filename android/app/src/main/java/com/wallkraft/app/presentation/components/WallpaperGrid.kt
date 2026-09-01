@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.imageLoader
 import coil3.request.ImageRequest
+import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
