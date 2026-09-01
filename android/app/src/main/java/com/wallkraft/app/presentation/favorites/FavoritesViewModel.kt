@@ -2,7 +2,7 @@ package com.wallkraft.app.presentation.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wallkraft.app.domain.repository.Favorite
+import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

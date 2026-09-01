@@ -60,6 +60,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -67,6 +68,7 @@ import com.wallkraft.app.AppContainer
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.domain.model.Category
@@ -135,7 +137,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16)
+                .padding(horizontal = KraftSpacing.Spacing20, vertical = KraftSpacing.Spacing16)
                 .padding(bottom = navBarPadding),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing24),
         ) {
@@ -302,7 +304,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                             style = MaterialTheme.typography.titleSmall,
                         )
                         Text(
-                            text = "${stringResource(R.string.cache_description)} â€¢ $cacheSizeText",
+                            text = "${stringResource(R.string.cache_description)} • $cacheSizeText",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -346,7 +348,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         )
                         Text(
                             text = if (apiKeyText.isBlank()) stringResource(R.string.api_key_not_set)
-                            else "â€¢â€¢â€¢â€¢${apiKeyText.takeLast(4)} â€¢ ${stringResource(R.string.api_key_advanced_description)}",
+                            else "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_advanced_description)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -406,12 +408,12 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
     Column {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
+            style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
         )
         Surface(
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(KraftRadius.Standard),
             color = MaterialTheme.colorScheme.surfaceContainer,
             modifier = Modifier.fillMaxWidth(),
         ) {

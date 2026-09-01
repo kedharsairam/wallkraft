@@ -73,7 +73,7 @@ data class Wallpaper(
     val resolution: String get() = "${dimensionX}x$dimensionY"
 
     /** True when the API reports this wallpaper as safe-for-work. */
-    val isSfw: Boolean get() = purity == "sfw"
+    val isSFW: Boolean get() = purity == "sfw"
 
     /**
      * The uploader's username, or "" when there is none — a deleted account,

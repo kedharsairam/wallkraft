@@ -12,29 +12,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * WallKraft Aurora — Material3 color schemes built from [KraftColors].
+ * Color schemes — clean, neutral, wallpaper-first.
  *
- * Light mode ("Dawn Canvas"): warm paper backgrounds, deep navy text,
- * Aurora Blue accent for all interactive elements.
- *
- * Dark mode ("Deep Space"): deep navy backgrounds, light text,
- * Aurora Blue Dark accent for all interactive elements.
+ * Light: pure white backgrounds, black labels, system blue accent.
+ * Dark: true black backgrounds, white labels, brighter blue accent.
  */
 object KraftColorSchemes {
     val Light = lightColorScheme(
         primary = KraftColors.AccentBlue,
         onPrimary = Color.White,
-        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.15f),
+        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.12f),
         onPrimaryContainer = KraftColors.AccentBlue,
         secondary = KraftColors.AccentBlue,
         onSecondary = Color.White,
-        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.15f),
+        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.12f),
         onSecondaryContainer = KraftColors.AccentBlue,
         tertiary = KraftColors.AccentOrange,
         onTertiary = Color.White,
         error = KraftColors.AccentRed,
         onError = Color.White,
-        errorContainer = KraftColors.AccentRed.copy(alpha = 0.15f),
+        errorContainer = KraftColors.AccentRed.copy(alpha = 0.12f),
         onErrorContainer = KraftColors.AccentRed,
         background = KraftColors.BackgroundLight,
         onBackground = KraftColors.TextPrimaryLight,
@@ -55,18 +52,18 @@ object KraftColorSchemes {
 
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlueDark,
-        onPrimary = Color(0xFF0A0E1A),
-        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.25f),
+        onPrimary = Color.Black,
+        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.2f),
         onPrimaryContainer = KraftColors.AccentBlueDark,
         secondary = KraftColors.AccentBlueDark,
-        onSecondary = Color(0xFF0A0E1A),
-        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.25f),
+        onSecondary = Color.Black,
+        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.2f),
         onSecondaryContainer = KraftColors.AccentBlueDark,
         tertiary = KraftColors.AccentOrangeDark,
-        onTertiary = Color(0xFF0A0E1A),
+        onTertiary = Color.Black,
         error = KraftColors.AccentRedDark,
-        onError = Color.White,
-        errorContainer = KraftColors.AccentRed.copy(alpha = 0.25f),
+        onError = Color.Black,
+        errorContainer = KraftColors.AccentRed.copy(alpha = 0.2f),
         onErrorContainer = KraftColors.AccentRedDark,
         background = KraftColors.BackgroundDark,
         onBackground = KraftColors.TextPrimaryDark,
@@ -86,7 +83,13 @@ object KraftColorSchemes {
     )
 }
 
-/** Typography following the Kraft design scale. */
+/**
+ * Typography — maps to standard type scale.
+ *
+ * We use the system default font (Roboto on Android) with weights and sizes
+ * that match the standard SF Pro scale. The visual difference is minimal; the hierarchy
+ * and spacing are what matter.
+ */
 object KraftTypography {
     val Typography = Typography(
         displayLarge = TextStyle(
@@ -128,12 +131,12 @@ object KraftTypography {
         bodyLarge = TextStyle(
             fontWeight = FontWeight.Normal,
             fontSize = KraftTypeScale.Body,
-            lineHeight = 24.sp,
+            lineHeight = 22.sp,
         ),
         bodyMedium = TextStyle(
             fontWeight = FontWeight.Normal,
             fontSize = KraftTypeScale.Callout,
-            lineHeight = 22.sp,
+            lineHeight = 21.sp,
         ),
         bodySmall = TextStyle(
             fontWeight = FontWeight.Normal,
@@ -157,7 +160,7 @@ object KraftTypography {
     )
 }
 
-/** Wraps [MaterialTheme] with the WallKraft Aurora design system. */
+/** Theme wrapper — clean, neutral, wallpaper-first. */
 @Composable
 fun KraftTheme(
     darkTheme: Boolean,

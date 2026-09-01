@@ -20,8 +20,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import androidx.compose.ui.unit.dp
@@ -29,18 +31,30 @@ import androidx.compose.ui.unit.dp
 // Precomputed heights — deterministic pattern, no Random allocation per recomposition.
 private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 290, 340, 250, 310)
 
-/** Pulsing placeholder tiles shown while the first page loads. */
+/**
+ * Shimmer loading grid — left-to-right sweep animation.
+ *
+ * Each tile uses a horizontal gradient that shifts from left to right,
+ * matching the skeleton loading pattern used in modern apps.
+ */
 @Composable
 fun ShimmerGrid(modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val alpha by transition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 0.9f,
+    // Sweep offset: animates from -1f (off-screen left) to 2f (off-screen right)
+    val sweepOffset by transition.animateFloat(
+        initialValue = -1f,
+        targetValue = 2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 700, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "shimmerAlpha",
+        label = "shimmerSweep",
+    )
+
+    val shimmerColors = listOf(
+        MaterialTheme.colorScheme.surfaceVariant,
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        MaterialTheme.colorScheme.surfaceVariant,
     )
 
     LazyVerticalStaggeredGrid(
@@ -56,8 +70,14 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .height(placeholderHeights[index].dp)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .alpha(alpha)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(
+                        Brush.linearGradient(
+                            colors = shimmerColors,
+                            start = Offset(sweepOffset * 400f, 0f),
+                            end = Offset(sweepOffset * 400f + 400f, 0f),
+                        ),
+                    ),
             )
         }
     }

@@ -1,6 +1,8 @@
 ﻿package com.wallkraft.app.presentation.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculateCentroid
@@ -13,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -43,10 +43,8 @@ import coil3.size.Size
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.compose.ui.util.lerp
 
 private const val MAX_SCALE = 8f
-private const val ANIM_DURATION_MS = 220L
 
 @Composable
 fun ZoomableImage(
@@ -83,7 +81,6 @@ fun ZoomableImage(
     var offset by remember { mutableStateOf(Offset.Zero) }
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
-    var zoomIndex by remember(zoomLevels) { mutableIntStateOf(zoomLevels.lastIndex) }
     // Gate gestures until layout is ready and the shared-element fly-in (220ms)
     // has settled — prevents the rare overshoot when you scroll fast, open, and
     // double-tap on the very first frame while viewport/elementSize are still 0
@@ -142,16 +139,17 @@ fun ZoomableImage(
     fun animateTo(endScale: Float, endOffset: Offset) {
         animJob?.cancel()
         val startScale = scale
-        val startOffset = offset
+        val startX = offset.x
+        val startY = offset.y
+        val anim = Animatable(0f)
         animJob = scope.launch {
-            val startTime = withFrameNanos { it }
-            while (true) {
-                val now = withFrameNanos { it }
-                val t = ((now - startTime) / 1_000_000L).toFloat() / ANIM_DURATION_MS.toFloat()
-                val eased = FastOutSlowInEasing.transform(t.coerceIn(0f, 1f))
-                scale = lerp(startScale, endScale, eased)
-                offset = lerp(startOffset, endOffset, eased)
-                if (t >= 1f) break
+            anim.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium)) {
+                val t = value
+                scale = startScale + (endScale - startScale) * t
+                offset = Offset(
+                    startX + (endOffset.x - startX) * t,
+                    startY + (endOffset.y - startY) * t,
+                )
             }
         }
     }
@@ -255,29 +253,21 @@ fun ZoomableImage(
                         onDoubleTap = { tapped ->
                             // Ignore until layout is valid and fly-in has settled.
                             if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@detectTapGestures
-                            zoomIndex = (zoomIndex + 1) % zoomLevels.size
-                            val targetScale = zoomLevels[zoomIndex].coerceIn(1f, MAX_SCALE)
+                            // Simple toggle: zoomed → fit, fit → fill (first zoom level).
+                            val targetScale = if (scale > 1.01f) {
+                                1f
+                            } else {
+                                zoomLevels.first().coerceIn(1f, MAX_SCALE)
+                            }
                             if (targetScale <= 1.01f) {
                                 animateTo(1f, Offset.Zero)
-                            } else if (zoomIndex == 0) {
-                                // First level = fill (no black bars). The inner Box is
-                                // viewport-sized and scaled around top-left; its child
-                                // image is Fit-centered inside it. To center the final
-                                // displayed image in the viewport, offset must be
-                                // (viewport - viewport*scale)/2 on both axes.
+                            } else {
+                                // Fill: center the image so no black bars on either axis.
                                 val targetOffset = Offset(
                                     (viewportSize.width - viewportSize.width * targetScale) / 2f,
                                     (viewportSize.height - viewportSize.height * targetScale) / 2f,
                                 )
                                 animateTo(targetScale, targetOffset)
-                            } else {
-                                val k = targetScale / scale
-                                val target = clamp(
-                                    tapped.x + (offset.x - tapped.x) * k,
-                                    tapped.y + (offset.y - tapped.y) * k,
-                                    targetScale,
-                                )
-                                animateTo(targetScale, target)
                             }
                         },
                         onTap = { onTap() },

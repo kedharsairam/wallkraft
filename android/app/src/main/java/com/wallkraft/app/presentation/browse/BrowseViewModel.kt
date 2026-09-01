@@ -2,7 +2,7 @@ package com.wallkraft.app.presentation.browse
 
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
-import com.wallkraft.app.presentation.common.ElapsedClock
+import com.wallkraft.app.util.ElapsedClock
 import com.wallkraft.app.presentation.common.WallpaperListViewModel
 import kotlinx.coroutines.flow.update
 

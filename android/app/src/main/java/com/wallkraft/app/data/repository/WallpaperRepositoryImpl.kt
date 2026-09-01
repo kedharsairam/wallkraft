@@ -3,6 +3,7 @@ package com.wallkraft.app.data.repository
 import android.util.LruCache
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.cache.SearchResponseCache
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
@@ -39,8 +40,8 @@ class WallpaperRepositoryImpl(
             // Also dedupe by id — the Wallhaven search API can return the
             // same wallpaper twice across pages.
             val allowed = buildSet {
-                if (com.wallkraft.app.domain.model.Purity.SfW in filters.purity) add("sfw")
-                if (com.wallkraft.app.domain.model.Purity.Sketchy in filters.purity) add("sketchy")
+                if (Purity.SFW in filters.purity) add("sfw")
+                if (Purity.Sketchy in filters.purity) add("sketchy")
             }
             val filtered = response.data
                 .filter { it.purity in allowed }

@@ -3,8 +3,10 @@ package com.wallkraft.app.presentation.detail
 import android.app.Activity
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.activity.compose.BackHandler
@@ -13,13 +15,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -52,6 +54,7 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.zIndex
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -134,7 +137,7 @@ import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.WallpaperActions
-import com.wallkraft.app.util.WallpaperPosition
+import com.wallkraft.app.domain.model.WallpaperPosition
 import com.wallkraft.app.util.formatCount
 import com.wallkraft.app.util.toUserMessage
 import com.wallkraft.app.util.wallpaperCategoryLabel
@@ -198,7 +201,7 @@ fun DetailScreen(
     // read by DetailContent to color the background.
     val backgroundAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        backgroundAlpha.animateTo(1f, animationSpec = tween(220))
+        backgroundAlpha.animateTo(1f, animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f))
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -226,7 +229,7 @@ fun DetailScreen(
                             Modifier.sharedElement(
                                 state = rememberSharedContentState(key = wallpaper.id),
                                 animatedVisibilityScope = animatedVisibilityScope,
-                                boundsTransform = { _, _ -> tween(220) },
+                                boundsTransform = { _, _ -> spring(dampingRatio = 0.7f, stiffness = 400f) },
                             )
                         }
                     } else {
@@ -283,6 +286,7 @@ fun DetailScreen(
                         navBarPadding = navBarPadding,
                         modifier = Modifier.fillMaxSize(),
                         sharedElementModifier = sharedElementModifier,
+                        animatedVisibilityScope = animatedVisibilityScope,
                     )
                 }
             }
@@ -294,7 +298,7 @@ fun DetailScreen(
         )
     }
 
-val setTarget = setWallpaperTarget
+    val setTarget = setWallpaperTarget
     if (setTarget != null) {
         // Resolve a local image file (offline favorite copy, else download to
         // cache) so the crop dialog can decode it. Show the crop dialog once
@@ -389,6 +393,7 @@ private fun DetailContent(
     navBarPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
     sharedElementModifier: Modifier = Modifier,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
     val context = LocalContext.current
     var isZoomed by remember { mutableStateOf(false) }
@@ -415,6 +420,18 @@ private fun DetailContent(
     }
     BackHandler(enabled = isZoomed) { handleBack() }
 
+    // Chrome alpha — fades in from 0→1 on entry using the same spring spec
+    // as the shared element (dampingRatio=0.7, stiffness=400). Both animations
+    // start at the same frame with the same curve, so they feel like one
+    // cohesive transition.
+    var chromeVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { chromeVisible = true }
+    val chromeAlpha by animateFloatAsState(
+        targetValue = if (chromeVisible) 1f else 0f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        label = "chromeAlpha",
+    )
+
     // Hide the system bars while zoomed so the image is truly edge-to-edge.
     val window = (context as? Activity)?.window
     if (window != null) {
@@ -436,6 +453,7 @@ private fun DetailContent(
     val aspect = w / h
 
     BoxWithConstraints(modifier = modifier.background(Color.Black.copy(alpha = backgroundAlpha))) {
+        val constraintsMaxHeight = maxHeight
         val viewW = maxWidth.value
         val viewH = maxHeight.value
         // Fit size at 1x: ContentScale.Fit inside the viewport.
@@ -502,8 +520,8 @@ private fun DetailContent(
         // requested — in data saver mode that's once the user zooms.
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
-            enter = fadeIn(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(220)),
+            enter = fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            exit = fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
@@ -518,8 +536,8 @@ private fun DetailContent(
         // reads as a broken image. Fades out the instant the image is ready.
         AnimatedVisibility(
             visible = isZoomed && fullResRequested && !fullResLoaded,
-            enter = fadeIn(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(220)),
+            enter = fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            exit = fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = KraftSpacing.Spacing24),
         ) {
             Surface(
@@ -545,223 +563,196 @@ private fun DetailContent(
             }
         }
 
-        // Top bar — back + open. Fades away when zoomed. 220ms matches
-        // the shared-element + background so chrome never trails.
-        AnimatedVisibility(
-            visible = !isZoomed,
-            enter = fadeIn(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(220)),
-            modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
+        // ── Chrome overlay — all UI elements in a single graphicsLayer ──
+        // The shared element transition uses its own graphicsLayer compositing
+        // layer which bypasses zIndex. Wrapping ALL chrome in a single Box
+        // with graphicsLayer forces it into a separate, higher compositing
+        // layer that's always rendered on top of the image.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = chromeAlpha }
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-                    .background(Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.55f), Color.Transparent)))
-                    .statusBarsPadding(),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
+            // Top bar — back button with gradient.
+            if (!isZoomed) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.55f),
+                                    Color.Transparent,
+                                ),
+                            ),
+                        )
+                        .statusBarsPadding(),
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(KraftRadius.Standard))
-                            .background(KraftColors.GlassDark)
-                            .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
-                            .clickable(onClick = { handleBack() }),
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back),
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp),
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .clickable(onClick = { handleBack() }),
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // Invisible measurement pass. These sit at the top-start corner, are
-        // fully transparent, and their chips are non-clickable, so they never
-        // intercept touches — they exist only to size the bottom panel.
-        var collapsedContentHeight by remember { mutableIntStateOf(0) }
-        var fullContentHeight by remember { mutableIntStateOf(0) }
+            // Invisible measurement pass for collapsed panel height.
+            var collapsedContentHeight by remember { mutableIntStateOf(0) }
+            var fullContentHeight by remember { mutableIntStateOf(0) }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .alpha(0f)
-                .onSizeChanged { collapsedContentHeight = it.height },
-        ) {
-            DetailPanelContent(
-                wallpaper = wallpaper,
-                onTagClick = onTagClick,
-                onUploaderClick = onUploaderClick,
-                isUploaderDeleted = isUploaderDeleted,
-                clickable = false,
-                collapsed = true,
-                loadAvatar = false,
-                bottomPadding = navBarPadding,
-            )
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = maxHeight)
-                .alpha(0f)
-                .onSizeChanged { fullContentHeight = it.height },
-        ) {
-            DetailPanelContent(
-                wallpaper = wallpaper,
-                onTagClick = onTagClick,
-                onUploaderClick = onUploaderClick,
-                isUploaderDeleted = isUploaderDeleted,
-                clickable = false,
-                collapsed = false,
-                loadAvatar = false,
-                bottomPadding = navBarPadding,
-            )
-        }
-
-        val density = LocalDensity.current
-        // The panel content's bottom padding — spacer + nav-bar inset + the
-        // bottom nav bar — is part of the measured Column, but the visible
-        // collapsed bar is the content without it: the compact bar (handle,
-        // uploader, pull hint) anchored to the bottom bar. Subtracting the
-        // inset from the measured height gives the bar its collapsed height;
-        // the panel itself is always anchored to the bottom bar, so expanding
-        // grows it upward from there.
-        val navInsetPx = remember {
-            (context as? Activity)?.window?.decorView
-                ?.let { ViewCompat.getRootWindowInsets(it) }
-                ?.getInsets(WindowInsetsCompat.Type.navigationBars())
-                ?.bottom ?: 0
-        }
-        val bottomInsetPx = with(density) {
-            KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
-        }
-        // The collapsed content is measured from the grid preview, which has no
-        // uploader; once the real detail loads the content grows. Both heights
-        // are clamped so the panel never exceeds its allowed maximum — 65% of
-        // the available height, converted from dp to px (maxHeight is a Dp).
-        val maxPanelHeightPx = min(
-            fullContentHeight.toFloat(),
-            with(density) { (maxHeight * 0.65f).toPx() },
-        )
-        // Add the gesture navigation bar height to the collapsed panel so the
-        // "More details" hint sits above the white pill at the screen bottom.
-        // Without this the hint text overlaps the pill and is unreadable. The
-        // extra height pushes the stats behind the gesture bar (hidden by the
-        // dark gradient + system overlay), so only handle/uploader/hint remain
-        // visible. The expanded state is unaffected (it uses maxPanelHeightPx).
-        val gestureBarHeight = with(density) { navBarPadding.toPx() }
-        val collapsedHeightPx = min(
-            (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
-            maxPanelHeightPx,
-        )
-        // True when the expanded content is taller than the panel's max height.
-        // In that case the tag chips become scrollable so nothing is clipped;
-        // when the content fits, no scroll modifier is attached at all, so the
-        // whole-panel drag-to-collapse gesture works exactly as before.
-        val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
-
-        // Two-state panel: collapsed (compact bar) or expanded (full content).
-        // Swipe up to expand, swipe down to collapse. `expanded` is owned here
-        // because the right-edge stack reads it to fade out; the panel itself
-        // lives in [BottomPanel], which owns the drag state so per-frame drag
-        // updates don't recompose the whole screen.
-        var expanded by remember(wallpaper.id) { mutableStateOf(false) }
-
-        // Right-edge vertical action stack (favorite, download, set wallpaper),
-        // like Instagram reels. Floats just above the collapsed panel and hides
-        // while the panel is expanded. Fades away when zoomed. 220ms matches
-        // shared-element so chrome never trails the image.
-        AnimatedVisibility(
-            visible = !isZoomed && !expanded,
-            enter = fadeIn(animationSpec = tween(220)),
-            exit = fadeOut(animationSpec = tween(220)),
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = KraftSpacing.Spacing12),
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .alpha(0f)
+                    .onSizeChanged { collapsedContentHeight = it.height },
             ) {
-                GlassPill(
-                    onClick = onToggleFavorite,
-                    icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
-                    iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                DetailPanelContent(
+                    wallpaper = wallpaper,
+                    onTagClick = onTagClick,
+                    onUploaderClick = onUploaderClick,
+                    isUploaderDeleted = isUploaderDeleted,
+                    clickable = false,
+                    collapsed = true,
+                    loadAvatar = false,
+                    bottomPadding = navBarPadding,
                 )
-                GlassPill(
-                    onClick = onDownload,
-                    icon = Icons.Filled.Download,
-                    contentDescription = stringResource(R.string.download),
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = constraintsMaxHeight)
+                    .alpha(0f)
+                    .onSizeChanged { fullContentHeight = it.height },
+            ) {
+                DetailPanelContent(
+                    wallpaper = wallpaper,
+                    onTagClick = onTagClick,
+                    onUploaderClick = onUploaderClick,
+                    isUploaderDeleted = isUploaderDeleted,
+                    clickable = false,
+                    collapsed = false,
+                    loadAvatar = false,
+                    bottomPadding = navBarPadding,
                 )
-                GlassPill(
-                    onClick = onSetWallpaper,
-                    icon = Icons.Filled.Wallpaper,
-                    contentDescription = stringResource(R.string.set_as_wallpaper),
-                )
-                if (isSharing) {
-                    val shape = RoundedCornerShape(KraftRadius.Standard)
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(shape)
-                            .background(KraftColors.GlassDark)
-                            .border(1.dp, KraftColors.GlassBorderDark, shape),
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            strokeWidth = 2.dp,
-                            color = Color.White,
+            }
+
+            val density = LocalDensity.current
+            val navInsetPx = remember {
+                (context as? Activity)?.window?.decorView
+                    ?.let { ViewCompat.getRootWindowInsets(it) }
+                    ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+                    ?.bottom ?: 0
+            }
+            val bottomInsetPx = with(density) {
+                KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
+            }
+            val maxPanelHeightPx = min(
+                fullContentHeight.toFloat(),
+                with(density) { (constraintsMaxHeight * 0.65f).toPx() },
+            )
+            val gestureBarHeight = with(density) { navBarPadding.toPx() }
+            val collapsedHeightPx = min(
+                (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
+                maxPanelHeightPx,
+            )
+            val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
+
+            var expanded by remember(wallpaper.id) { mutableStateOf(false) }
+
+            // ── Action buttons (horizontal row above bottom panel) ──────
+            if (!isZoomed && !expanded) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + 8.dp.toPx()).toDp() })
+                        .padding(horizontal = KraftSpacing.Spacing16),
+                ) {
+                    DetailTextButton(
+                        text = stringResource(R.string.set_as_wallpaper),
+                        onClick = onSetWallpaper,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DetailCircleButton(
+                        onClick = onToggleFavorite,
+                        icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                        iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                    )
+                    DetailCircleButton(
+                        onClick = onDownload,
+                        icon = Icons.Filled.Download,
+                        contentDescription = stringResource(R.string.download),
+                    )
+                    if (isSharing) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    } else {
+                        DetailCircleButton(
+                            onClick = {
+                                hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                                isSharing = true
+                                contentScope.launch {
+                                    try {
+                                        WallpaperActions.share(
+                                            context,
+                                            wallpaper,
+                                            container.favoriteImageStore.fileFor(wallpaper.id),
+                                        )
+                                    } finally {
+                                        isSharing = false
+                                    }
+                                }
+                            },
+                            icon = Icons.Filled.Share,
+                            contentDescription = stringResource(R.string.share),
                         )
                     }
-                } else {
-                    GlassPill(
-                        onClick = {
-                            if (isSharing) return@GlassPill
-                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
-                            isSharing = true
-                            contentScope.launch {
-                                try {
-                                    WallpaperActions.share(
-                                        context,
-                                        wallpaper,
-                                        container.favoriteImageStore.fileFor(wallpaper.id),
-                                    )
-                                } finally {
-                                    isSharing = false
-                                }
-                            }
-                        },
-                        icon = Icons.Filled.Share,
-                        contentDescription = stringResource(R.string.share),
-                    )
                 }
             }
-        }
 
-        // Bottom panel — metadata + tags. Collapsed by default showing the
-        // compact bar (handle + uploader); swipe up to expand and reveal the
-        // divider, stats, and every tag chip. Fades away while zoomed, and
-        // sits above the bottom nav bar.
-        BottomPanel(
-            wallpaper = wallpaper,
-            onTagClick = onTagClick,
-            onUploaderClick = onUploaderClick,
-            isUploaderDeleted = isUploaderDeleted,
-            collapsedHeightPx = collapsedHeightPx,
-            maxPanelHeightPx = maxPanelHeightPx,
-            contentOverflows = contentOverflows,
-            navBarPadding = navBarPadding,
-            isZoomed = isZoomed,
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-        )
+            // Bottom panel
+            BottomPanel(
+                wallpaper = wallpaper,
+                onTagClick = onTagClick,
+                onUploaderClick = onUploaderClick,
+                isUploaderDeleted = isUploaderDeleted,
+                collapsedHeightPx = collapsedHeightPx,
+                maxPanelHeightPx = maxPanelHeightPx,
+                contentOverflows = contentOverflows,
+                navBarPadding = navBarPadding,
+                isZoomed = isZoomed,
+                expanded = expanded,
+                onExpandedChange = { expanded = it },
+                chromeAlpha = 1f, // parent already handles alpha
+            )
+        }
     }
 }
 
@@ -792,6 +783,7 @@ private fun BottomPanel(
     isZoomed: Boolean,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
+    chromeAlpha: Float = 1f,
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -823,7 +815,7 @@ private fun BottomPanel(
             if (!userInteracted || target > panelHeight.value) {
                 panelHeight.animateTo(
                     targetValue = target,
-                    animationSpec = tween(220),
+                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
                 )
             }
         }
@@ -845,11 +837,7 @@ private fun BottomPanel(
         // (currentHeight), AnimatedVisibility's internal Box pushes the
         // entire panel upward by ~257px, hiding the handle/uploader/hint.
         // Using graphicsLayer alpha bypasses that internal layout entirely.
-        val panelAlpha by animateFloatAsState(
-            targetValue = if (isZoomed) 0f else 1f,
-            animationSpec = tween(220),
-            label = "panelAlpha",
-        )
+        // Uses chromeAlpha (synced to shared element) instead of separate animation.
 
         // The outer panel is a custom Layout (not a Box) because Box
         // center-aligns children that are taller than the Box, even with
@@ -864,17 +852,11 @@ private fun BottomPanel(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .graphicsLayer { alpha = panelAlpha }
+                .zIndex(2f)
+                .graphicsLayer { alpha = chromeAlpha * (if (isZoomed) 0f else 1f) }
                 .height(with(density) { currentHeightPx.toDp() })
                 .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.45f),
-                            Color(0xFF0A1420).copy(alpha = 0.96f),
-                        ),
-                    ),
-                )
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
                     // Settled height where the drag started. Read at release to
                     // tell an upward pull from a downward drag, so the expand and
@@ -953,7 +935,7 @@ private fun BottomPanel(
                                 panelHeight.snapTo(currentPx)
                                 panelHeight.animateTo(
                                     targetValue = if (settleExpanded) maxPanelHeightPx else collapsedHeightPx,
-                                    animationSpec = tween(220),
+                                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
                                 )
                             }
                             dragOffsetPx = 0f
@@ -989,33 +971,51 @@ private fun BottomPanel(
     }
 }
 
-/**
- * Frosted glass action pill — icon-only, Apple Control Center style.
- * Uniform 48dp rounded square. Translucent fill + border adapts to any wallpaper.
- */
+/** Circular action button for the detail screen — 44dp, solid background. */
 @Composable
-private fun GlassPill(
+private fun DetailCircleButton(
     onClick: () -> Unit,
     icon: ImageVector,
     contentDescription: String?,
-    iconTint: Color = Color.White,
+    iconTint: Color = MaterialTheme.colorScheme.onSurface,
     modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(KraftRadius.Standard)
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(48.dp)
-            .clip(shape)
-            .background(KraftColors.GlassDark)
-            .border(1.dp, KraftColors.GlassBorderDark, shape)
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = iconTint,
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+/** Pill-shaped text button for "Set as Wallpaper" — matches the filter bar style. */
+@Composable
+private fun DetailTextButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .height(44.dp)
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.primary)
+            .clickable(onClick = onClick),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -1080,14 +1080,14 @@ private fun DetailPanelContent(
             .padding(horizontal = KraftSpacing.Spacing16)
             .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
-        // Drag handle — Apple HIG 36×5, 0.4 alpha + soft shadow for legibility.
+        // Drag handle — 36×5, 0.3 alpha + soft shadow for legibility.
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .size(width = 36.dp, height = 5.dp)
                 .shadow(4.dp, RoundedCornerShape(2.5.dp), clip = false)
                 .clip(RoundedCornerShape(2.5.dp))
-                .background(Color.White.copy(alpha = 0.4f)),
+                .background(Color.White.copy(alpha = 0.3f)),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
 
@@ -1105,7 +1105,7 @@ private fun DetailPanelContent(
         }
         Crossfade(
             targetState = uploaderState,
-            animationSpec = tween(220),
+            animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
             label = "uploaderRow",
             modifier = Modifier,
         ) { state ->
@@ -1133,8 +1133,8 @@ private fun DetailPanelContent(
         Spacer(Modifier.height(KraftSpacing.Spacing8))
         AnimatedVisibility(
             visible = pullHintVisible,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = tween(220)),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = tween(220)),
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
             modifier = Modifier,
         ) {
             Row(
@@ -1274,8 +1274,8 @@ private fun UploaderRow(
 @Composable
 private fun UploaderRowPlaceholder() {
     val pulse by rememberInfiniteTransition(label = "uploaderPlaceholder").animateFloat(
-        initialValue = 0.35f,
-        targetValue = 0.65f,
+        initialValue = 0.3f,
+        targetValue = 0.5f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 750, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse,

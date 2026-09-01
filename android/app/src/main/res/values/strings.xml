@@ -5,7 +5,6 @@
     <!-- Navigation -->
     <string name="tab_browse">Browse</string>
     <string name="tab_favorites">Favorites</string>
-    <string name="tab_downloads">Downloads</string>
     <string name="tab_settings">Settings</string>
 
     <!-- Browse -->
@@ -18,6 +17,12 @@
 
     <!-- Filters -->
     <string name="filters">Filters</string>
+    <string name="filter_categories">Categories</string>
+    <string name="filter_purity">Purity</string>
+    <string name="filter_sorting">Sorting</string>
+    <string name="filter_orientation">Orientation</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_apply">Apply</string>
     <string name="filter_all">All</string>
     <string name="sorting_date_added">Date added</string>
     <string name="sorting_hot">Hot</string>
@@ -77,35 +82,15 @@
     <string name="no_favorites_message">Tap the heart on any wallpaper to save it here.</string>
     <string name="favorites_downloaded">Downloaded</string>
     <string name="open_location">Open location</string>
-
-    <!-- Downloads -->
-    <string name="downloads_title">Downloads</string>
-    <string name="no_downloads_title">Nothing downloaded</string>
-    <string name="no_downloads_message">Wallpapers you download will appear here.</string>
     <string name="delete">Delete</string>
-    <string name="delete_confirm_title">Delete download?</string>
-    <string name="delete_confirm_message">This removes the file from your device. The wallpaper stays on wallhaven.cc.</string>
 
-    <!-- Downloads selection -->
+    <!-- Selection (shared by Favorites) -->
     <string name="select">Select</string>
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>
     <plurals name="selected_count">
         <item quantity="one">%d selected</item>
         <item quantity="other">%d selected</item>
-    </plurals>
-    <string name="selected" tools:override="true">Selected</string>
-    <plurals name="delete_selected_title">
-        <item quantity="one">Delete %d download?</item>
-        <item quantity="other">Delete %d downloads?</item>
-    </plurals>
-    <plurals name="delete_selected_message">
-        <item quantity="one">This removes %d file from your device. The wallpaper stays on wallhaven.cc.</item>
-        <item quantity="other">This removes %d files from your device. The wallpapers stay on wallhaven.cc.</item>
-    </plurals>
-    <plurals name="files_removed_outside_app">
-        <item quantity="one">%d file was removed outside the app and deselected</item>
-        <item quantity="other">%d files were removed outside the app and deselected</item>
     </plurals>
 
     <!-- Favorites selection -->

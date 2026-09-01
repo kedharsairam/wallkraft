@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import com.wallkraft.app.R
+import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing

@@ -20,7 +20,7 @@ data class AppSettings(
     val apiKey: String = "",
     val themeMode: ThemeMode = ThemeMode.System,
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
-    val purity: Set<Purity> = setOf(Purity.SfW),
+    val purity: Set<Purity> = setOf(Purity.SFW),
     val sorting: Sorting = Sorting.DateAdded,
     val orientation: Orientation = Orientation.Both,
     val dataSaverMode: Boolean = false,
