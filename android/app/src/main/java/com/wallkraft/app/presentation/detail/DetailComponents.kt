@@ -26,12 +26,12 @@ import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
-/** Circular action button for the detail screen — 44dp, glass background for contrast on any wallpaper. */
+/** Circular action button for the detail screen — 44dp, glass background for contrast on any wallpaper. Pass [text] for a wider pill button with label. Pass neither icon nor text for an empty button. */
 @Composable
 internal fun DetailCircleButton(
     onClick: () -> Unit,
-    icon: ImageVector,
-    contentDescription: String?,
+    icon: ImageVector? = null,
+    contentDescription: String? = null,
     text: String? = null,
     iconTint: Color = Color.White,
     borderColor: Color = KraftColors.GlassBorderDark,
@@ -54,23 +54,12 @@ internal fun DetailCircleButton(
             .padding(horizontal = if (text != null) KraftSpacing.Spacing12 else 0.dp),
     ) {
         if (text != null) {
-            androidx.compose.foundation.layout.Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            ) {
-                androidx.compose.material3.Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(KraftIconSize.Medium),
-                )
-                androidx.compose.material3.Text(
-                    text = text,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color.White,
-                )
-            }
-        } else {
+            androidx.compose.material3.Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White,
+            )
+        } else if (icon != null) {
             androidx.compose.material3.Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
