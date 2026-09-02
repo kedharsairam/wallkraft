@@ -181,6 +181,7 @@ fun DetailScreen(
                         modifier = Modifier.fillMaxSize(),
                         sharedElementModifier = sharedElementModifier,
                         animatedVisibilityScope = animatedVisibilityScope,
+                        sharedTransitionScope = sharedTransitionScope,
                     )
                 }
             }

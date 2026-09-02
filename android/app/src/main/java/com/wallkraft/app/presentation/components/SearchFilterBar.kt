@@ -36,11 +36,15 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -162,10 +167,10 @@ fun SearchFilterBar(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-.height(KraftSpacing.TouchTarget)
+                                .height(KraftSpacing.TouchTarget)
                                 .clip(PillShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                                .padding(horizontal = 14.dp),
+                                .padding(horizontal = KraftSpacing.Spacing16),
                         ) {
                             Box(
                                 contentAlignment = Alignment.CenterStart,
@@ -287,6 +292,15 @@ fun SearchFilterBar(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16),
             ) {
+                // ── Title ──────────────────────────────────────────────
+                Text(
+                    text = stringResource(R.string.filters),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(Modifier.height(KraftSpacing.Spacing20))
+
+                // ── Categories ─────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_categories))
                 Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
@@ -310,10 +324,10 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
 
+                // ── Purity ─────────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_purity))
                 Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
@@ -323,6 +337,17 @@ fun SearchFilterBar(
                 ) {
                     Purity.entries.forEach { p ->
                         val checked = p in draftFilters.purity
+                        val chipColors = when (p) {
+                            Purity.SFW -> FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF4A6B4A),
+                                selectedLabelColor = Color(0xFF99FF99),
+                            )
+                            Purity.Sketchy -> FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF6B6B3D),
+                                selectedLabelColor = Color(0xFFFFFF99),
+                            )
+                            else -> FilterChipDefaults.filterChipColors()
+                        }
                         FilterChip(
                             selected = checked,
                             onClick = {
@@ -334,18 +359,19 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(purity = updated)
                             },
                             label = { Text(p.displayName()) },
+                            colors = chipColors,
                         )
                     }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
 
+                // ── Sorting ────────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_sorting))
                 Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { s ->
@@ -359,10 +385,10 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
 
+                // ── Orientation ────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_orientation))
                 Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
@@ -381,32 +407,34 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
-                Spacer(Modifier.height(KraftSpacing.Spacing12))
+                Spacer(Modifier.height(KraftSpacing.Spacing24))
 
+                // ── Actions ────────────────────────────────────────────
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
                 ) {
-                    TextButton(
+                    OutlinedButton(
                         onClick = {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             draftFilters = WallhavenFilters(query = filters.query)
                         },
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.filter_reset), color = MaterialTheme.colorScheme.error) }
-                    TextButton(
+                        modifier = Modifier.weight(1f).height(KraftSpacing.TouchTarget),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder(enabled = true),
+                    ) { Text(stringResource(R.string.filter_reset)) }
+                    Button(
                         onClick = {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             if (draftFilters != filters) onFiltersChange(draftFilters)
                             showFilters = false
                         },
                         enabled = draftFilters != filters,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).height(KraftSpacing.TouchTarget),
                     ) { Text(stringResource(R.string.filter_apply)) }
                 }
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
             }
         }
     }
