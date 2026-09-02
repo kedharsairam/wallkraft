@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -132,8 +133,10 @@ fun FavoritesScreen(
                         Row {
                             val allSelected = favorites.isNotEmpty() &&
                                 selectedIds.size == favorites.size
+                            val haptic = LocalHapticFeedback.current
                             TextButton(
                                 onClick = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     selectedIds = if (allSelected) {
                                         emptySet()
                                     } else {
@@ -149,6 +152,7 @@ fun FavoritesScreen(
                             }
                             IconButton(
                                 onClick = {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     pendingRemove = favorites
                                         .filter { it.wallpaper.id in selectedIds }
                                         .map { it.wallpaper }
@@ -255,8 +259,10 @@ fun FavoritesScreen(
                 )
             },
             confirmButton = {
+                val haptic = LocalHapticFeedback.current
                 TextButton(
                     onClick = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         wallpapersToRemove.forEach { viewModel.remove(it.id) }
                         val removedIds = wallpapersToRemove.mapTo(mutableSetOf()) { it.id }
                         selectedIds = selectedIds - removedIds

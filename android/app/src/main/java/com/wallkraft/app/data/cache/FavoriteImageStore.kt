@@ -47,21 +47,21 @@ class FavoriteImageStore(
         } else null
     }
 
-    /** Downloads the full-res image for [wallpaper] into the store. */
-    suspend fun save(wallpaper: Wallpaper) {
-        if (wallpaper.path.isBlank()) return
+    /** Downloads the full-res image for [wallpaper] into the store. Returns true on success. */
+    suspend fun save(wallpaper: Wallpaper): Boolean {
+        if (wallpaper.path.isBlank()) return false
         val file = File(directory, sanitizeId(wallpaper.id))
-        if (file.exists() && file.length() > 0) return
+        if (file.exists() && file.length() > 0) return true
         // Pre-check: don't start a download if we're already at the cap and the
         // device is low on storage (avoid filling the disk).
         if (isOverLimit()) evictOldest()
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             try {
                 directory.mkdirs()
                 val request = Request.Builder().url(wallpaper.path).get().build()
                 client.newCall(request).execute().use { response ->
                     check(response.isSuccessful) { "HTTP ${response.code}" }
-                    val body = response.body ?: return@use
+                    val body = response.body ?: return@use false
                     // Write to a temp file and rename into place only on
                     // success, so a failed/interrupted download never leaves a
                     // partial file that `fileFor` would treat as valid.
@@ -74,11 +74,13 @@ class FavoriteImageStore(
                     }
                     // Post-save: enforce bound.
                     if (isOverLimit()) evictOldest()
+                    true
                 }
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id}", e)
+                false
             }
         }
     }

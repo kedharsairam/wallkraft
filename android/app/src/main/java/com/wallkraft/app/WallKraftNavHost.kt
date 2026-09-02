@@ -44,8 +44,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -58,6 +60,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.detail.DetailScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
@@ -243,13 +246,17 @@ private fun HigTabItem(
     onClick: () -> Unit,
 ) {
     val tint = if (selected) MaterialTheme.colorScheme.primary else KraftColors.TabBarInactive
+    val haptic = LocalHapticFeedback.current
 
     Column(
         modifier = modifier
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick,
+                onClick = {
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    onClick()
+                },
             )
             .padding(vertical = KraftSpacing.Spacing4),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -264,9 +271,11 @@ private fun HigTabItem(
         Spacer(Modifier.height(KraftSpacing.Spacing2))
         Text(
             text = stringResource(tab.labelRes),
-            fontSize = 10.sp,
+            fontSize = KraftTypeScale.Caption2,
             fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
             color = tint,
+            maxLines = 1,
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         )
     }
 }

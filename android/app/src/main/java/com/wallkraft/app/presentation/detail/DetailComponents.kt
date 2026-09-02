@@ -86,6 +86,8 @@ internal fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean
         text = "#$name",
         style = MaterialTheme.typography.labelMedium,
         color = Color.White,
+        maxLines = 1,
+        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier
             .clip(shape)
             .background(KraftColors.AccentBlue.copy(alpha = 0.45f))

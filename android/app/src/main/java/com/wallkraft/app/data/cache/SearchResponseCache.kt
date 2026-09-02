@@ -52,6 +52,8 @@ class SearchResponseCache(
                 directory.mkdirs()
                 fileFor(filters, page).writeText(json.encodeToString(WallpaperResponse.serializer(), response))
                 evictIfNeeded()
+            }.onFailure { e ->
+                android.util.Log.w("SearchResponseCache", "Failed to cache search response", e)
             }
         }
 

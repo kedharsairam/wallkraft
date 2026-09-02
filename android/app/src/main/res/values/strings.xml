@@ -117,6 +117,9 @@
     <string name="wallpaper_set_failed">Couldn\'t set wallpaper</string>
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
+    <string name="favorite_save_failed">Failed to save for offline. Check your connection.</string>
+    <string name="selected">Selected</string>
+    <string name="not_selected">Not selected</string>
     <string name="download">Download</string>
     <string name="share">Share</string>
     <string name="set_as_wallpaper">Set wallpaper</string>
