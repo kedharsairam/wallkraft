@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -63,6 +64,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -226,6 +228,9 @@ internal fun DetailContent(
             onLoaded = {
                 fullResLoaded = true
             },
+            onZoomChanged = { scale ->
+                isZoomed = scale > 1.01f
+            },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
             sharedElementModifier = sharedElementModifier,
@@ -281,13 +286,13 @@ internal fun DetailContent(
         }
 
         // -- Chrome overlay -- all UI elements in a single graphicsLayer --
-        // The shared element transition uses its own graphicsLayer compositing
-        // layer which bypasses zIndex. Wrapping ALL chrome in a single Box
-        // with graphicsLayer forces it into a separate, higher compositing
-        // layer that's always rendered on top of the image.
+        // The shared element transition creates its own compositing layer that
+        // can render above the chrome. graphicsLayer alone isn't enough — we
+        // need explicit zIndex to force the chrome into a higher layer.
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .zIndex(1f)
                 .graphicsLayer { alpha = chromeAlpha }
         ) {
             // Top bar -- back button with gradient.
@@ -414,13 +419,14 @@ internal fun DetailContent(
                         .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing12.toPx()).toDp() })
                         .padding(horizontal = KraftSpacing.Spacing16),
                 ) {
-                    DetailTextButton(
-                        text = stringResource(R.string.set_as_wallpaper),
+                    DetailCircleButton(
                         onClick = {
                             hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
                             onSetWallpaper()
                         },
-                        modifier = Modifier.weight(1f),
+                        icon = Icons.Filled.Wallpaper,
+                        contentDescription = stringResource(R.string.set_as_wallpaper),
+                        borderColor = KraftColors.AuroraBlue,
                     )
                     DetailCircleButton(
                         onClick = onToggleFavorite,
