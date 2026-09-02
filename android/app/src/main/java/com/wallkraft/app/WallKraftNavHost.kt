@@ -55,6 +55,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.detail.DetailScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
@@ -238,7 +239,7 @@ private fun HigTabItem(
                 indication = null,
                 onClick = onClick,
             )
-            .padding(top = 10.dp, bottom = 0.dp),
+            .padding(vertical = KraftSpacing.Spacing4),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -246,12 +247,12 @@ private fun HigTabItem(
             imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
             contentDescription = stringResource(tab.labelRes),
             tint = tint,
-            modifier = Modifier.size(26.dp),
+            modifier = Modifier.size(25.dp),
         )
-        Spacer(Modifier.height(1.dp))
+        Spacer(Modifier.height(KraftSpacing.Spacing2))
         Text(
             text = stringResource(tab.labelRes),
-            fontSize = 13.sp,
+            fontSize = 10.sp,
             fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
             color = tint,
         )

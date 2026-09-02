@@ -12,6 +12,8 @@ import android.os.Build
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,6 +59,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -306,7 +309,7 @@ fun WallpaperCropDialog(
                     .background(
                         Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0.0f to Color.Black.copy(alpha = 0.4f),
+                                0.0f to Color.Black.copy(alpha = KraftConstants.OverlayCropScrimTop),
                                 1.0f to Color.Transparent,
                             ),
                         ),
@@ -347,7 +350,7 @@ fun WallpaperCropDialog(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero))
-                    .background(Color.Black.copy(alpha = 0.65f)),
+                    .background(Color.Black.copy(alpha = KraftConstants.OverlayCropPanelAlpha)),
             ) {
                 Column(
                     modifier = Modifier
@@ -471,14 +474,25 @@ fun WallpaperCropDialog(
             }
 
             // Success feedback: centered checkmark + message, then auto-dismiss.
+            // Scale-in animation for the checkmark (Apple HIG: confirmation should feel satisfying).
             if (setResult == true) {
+                var successEntered by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) { successEntered = true }
+                val successScale by animateFloatAsState(
+                    targetValue = if (successEntered) 1f else 0.5f,
+                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+                    label = "successScale",
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.scale(successScale),
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = null,

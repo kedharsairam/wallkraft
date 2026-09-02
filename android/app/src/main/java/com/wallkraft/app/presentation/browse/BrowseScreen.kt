@@ -15,6 +15,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -196,15 +198,25 @@ fun BrowseScreen(
                         .fillMaxSize()
                         .clipToBounds(),
                 ) {
-                    when {
-                        uiState.isInitialLoading -> ShimmerGrid()
-                        uiState.error != null && uiState.wallpapers.isEmpty() ->
-                            ErrorState(
+                    // Crossfade between states for smooth transitions (Apple HIG: content changes should feel cohesive).
+                    val stateKey = when {
+                        uiState.isInitialLoading -> "loading"
+                        uiState.error != null && uiState.wallpapers.isEmpty() -> "error"
+                        uiState.wallpapers.isEmpty() -> "empty"
+                        else -> "grid"
+                    }
+                    Crossfade(
+                        targetState = stateKey,
+                        animationSpec = tween(durationMillis = 220),
+                        label = "browseState",
+                    ) { state ->
+                        when (state) {
+                            "loading" -> ShimmerGrid()
+                            "error" -> ErrorState(
                                 message = uiState.error ?: "",
                                 onRetry = viewModel::retry,
                             )
-                        uiState.wallpapers.isEmpty() ->
-                            EmptyState(
+                            "empty" -> EmptyState(
                                 title = stringResource(R.string.no_results_title),
                                 message = if (uiState.filters.query.isBlank()) {
                                     stringResource(R.string.no_results_hint_filters)
@@ -212,20 +224,21 @@ fun BrowseScreen(
                                     stringResource(R.string.no_results_hint_query, uiState.filters.query)
                                 },
                             )
-                        else -> WallpaperGrid(
-                            wallpapers = uiState.wallpapers,
-                            onOpen = onOpenWallpaper,
-                            onLoadMore = viewModel::loadNextPage,
-                            state = effectiveGridState,
-                            downloadedIds = downloadedIds,
-                            prefetchFullRes = prefetchFullRes,
-                            footer = {
-                                if (uiState.isAppending) GridAppendFooter()
-                            },
-                            modifier = Modifier.padding(bottom = navBarPadding),
-                            sharedTransitionScope = sharedTransitionScope,
-                            animatedVisibilityScope = animatedVisibilityScope,
-                        )
+                            else -> WallpaperGrid(
+                                wallpapers = uiState.wallpapers,
+                                onOpen = onOpenWallpaper,
+                                onLoadMore = viewModel::loadNextPage,
+                                state = effectiveGridState,
+                                downloadedIds = downloadedIds,
+                                prefetchFullRes = prefetchFullRes,
+                                footer = {
+                                    if (uiState.isAppending) GridAppendFooter()
+                                },
+                                modifier = Modifier.padding(bottom = navBarPadding),
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = animatedVisibilityScope,
+                            )
+                        }
                     }
                 }
             }

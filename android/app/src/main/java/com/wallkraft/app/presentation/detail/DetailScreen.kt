@@ -534,7 +534,7 @@ private fun DetailContent(
         ) {
             Surface(
                 shape = RoundedCornerShape(KraftRadius.Small),
-                color = Color.Black.copy(alpha = 0.6f),
+                color = Color.Black.copy(alpha = KraftConstants.OverlayPillAlpha),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -574,7 +574,7 @@ private fun DetailContent(
                         .background(
                             Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.55f),
+                                    Color.Black.copy(alpha = KraftConstants.OverlayScrimAlpha),
                                     Color.Transparent,
                                 ),
                             ),
@@ -589,13 +589,14 @@ private fun DetailContent(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .background(KraftColors.GlassDark)
+                                .border(1.dp, KraftColors.GlassBorderDark, CircleShape)
                                 .clickable(onClick = { handleBack() }),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.back),
-                                tint = MaterialTheme.colorScheme.onSurface,
+                                tint = Color.White,
                                 modifier = Modifier.size(20.dp),
                             )
                         }
@@ -697,12 +698,13 @@ private fun DetailContent(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                .background(KraftColors.GlassDark)
+                                .border(1.dp, KraftColors.GlassBorderDark, CircleShape),
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = Color.White,
                             )
                         }
                     } else {
@@ -963,13 +965,13 @@ private fun BottomPanel(
     }
 }
 
-/** Circular action button for the detail screen — 44dp, solid background. */
+/** Circular action button for the detail screen — 44dp, glass background for contrast on any wallpaper. */
 @Composable
 private fun DetailCircleButton(
     onClick: () -> Unit,
     icon: ImageVector,
     contentDescription: String?,
-    iconTint: Color = MaterialTheme.colorScheme.onSurface,
+    iconTint: Color = Color.White,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -977,7 +979,8 @@ private fun DetailCircleButton(
         modifier = modifier
             .size(44.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .background(KraftColors.GlassDark)
+            .border(1.dp, KraftColors.GlassBorderDark, CircleShape)
             .clickable(onClick = onClick),
     ) {
         Icon(
@@ -1072,14 +1075,14 @@ private fun DetailPanelContent(
             .padding(horizontal = KraftSpacing.Spacing16)
             .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
-        // Drag handle — 36×5, 0.3 alpha + soft shadow for legibility.
+        // Drag handle — 40×5, glass treatment for consistent chrome.
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .size(width = 36.dp, height = 5.dp)
+                .size(width = 40.dp, height = 5.dp)
                 .shadow(4.dp, RoundedCornerShape(2.5.dp), clip = false)
                 .clip(RoundedCornerShape(2.5.dp))
-                .background(Color.White.copy(alpha = 0.3f)),
+                .background(KraftColors.GlassDark),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
 
@@ -1136,7 +1139,7 @@ private fun DetailPanelContent(
                 Text(
                     text = stringResource(R.string.more_details),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = Color.White.copy(alpha = 0.55f),
+                        color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
                         letterSpacing = 0.4.sp,
                     ),
                 )
@@ -1144,7 +1147,7 @@ private fun DetailPanelContent(
                 Icon(
                     imageVector = Icons.Outlined.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.55f),
+                    tint = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
                     modifier = Modifier.size(12.dp),
                 )
             }
@@ -1179,7 +1182,7 @@ private fun DetailPanelContent(
                     Text(
                         text = stringResource(R.string.tags_heading),
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = 0.55f),
+                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
                             letterSpacing = 0.4.sp,
                         ),
                     )
@@ -1208,8 +1211,8 @@ private fun StatPill(text: String) {
         style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
         modifier = Modifier
             .clip(shape)
-            .background(Color.White.copy(alpha = 0.10f))
-            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), shape)
+            .background(Color.White.copy(alpha = KraftConstants.OverlayStatPillBg))
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = KraftConstants.OverlayStatPillBorder)), shape)
             .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
     )
 }

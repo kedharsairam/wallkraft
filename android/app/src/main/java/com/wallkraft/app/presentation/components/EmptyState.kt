@@ -1,5 +1,7 @@
 package com.wallkraft.app.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,9 +19,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +39,7 @@ import com.wallkraft.app.core.design.KraftSpacing
 /**
  * Clean empty state — large icon, concise title, and
  * optional action button. Used for no-results, empty favorites, etc.
+ * Entrance animation: icon scales in with spring, text fades in with delay.
  */
 @Composable
 fun EmptyState(
@@ -40,6 +50,19 @@ fun EmptyState(
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
+    var entered by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { entered = true }
+    val iconScale by animateFloatAsState(
+        targetValue = if (entered) 1f else 0.6f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
+        label = "emptyIconScale",
+    )
+    val contentAlpha by animateFloatAsState(
+        targetValue = if (entered) 1f else 0f,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 200f),
+        label = "emptyContentAlpha",
+    )
+
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -49,6 +72,7 @@ fun EmptyState(
         Box(
             modifier = Modifier
                 .size(80.dp)
+                .scale(iconScale)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center,
@@ -65,7 +89,9 @@ fun EmptyState(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing32),
+            modifier = Modifier
+                .padding(horizontal = KraftSpacing.Spacing32)
+                .graphicsLayer { alpha = contentAlpha },
         )
         Spacer(Modifier.height(KraftSpacing.Spacing8))
         Text(
@@ -73,7 +99,9 @@ fun EmptyState(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing32),
+            modifier = Modifier
+                .padding(horizontal = KraftSpacing.Spacing32)
+                .graphicsLayer { alpha = contentAlpha },
         )
         if (actionLabel != null && onAction != null) {
             Spacer(Modifier.height(KraftSpacing.Spacing16))
