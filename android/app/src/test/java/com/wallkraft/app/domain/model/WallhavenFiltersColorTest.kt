@@ -10,24 +10,24 @@ class WallhavenFiltersColorTest {
         val f = WallhavenFilters()
         // Default: All categories (111), SFW only (100)
         assertEquals(setOf(Category.General, Category.Anime, Category.People), f.categories)
-        assertEquals(setOf(Purity.SfW), f.purity)
+        assertEquals(setOf(Purity.SFW), f.purity)
         assertEquals("111", f.categories.toCategoryParam())
         assertEquals("100", f.purity.toPurityParam())
     }
 
     @Test
     fun copy_preservesPurity() {
-        val base = WallhavenFilters(purity = setOf(Purity.SfW, Purity.Sketchy))
+        val base = WallhavenFilters(purity = setOf(Purity.SFW, Purity.Sketchy))
         val q = base.copy(query = "cats")
-        assertEquals(setOf(Purity.SfW, Purity.Sketchy), q.purity)
+        assertEquals(setOf(Purity.SFW, Purity.Sketchy), q.purity)
         assertEquals("cats", q.query)
     }
 
     @Test
     fun purity_neverNsfw() {
         // Only 100 and 110 are allowed — never 001/011/111 that include NSFW.
-        val s = setOf(Purity.SfW).toPurityParam()
-        val ss = setOf(Purity.SfW, Purity.Sketchy).toPurityParam()
+        val s = setOf(Purity.SFW).toPurityParam()
+        val ss = setOf(Purity.SFW, Purity.Sketchy).toPurityParam()
         assertEquals("100", s)
         assertEquals("110", ss)
         // Ensure NSFW (001) is not an option

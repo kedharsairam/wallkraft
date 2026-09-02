@@ -1,7 +1,7 @@
 package com.wallkraft.app.presentation.favorites
 
 import com.wallkraft.app.domain.model.Wallpaper
-import com.wallkraft.app.domain.repository.Favorite
+import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
