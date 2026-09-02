@@ -115,6 +115,7 @@
     <string name="downloading">Downloading %1$s…</string>
     <string name="wallpaper_set">Wallpaper set</string>
     <string name="wallpaper_set_failed">Couldn\'t set wallpaper</string>
+    <string name="wallpaper_load_failed">Couldn\'t load this wallpaper</string>
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="favorite_save_failed">Failed to save for offline. Check your connection.</string>
@@ -137,6 +138,8 @@
     <string name="tags_heading">Tags</string>
     <string name="account_deleted">Account deleted</string>
     <string name="view_by_uploader">View wallpapers by %1$s</string>
+    <string name="stat_views">%1$s views</string>
+    <string name="stat_favorites">%1$s favorites</string>
 
     <!-- Error / empty states -->
     <string name="error_title">Something went wrong</string>

@@ -105,7 +105,6 @@ internal fun DetailContent(
     onToggleFavorite: () -> Unit,
     onDownload: () -> Unit,
     onSetWallpaper: () -> Unit,
-    onShare: () -> Unit,
     onBack: () -> Unit,
     onTagClick: (String) -> Unit,
     onUploaderClick: (String) -> Unit,
@@ -202,8 +201,8 @@ internal fun DetailContent(
         // offline favorite copy — costs zero data, so it loads immediately.
         // Keyed on [imageModel] and [dataSaverEnabled] so it flips to true if
         // a local copy appears while the screen is open (e.g. favoriting
-        // mid-view). While the setting is still unknown (null) we defer —
-        // never start a download against the default.
+        // mid-view). While the setting is still unknown (null) we never
+        // start a download — that would bypass data saver on first open.
         var fullResRequested by remember(imageModel, dataSaverEnabled) {
             mutableStateOf(dataSaverEnabled == false || imageModel is File)
         }
@@ -310,7 +309,10 @@ internal fun DetailContent(
                                 .clip(CircleShape)
                                 .background(KraftColors.GlassDark)
                                 .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape)
-                                .clickable(onClick = { handleBack() }),
+                                .clickable(onClick = {
+                                    hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    handleBack()
+                                }),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
@@ -364,20 +366,30 @@ internal fun DetailContent(
             }
 
             val density = LocalDensity.current
+            // System navigation bar inset (gesture nav or 3-button nav).
             val navInsetPx = remember {
                 (context as? Activity)?.window?.decorView
                     ?.let { ViewCompat.getRootWindowInsets(it) }
                     ?.getInsets(WindowInsetsCompat.Type.navigationBars())
                     ?.bottom ?: 0
             }
+            // Total bottom inset that DetailPanelContent's internal
+            // navigationBarsPadding() already accounts for: 16dp content
+            // padding + gesture bar height + system nav bar.
             val bottomInsetPx = with(density) {
                 KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
             }
+            // Expanded panel: min(full content, 65% of viewport).
             val maxPanelHeightPx = min(
                 fullContentHeight.toFloat(),
                 with(density) { (constraintsMaxHeight * 0.65f).toPx() },
             )
+            // Gesture bar height (gesture nav or 3-button nav area).
             val gestureBarHeight = with(density) { navBarPadding.toPx() }
+            // Collapsed panel: measured content height minus the bottom
+            // inset (already applied by navigationBarsPadding inside the
+            // panel), plus the gesture bar back (the panel anchors to the
+            // gesture bar, not above it). Clamped to [0, maxPanelHeight].
             val collapsedHeightPx = min(
                 (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
                 maxPanelHeightPx,
@@ -462,7 +474,12 @@ internal fun DetailContent(
                 navBarPadding = navBarPadding,
                 isZoomed = isZoomed,
                 expanded = expanded,
-                onExpandedChange = { expanded = it },
+                onExpandedChange = { newExpanded ->
+                    if (newExpanded != expanded) {
+                        hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                    }
+                    expanded = newExpanded
+                },
                 chromeAlpha = 1f, // parent already handles alpha
             )
         }

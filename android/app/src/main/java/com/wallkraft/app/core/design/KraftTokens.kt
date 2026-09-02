@@ -247,4 +247,8 @@ object KraftConstants {
     // -- Card / Surface --
     const val SurfaceVariantAlpha = 0.4f         // Empty state icon background
     const val IconTintAlpha = 0.7f               // Empty state icon tint
+
+    // -- Deleted uploader --
+    const val DeletedUploaderBgAlpha = 0.12f     // Deleted account avatar background
+    const val DeletedUploaderTextAlpha = 0.5f    // Deleted account name + icon tint
 }

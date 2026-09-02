@@ -1,8 +1,8 @@
 package com.wallkraft.app.presentation.detail
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -106,9 +106,15 @@ internal fun DetailPanelContent(
             isUploaderDeleted -> UploaderState.Deleted
             else -> UploaderState.Loading
         }
-        Crossfade(
+        AnimatedContent(
             targetState = uploaderState,
-            animationSpec = SharedElementSpringFloat,
+            label = "uploaderState",
+            transitionSpec = {
+                ContentTransform(
+                    targetContentEnter = fadeIn(animationSpec = SharedElementSpringFloat),
+                    initialContentExit = fadeOut(animationSpec = SharedElementSpringFloat),
+                )
+            },
             modifier = Modifier,
         ) { state ->
             when (state) {
@@ -178,10 +184,10 @@ internal fun DetailPanelContent(
                     StatPill(wallpaper.resolution)
                     StatPill(wallpaper.fileSizeFormatted())
                     if (wallpaper.views > 0) {
-                        StatPill("${formatCount(wallpaper.views)} views")
+                        StatPill(stringResource(R.string.stat_views, formatCount(wallpaper.views)))
                     }
                     if (wallpaper.favorites > 0) {
-                        StatPill("${formatCount(wallpaper.favorites)} favorites")
+                        StatPill(stringResource(R.string.stat_favorites, formatCount(wallpaper.favorites)))
                     }
                 }
 
