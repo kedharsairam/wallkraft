@@ -24,6 +24,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
@@ -48,7 +49,7 @@ fun RateLimitBanner(modifier: Modifier = Modifier) {
                 imageVector = Icons.Filled.WarningAmber,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(KraftIconSize.Medium),
             )
             Text(
                 text = stringResource(R.string.rate_limit_banner),

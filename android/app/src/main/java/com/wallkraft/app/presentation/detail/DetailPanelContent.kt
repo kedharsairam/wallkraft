@@ -43,8 +43,10 @@ import androidx.compose.ui.unit.sp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.formatCount
 
@@ -85,9 +87,9 @@ internal fun DetailPanelContent(
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .size(width = 40.dp, height = 5.dp)
-                .shadow(4.dp, RoundedCornerShape(2.5.dp), clip = false)
-                .clip(RoundedCornerShape(2.5.dp))
+                .size(width = KraftSpacing.Spacing40, height = KraftSpacing.Spacing4)
+                .shadow(KraftSpacing.Spacing4, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
+                .clip(RoundedCornerShape(KraftRadius.DragHandle))
                 .background(KraftColors.GlassDark),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
@@ -146,15 +148,15 @@ internal fun DetailPanelContent(
                     text = stringResource(R.string.more_details),
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
-                        letterSpacing = 0.4.sp,
+                        letterSpacing = KraftTypeScale.LabelSpacing,
                     ),
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(KraftSpacing.Spacing4))
                 Icon(
                     imageVector = Icons.Outlined.KeyboardArrowDown,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
-                    modifier = Modifier.size(12.dp),
+                    modifier = Modifier.size(KraftIconSize.Tiny),
                 )
             }
         }
@@ -189,7 +191,7 @@ internal fun DetailPanelContent(
                         text = stringResource(R.string.tags_heading),
                         style = MaterialTheme.typography.labelSmall.copy(
                             color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
-                            letterSpacing = 0.4.sp,
+                            letterSpacing = KraftTypeScale.LabelSpacing,
                         ),
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))

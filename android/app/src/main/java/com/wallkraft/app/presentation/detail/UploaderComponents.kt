@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
@@ -99,8 +101,8 @@ internal fun UploaderRow(
 @Composable
 internal fun UploaderRowPlaceholder() {
     val pulse by rememberInfiniteTransition(label = "uploaderPlaceholder").animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.5f,
+        initialValue = KraftConstants.SkeletonAlphaMin,
+        targetValue = KraftConstants.SkeletonAlphaMax,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 750, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse,
@@ -113,15 +115,15 @@ internal fun UploaderRowPlaceholder() {
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(KraftSpacing.AvatarSize)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = pulse)),
         )
         Spacer(Modifier.width(KraftSpacing.Spacing12))
         Box(
             modifier = Modifier
-                .width(120.dp)
-                .height(16.dp)
+                .width(KraftSpacing.Spacing40 * 3)
+                .height(KraftSpacing.Spacing4)
                 .clip(RoundedCornerShape(KraftRadius.Small))
                 .background(Color.White.copy(alpha = pulse)),
         )
@@ -144,7 +146,7 @@ internal fun UploaderAvatar(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(32.dp)
+            .size(KraftSpacing.AvatarSize)
             .clip(CircleShape)
             .background(avatarColor(name)),
     ) {
@@ -189,7 +191,7 @@ internal fun DeletedUploaderRow() {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(32.dp)
+                .size(KraftSpacing.AvatarSize)
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.12f)),
         ) {
@@ -197,7 +199,7 @@ internal fun DeletedUploaderRow() {
                 imageVector = Icons.Filled.Person,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(KraftIconSize.Small),
             )
         }
         Spacer(Modifier.width(KraftSpacing.Spacing12))

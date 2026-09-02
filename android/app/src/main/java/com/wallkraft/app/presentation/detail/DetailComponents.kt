@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
@@ -34,7 +35,7 @@ internal fun DetailCircleButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(44.dp)
+            .size(KraftSpacing.TouchTarget)
             .clip(CircleShape)
             .background(KraftColors.GlassDark)
             .border(1.dp, KraftColors.GlassBorderDark, CircleShape)
@@ -44,7 +45,7 @@ internal fun DetailCircleButton(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = iconTint,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier.size(KraftIconSize.Medium),
         )
     }
 }
@@ -59,8 +60,8 @@ internal fun DetailTextButton(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .size(height = 44.dp, width = 200.dp)
-            .clip(RoundedCornerShape(50))
+            .size(height = KraftSpacing.TouchTarget, width = 200.dp)
+            .clip(RoundedCornerShape(KraftRadius.Pill))
             .background(MaterialTheme.colorScheme.primary)
             .clickable(onClick = onClick),
     ) {

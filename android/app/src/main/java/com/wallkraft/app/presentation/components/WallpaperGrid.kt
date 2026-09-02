@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -30,6 +30,7 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.FlowPreview
@@ -175,8 +176,8 @@ fun GridAppendFooter() {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp),
+            .height(KraftSpacing.Spacing48),
     ) {
-        CircularProgressIndicator(modifier = Modifier.height(24.dp).width(24.dp))
+        CircularProgressIndicator(modifier = Modifier.size(KraftIconSize.Large))
     }
 }

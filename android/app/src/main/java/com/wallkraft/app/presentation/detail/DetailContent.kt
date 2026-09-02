@@ -70,6 +70,7 @@ import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
@@ -235,7 +236,7 @@ internal fun DetailContent(
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().height(2.dp),
+                modifier = Modifier.fillMaxWidth().height(KraftSpacing.ProgressBarHeight),
                 color = KraftColors.AccentGreen,
                 trackColor = Color.Transparent,
             )
@@ -260,7 +261,7 @@ internal fun DetailContent(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
-                        strokeWidth = 2.dp,
+                        strokeWidth = KraftSpacing.SpinnerStroke,
                         color = Color.White,
                     )
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
@@ -305,17 +306,17 @@ internal fun DetailContent(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(KraftColors.GlassDark)
-                                .border(1.dp, KraftColors.GlassBorderDark, CircleShape)
+                                .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape)
                                 .clickable(onClick = { handleBack() }),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.back),
                                 tint = Color.White,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(KraftIconSize.Medium),
                             )
                         }
                     }
@@ -391,7 +392,7 @@ internal fun DetailContent(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + 12.dp.toPx()).toDp() })
+                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing12.toPx()).toDp() })
                         .padding(horizontal = KraftSpacing.Spacing16),
                 ) {
                     DetailTextButton(
@@ -414,14 +415,14 @@ internal fun DetailContent(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(KraftColors.GlassDark)
-                                .border(1.dp, KraftColors.GlassBorderDark, CircleShape),
+                                .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape),
                         ) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(KraftIconSize.Medium),
+                                strokeWidth = KraftSpacing.SpinnerStroke,
                                 color = Color.White,
                             )
                         }
