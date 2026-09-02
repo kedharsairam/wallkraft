@@ -137,7 +137,7 @@ internal fun DetailPanelContent(
         // in place so the divider and stats below slide smoothly, and fades
         // away entirely once the user starts dragging (expanded) — it would be
         // pointless while the panel is visibly moving.
-        Spacer(Modifier.height(KraftSpacing.Spacing8))
+        Spacer(Modifier.height(KraftSpacing.Spacing4))
         AnimatedVisibility(
             visible = pullHintVisible,
             enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = SharedElementSpringFloat),
@@ -199,7 +199,7 @@ internal fun DetailPanelContent(
                             letterSpacing = KraftTypeScale.LabelSpacing,
                         ),
                     )
-                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+        Spacer(Modifier.height(KraftSpacing.Spacing4))
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                         verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
