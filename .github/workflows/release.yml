@@ -46,6 +46,16 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Restore release signing key
         # Decode the keystore from a GitHub secret and write key.properties so
         # assembleRelease signs with the real key. If the secrets are missing
@@ -68,6 +78,9 @@ jobs:
 
       - name: Run unit tests
         run: ./gradlew test --no-daemon
+
+      - name: Run lint
+        run: ./gradlew lint --no-daemon
 
       - name: Build release APK
         run: ./gradlew assembleRelease --no-daemon
