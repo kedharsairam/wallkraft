@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.WallpaperCropDialog
@@ -104,7 +105,7 @@ fun DetailScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = KraftColors.AuroraBlue)
             }
             uiState.error != null && wallpaper == null -> ErrorState(
                 message = uiState.error ?: "",
@@ -114,7 +115,7 @@ fun DetailScreen(
             wallpaper != null -> {
                 if (wallpaper.path.isBlank()) {
                     ErrorState(
-                        message = stringResource(R.string.wallpaper_set_failed),
+                        message = stringResource(R.string.wallpaper_load_failed),
                         onRetry = viewModel::load,
                         modifier = Modifier.fillMaxSize(),
                     )
@@ -173,16 +174,6 @@ fun DetailScreen(
                             }
                         },
                         onSetWallpaper = { setWallpaperTarget = wallpaper },
-                        onShare = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            scope.launch {
-                                WallpaperActions.share(
-                                    context,
-                                    wallpaper,
-                                    container.favoriteImageStore.fileFor(wallpaper.id),
-                                )
-                            }
-                        },
                         onBack = onBack,
                         onTagClick = onTagClick,
                         onUploaderClick = onUploaderClick,

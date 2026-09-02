@@ -158,8 +158,11 @@ internal fun BottomPanel(
                             }
                             lastDragTimestamp = now
                             // dragAmount is negative when dragging up; subtract so
-                            // pulling up grows the panel.
-                            dragOffsetPx -= dragAmount
+                            // pulling up grows the panel. Clamp so the offset
+                            // never exceeds the panel's range — prevents visual
+                            // overshoot when dragging fast.
+                            dragOffsetPx = (dragOffsetPx - dragAmount)
+                                .coerceIn(collapsedHeightPx - panelHeight.value, maxPanelHeightPx - panelHeight.value)
                             // Flip state live while dragging: once the panel
                             // clears the collapsed bar by a small margin the
                             // right-edge stack fades out. The panel Box's height

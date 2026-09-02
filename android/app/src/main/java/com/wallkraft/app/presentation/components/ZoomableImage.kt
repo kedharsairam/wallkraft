@@ -252,16 +252,24 @@ fun ZoomableImage(
                         onDoubleTap = { tapped ->
                             // Ignore until layout is valid and fly-in has settled.
                             if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@detectTapGestures
-                            // Simple toggle: zoomed → fit, fit → fill (first zoom level).
-                            val targetScale = if (scale > 1.01f) {
-                                1f
-                            } else {
-                                zoomLevels.first().coerceIn(1f, KraftConstants.MaxCropZoom)
+                            // Cycle through zoom levels: fit → fill → native → fit.
+                            // Find the current level and advance to the next.
+                            val currentLevel = zoomLevels.indexOfFirst {
+                                kotlin.math.abs(scale - it) < 0.05f
                             }
+                            val nextIndex = if (currentLevel >= 0) {
+                                (currentLevel + 1) % zoomLevels.size
+                            } else {
+                                // Not at any defined level (e.g. pinch-zoomed to
+                                // an in-between scale) — start from the first.
+                                0
+                            }
+                            val targetScale = zoomLevels[nextIndex]
+                                .coerceIn(1f, KraftConstants.MaxCropZoom)
                             if (targetScale <= 1.01f) {
                                 animateTo(1f, Offset.Zero)
                             } else {
-                                // Fill: center the image so no black bars on either axis.
+                                // Center the image so no black bars on either axis.
                                 val targetOffset = Offset(
                                     (viewportSize.width - viewportSize.width * targetScale) / 2f,
                                     (viewportSize.height - viewportSize.height * targetScale) / 2f,

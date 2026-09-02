@@ -193,12 +193,12 @@ internal fun DeletedUploaderRow() {
             modifier = Modifier
                 .size(KraftSpacing.AvatarSize)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.12f)),
+                .background(Color.White.copy(alpha = KraftConstants.DeletedUploaderBgAlpha)),
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
+                tint = Color.White.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
                 modifier = Modifier.size(KraftIconSize.Small),
             )
         }
@@ -206,7 +206,7 @@ internal fun DeletedUploaderRow() {
         Text(
             text = stringResource(R.string.account_deleted),
             style = MaterialTheme.typography.titleSmall.copy(
-                color = Color.White.copy(alpha = 0.5f),
+                color = Color.White.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
             ),
         )
     }
