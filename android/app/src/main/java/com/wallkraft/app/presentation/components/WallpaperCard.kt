@@ -163,7 +163,7 @@ fun WallpaperCard(
             ) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
+                    contentDescription = if (selected) stringResource(R.string.selected) else stringResource(R.string.not_selected),
                     tint = Color.White,
                     modifier = Modifier.size(KraftIconSize.Medium),
                 )

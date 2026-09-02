@@ -173,10 +173,12 @@ object WallpaperActions {
     }
 
     fun openInBrowser(context: Context, wallpaper: Wallpaper) {
-        context.startActivity(
-            Intent(Intent.ACTION_VIEW, wallpaper.url.toUri())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        runCatching {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, wallpaper.url.toUri())
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
     }
 
     /**

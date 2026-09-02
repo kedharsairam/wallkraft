@@ -60,6 +60,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -107,6 +108,7 @@ fun SearchFilterBar(
     val keyboard = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
+    val haptic = LocalHapticFeedback.current
     var isFocused by remember { mutableStateOf(false) }
     var showFilters by remember { mutableStateOf(false) }
     var barHeight by remember { mutableIntStateOf(0) }
@@ -205,10 +207,11 @@ fun SearchFilterBar(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-.size(KraftSpacing.TouchTarget)
+                                .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                                 .clickable {
+                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                     keyboard?.hide()
                                     focusManager.clearFocus()
                                     onSearch(query)
@@ -236,6 +239,7 @@ fun SearchFilterBar(
                             else MaterialTheme.colorScheme.surfaceContainerHigh,
                         )
                         .clickable {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             keyboard?.hide()
                             focusManager.clearFocus()
                             showFilters = !showFilters
@@ -295,6 +299,7 @@ fun SearchFilterBar(
                         FilterChip(
                             selected = checked,
                             onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 val current = draftFilters.categories
                                 val updated = if (cat in current) {
                                     if (current.size > 1) current - cat else current
@@ -321,6 +326,7 @@ fun SearchFilterBar(
                         FilterChip(
                             selected = checked,
                             onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 val current = draftFilters.purity
                                 val updated = if (p in current) {
                                     if (current.size > 1) current - p else current
@@ -345,7 +351,10 @@ fun SearchFilterBar(
                     Sorting.entries.forEach { s ->
                         FilterChip(
                             selected = draftFilters.sorting == s,
-                            onClick = { draftFilters = draftFilters.copy(sorting = s) },
+                            onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                draftFilters = draftFilters.copy(sorting = s)
+                            },
                             label = { Text(s.displayName()) },
                         )
                     }
@@ -364,7 +373,10 @@ fun SearchFilterBar(
                     Orientation.entries.forEach { o ->
                         FilterChip(
                             selected = draftFilters.orientation == o,
-                            onClick = { draftFilters = draftFilters.copy(orientation = o) },
+                            onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                draftFilters = draftFilters.copy(orientation = o)
+                            },
                             label = { Text(o.displayName()) },
                         )
                     }
@@ -379,12 +391,14 @@ fun SearchFilterBar(
                 ) {
                     TextButton(
                         onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             draftFilters = WallhavenFilters(query = filters.query)
                         },
                         modifier = Modifier.weight(1f),
                     ) { Text(stringResource(R.string.filter_reset), color = MaterialTheme.colorScheme.error) }
                     TextButton(
                         onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             if (draftFilters != filters) onFiltersChange(draftFilters)
                             showFilters = false
                         },

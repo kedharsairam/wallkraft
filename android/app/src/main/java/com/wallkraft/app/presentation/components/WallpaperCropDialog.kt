@@ -54,9 +54,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,13 +68,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -116,6 +121,7 @@ fun WallpaperCropDialog(
     onDismiss: () -> Unit,
     onConfirm: suspend (Bitmap, WallpaperPosition) -> Boolean,
 ) {
+    val haptic = LocalHapticFeedback.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var loadFailed by remember { mutableStateOf(false) }
     LaunchedEffect(imageFile) {
@@ -355,8 +361,11 @@ fun WallpaperCropDialog(
                     .size(KraftSpacing.TouchTarget)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
                     .background(KraftColors.GlassDark)
-                    .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
-                    .clickable(onClick = onDismiss),
+                    .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
+                    .clickable {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onDismiss()
+                    },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -444,6 +453,7 @@ fun WallpaperCropDialog(
                     Button(
                         onClick = {
                             if (applying) return@Button
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                             applying = true
                             scope.launch {
                                 // Crop is ~16MB at 1080×2400×4 — allocate off the main thread

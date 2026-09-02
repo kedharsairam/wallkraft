@@ -153,7 +153,14 @@ fun DetailScreen(
                             if (wasFavorite) {
                                 container.favoriteImageStore.delete(wallpaper.id)
                             } else {
-                                scope.launch { container.favoriteImageStore.save(wallpaper) }
+                                scope.launch {
+                                    val saved = container.favoriteImageStore.save(wallpaper)
+                                    if (!saved) {
+                                        snackbarHostState.showSnackbar(
+                                            context.getString(R.string.favorite_save_failed),
+                                        )
+                                    }
+                                }
                             }
                         },
                         onDownload = {
