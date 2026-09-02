@@ -212,7 +212,12 @@ internal fun DetailContent(
             onZoomChanged = { scale -> isZoomed = scale > 1.01f },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
-            sharedElementModifier = sharedElementModifier,
+            // sharedElementModifier intentionally NOT passed: the shared
+            // element transition creates its own compositing layer that
+            // renders above the chrome overlay (back button, action bar,
+            // bottom panel). No zIndex or graphicsLayer can fix this — the
+            // compositing layer always wins. Removing it lets the chrome
+            // render correctly on top via source order.
         )
 
         AnimatedVisibility(
@@ -316,12 +321,8 @@ internal fun DetailContent(
         with(density) { (constraintsMaxHeight * 0.65f).toPx() },
     )
     val gestureBarHeight = with(density) { navBarPadding.toPx() }
-    // Small upward offset so the collapsed panel doesn't sit too low
-    // against the gesture bar. Matches the visual centering of the
-    // action buttons above it.
-    val panelLiftPx = with(density) { 4.dp.toPx() }
     val collapsedHeightPx = min(
-        (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight - panelLiftPx).coerceAtLeast(0f),
+        (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
         maxPanelHeightPx,
     )
     val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
@@ -379,7 +380,7 @@ internal fun DetailContent(
                 horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing12.toPx()).toDp() })
+                    .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing16.toPx()).toDp() })
                     .padding(horizontal = KraftSpacing.Spacing16),
             ) {
                 DetailCircleButton(
@@ -387,8 +388,6 @@ internal fun DetailContent(
                         hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
                         onSetWallpaper()
                     },
-                    icon = Icons.Filled.Wallpaper,
-                    contentDescription = stringResource(R.string.set_as_wallpaper),
                     text = stringResource(R.string.set_as_wallpaper),
                     borderColor = KraftColors.AuroraBlue,
                 )
