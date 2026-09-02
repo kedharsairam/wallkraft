@@ -64,7 +64,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.view.ViewCompat
+
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.wallkraft.app.AppContainer
@@ -119,6 +119,7 @@ internal fun DetailContent(
     modifier: Modifier = Modifier,
     sharedElementModifier: Modifier = Modifier,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    sharedTransitionScope: SharedTransitionScope? = null,
 ) {
     val context = LocalContext.current
     var isZoomed by remember { mutableStateOf(false) }
@@ -212,12 +213,7 @@ internal fun DetailContent(
             onZoomChanged = { scale -> isZoomed = scale > 1.01f },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
-            // sharedElementModifier intentionally NOT passed: the shared
-            // element transition creates its own compositing layer that
-            // renders above the chrome overlay (back button, action bar,
-            // bottom panel). No zIndex or graphicsLayer can fix this — the
-            // compositing layer always wins. Removing it lets the chrome
-            // render correctly on top via source order.
+            sharedElementModifier = sharedElementModifier,
         )
 
         AnimatedVisibility(
@@ -302,27 +298,18 @@ internal fun DetailContent(
     }
     // ── End BoxWithConstraints ──
 
-    // ── Chrome overlay (OUTSIDE BoxWithConstraints) ──
-    // Placed after BoxWithConstraints in the outer Box, so source order
-    // ensures it renders above the shared element's compositing layer.
     val density = LocalDensity.current
-    val navInsetPx = remember {
-        (context as? Activity)?.window?.decorView
-            ?.let { ViewCompat.getRootWindowInsets(it) }
-            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
-            ?.bottom ?: 0
-    }
-    val bottomInsetPx = with(density) {
-        KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
-    }
     val constraintsMaxHeight = constraintsMaxHeightDp
     val maxPanelHeightPx = min(
         fullContentHeight.toFloat(),
         with(density) { (constraintsMaxHeight * 0.65f).toPx() },
     )
-    val gestureBarHeight = with(density) { navBarPadding.toPx() }
+    // Strip only the 16dp measurement overhead. The measured height includes
+    // .navigationBarsPadding() (system gesture bar inset) — that must stay
+    // in the panel height so the content inside has room to breathe above
+    // the gesture bar indicator line.
     val collapsedHeightPx = min(
-        (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
+        (collapsedContentHeight.toFloat() - with(density) { KraftSpacing.Spacing16.toPx() }).coerceAtLeast(0f),
         maxPanelHeightPx,
     )
     val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
@@ -332,7 +319,24 @@ internal fun DetailContent(
             .fillMaxSize()
             .graphicsLayer { alpha = chromeAlpha }
     ) {
-        // Top bar
+        // ── Chrome overlay (OUTSIDE BoxWithConstraints) ──
+        // renderInSharedTransitionScopeOverlay() is the official Compose API
+        // for keeping non-shared UI above a shared element during its
+        // transition. Without it, Modifier.sharedElement() elevates the image
+        // into the SharedTransitionScope overlay, causing it to render on top
+        // of siblings. This modifier places the chrome in the same overlay
+        // with a higher zIndex so it stays visible throughout the animation.
+        val chromeModifier = if (sharedTransitionScope != null) {
+            with(sharedTransitionScope) {
+                Modifier
+                    .fillMaxSize()
+                    .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
+            }
+        } else {
+            Modifier.fillMaxSize()
+        }
+        Box(modifier = chromeModifier) {
+            // Top bar
         if (!isZoomed) {
             Box(
                 modifier = Modifier
@@ -461,5 +465,6 @@ internal fun DetailContent(
             },
             chromeAlpha = 1f,
         )
+        } // end chrome zIndex box
     }
 }

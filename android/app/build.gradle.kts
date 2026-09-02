@@ -25,8 +25,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.13.0"
+        versionCode = 19
+        versionName = "1.14.0"
         resourceConfigurations += setOf("en")
     }
 

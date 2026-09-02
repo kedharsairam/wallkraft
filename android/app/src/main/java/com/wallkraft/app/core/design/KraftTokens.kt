@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
  * canvas that gets out of the way.
  *
  * Dark mode uses true black (#000000) for OLED — wallpapers pop, no gray haze.
- * Light mode uses pure white (#FFFFFF) — crisp, clean, iOS-native feel.
+ * Light mode uses pure white (#FFFFFF) — crisp, clean, platform-native feel.
  */
 object KraftColors {
     // ─── Brand Colors ──────────────────────────────────────────────────
@@ -27,28 +27,33 @@ object KraftColors {
     val AuroraRedDark = Color(0xFFFF453A)     // Dark mode variant
     val AuroraOrange = Color(0xFFFF9500)      // Warning, rate limit
     val AuroraOrangeDark = Color(0xFFFF9F0A)  // Dark mode variant
+    val AuroraPink = Color(0xFFFF2D55)        // Special accent
+    val AuroraPinkDark = Color(0xFFFF375D)    // Dark mode variant
     val AuroraPurple = Color(0xFFAF52DE)      // Tags, special actions
     val AuroraPurpleDark = Color(0xFFBF5AF2)  // Dark mode variant
+    val AuroraIndigo = Color(0xFF5856D6)      // Secondary accent
+    val AuroraIndigoDark = Color(0xFF5E5CE6)  // Dark mode variant
     val AuroraTeal = Color(0xFF00C7BE)        // Data saver, cache
     val AuroraTealDark = Color(0xFF64D2FF)    // Dark mode variant
 
-    // ─── Legacy aliases (mapped to Aurora palette) ─────────────────────
-    val AccentBlue get() = AuroraBlue
-    val AccentBlueDark get() = AuroraBlueDark
-    val AccentGreen get() = AuroraGreen
-    val AccentGreenDark get() = AuroraGreenDark
-    val AccentRed get() = AuroraRed
-    val AccentRedDark get() = AuroraRedDark
-    val AccentOrange get() = AuroraOrange
-    val AccentOrangeDark get() = AuroraOrangeDark
-    val AccentPink get() = Color(0xFFFF2D55)
-    val AccentPinkDark get() = Color(0xFFFF375D)
-    val AccentPurple get() = AuroraPurple
-    val AccentPurpleDark get() = AuroraPurpleDark
-    val AccentIndigo get() = Color(0xFF5856D6)
-    val AccentIndigoDark get() = Color(0xFF5E5CE6)
-    val AccentTeal get() = AuroraTeal
-    val AccentTealDark get() = AuroraTealDark
+    // ─── Legacy aliases ────────────────────────────────────────────────
+    // Kept for backwards compatibility. New code should use Aurora* names.
+    val AccentBlue = AuroraBlue
+    val AccentBlueDark = AuroraBlueDark
+    val AccentGreen = AuroraGreen
+    val AccentGreenDark = AuroraGreenDark
+    val AccentRed = AuroraRed
+    val AccentRedDark = AuroraRedDark
+    val AccentOrange = AuroraOrange
+    val AccentOrangeDark = AuroraOrangeDark
+    val AccentPink = AuroraPink
+    val AccentPinkDark = AuroraPinkDark
+    val AccentPurple = AuroraPurple
+    val AccentPurpleDark = AuroraPurpleDark
+    val AccentIndigo = AuroraIndigo
+    val AccentIndigoDark = AuroraIndigoDark
+    val AccentTeal = AuroraTeal
+    val AccentTealDark = AuroraTealDark
 
     // ─── Backgrounds & Surfaces — Light Mode ────────────────────────────
     // Pure white background, system gray groupings.
@@ -126,7 +131,7 @@ object KraftSpacing {
     /** Minimum tile width for adaptive grid columns. */
     val GridTileMin = 150.dp
 
-    /** Standard touch target — 44dp (Apple HIG minimum). */
+    /** Standard touch target — 44dp (accessibility minimum). */
     val TouchTarget = 44.dp
 
     /** Top bar height. */

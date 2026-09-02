@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-09-03
+
+### Changed
+- **Filter panel redesigned** — flat layout with section dividers, "Filters" title at top, cleaner visual hierarchy.
+- **Filter chip colors** — Purity chips now match Wallhaven's native style: SFW (green), Sketchy (amber). Categories, Sorting, Orientation keep the standard teal/blue palette.
+- **Reset/Apply buttons** — Reset is now a red outlined button (secondary action), Apply is a filled button (primary action). Clear visual hierarchy.
+- **Tab bar icon alignment** — icons shifted down 4dp (top 12 / bottom 4 padding) for better vertical centering with labels.
+- **Legacy color aliases** — `AccentPink`, `AccentIndigo` etc. now reference Aurora palette directly instead of allocating new `Color` objects via `get()`.
+- **SearchFilterBar spacing** — hardcoded `14.dp` replaced with `KraftSpacing.Spacing16` token; broken indentation fixed.
+- **Design token comments** — "iOS" and "Apple HIG" references removed from codebase; neutral design language throughout.
+
+### Fixed
+- **Detail screen z-order** — shared element was rendering above chrome (back button, action bar, bottom panel). Fixed using `renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)` on all chrome elements within `SharedTransitionScope` context.
+- **"More details" hint collision** — panel collapsed height was incorrectly subtracting nav bar inset, causing the hint to overlap the gesture bar. Fixed by stripping only the `Spacing16` measurement overhead from the formula.
+- **DetailScreen sharedTransitionScope** — parameter now passed from `DetailScreen` to `DetailContent` so the overlay modifier can be applied correctly.
+- **Unused import cleanup** — `zIndex` import removed from DetailContent.kt, `ViewCompat` import removed (no longer needed after height formula fix).
+
 ## [1.13.0] - 2026-09-01
 
 ### Changed

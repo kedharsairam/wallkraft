@@ -258,7 +258,7 @@ private fun HigTabItem(
                     onClick()
                 },
             )
-            .padding(vertical = KraftSpacing.Spacing4),
+            .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing4),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
