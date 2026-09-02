@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.favorites
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
@@ -41,7 +42,13 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Wallpaper
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.DownloadedFile
@@ -117,38 +124,49 @@ fun FavoritesScreen(
                     }
                 } else null,
                 actions = {
-                    if (selectionMode) {
-                        val allSelected = favorites.isNotEmpty() &&
-                            selectedIds.size == favorites.size
-                        TextButton(
-                            onClick = {
-                                selectedIds = if (allSelected) {
-                                    emptySet()
-                                } else {
-                                    favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
-                                }
-                            },
-                        ) {
-                            Text(
-                                stringResource(
-                                    if (allSelected) R.string.deselect_all else R.string.select_all,
-                                ),
-                            )
+                    AnimatedVisibility(
+                        visible = selectionMode,
+                        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.8f),
+                        exit = fadeOut(tween(180)) + scaleOut(tween(180), targetScale = 0.8f),
+                    ) {
+                        Row {
+                            val allSelected = favorites.isNotEmpty() &&
+                                selectedIds.size == favorites.size
+                            TextButton(
+                                onClick = {
+                                    selectedIds = if (allSelected) {
+                                        emptySet()
+                                    } else {
+                                        favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
+                                    }
+                                },
+                            ) {
+                                Text(
+                                    stringResource(
+                                        if (allSelected) R.string.deselect_all else R.string.select_all,
+                                    ),
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    pendingRemove = favorites
+                                        .filter { it.wallpaper.id in selectedIds }
+                                        .map { it.wallpaper }
+                                },
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = stringResource(R.string.delete),
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                            }
                         }
-                        IconButton(
-                            onClick = {
-                                pendingRemove = favorites
-                                    .filter { it.wallpaper.id in selectedIds }
-                                    .map { it.wallpaper }
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription = stringResource(R.string.delete),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    } else if (favorites.isNotEmpty()) {
+                    }
+                    AnimatedVisibility(
+                        visible = !selectionMode && favorites.isNotEmpty(),
+                        enter = fadeIn(tween(220)),
+                        exit = fadeOut(tween(180)),
+                    ) {
                         TextButton(onClick = {
                             selectedIds = favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
                         }) {

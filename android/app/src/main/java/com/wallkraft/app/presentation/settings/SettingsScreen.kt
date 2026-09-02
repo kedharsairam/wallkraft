@@ -2,6 +2,8 @@
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -146,13 +149,23 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
             SettingsGroup(title = stringResource(R.string.appearance)) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                     ThemeMode.entries.forEach { mode ->
+                        val isSelected = settings.themeMode == mode
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1f else 0.95f,
+                            animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+                            label = "chipScale",
+                        )
                         FilterChip(
-                            selected = settings.themeMode == mode,
+                            selected = isSelected,
                             onClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.setThemeMode(mode)
                             },
                             label = { Text(mode.displayName()) },
+                            modifier = Modifier.graphicsLayer {
+                                scaleX = scale
+                                scaleY = scale
+                            },
                         )
                     }
                 }
