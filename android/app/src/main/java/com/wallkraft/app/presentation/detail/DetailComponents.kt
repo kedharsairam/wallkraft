@@ -4,10 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +30,7 @@ internal fun DetailCircleButton(
     icon: ImageVector,
     contentDescription: String?,
     iconTint: Color = Color.White,
+    borderColor: Color = KraftColors.GlassBorderDark,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -40,7 +39,7 @@ internal fun DetailCircleButton(
             .size(KraftSpacing.TouchTarget)
             .clip(CircleShape)
             .background(KraftColors.GlassDark)
-            .border(1.dp, KraftColors.GlassBorderDark, CircleShape)
+            .border(KraftSpacing.BorderWidth, borderColor, CircleShape)
             .clickable(onClick = onClick),
     ) {
         androidx.compose.material3.Icon(
@@ -48,30 +47,6 @@ internal fun DetailCircleButton(
             contentDescription = contentDescription,
             tint = iconTint,
             modifier = Modifier.size(KraftIconSize.Medium),
-        )
-    }
-}
-
-/** Pill-shaped text button for "Set as Wallpaper" — matches the filter bar style. */
-@Composable
-internal fun DetailTextButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier
-            .height(KraftSpacing.TouchTarget)
-            .widthIn(min = 120.dp)
-            .clip(RoundedCornerShape(KraftRadius.Pill))
-            .background(MaterialTheme.colorScheme.primary)
-            .clickable(onClick = onClick),
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }

@@ -123,7 +123,7 @@
     <string name="not_selected">Not selected</string>
     <string name="download">Download</string>
     <string name="share">Share</string>
-    <string name="set_as_wallpaper">Set wallpaper</string>
+    <string name="set_as_wallpaper">Set as Wallpaper</string>
     <string name="wallpaper_position_title">Set wallpaper on</string>
     <string name="wallpaper_position_home">Home screen</string>
     <string name="wallpaper_position_lock">Lock screen</string>
