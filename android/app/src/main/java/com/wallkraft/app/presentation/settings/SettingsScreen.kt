@@ -144,7 +144,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
         ) {
             // Appearance
             SettingsGroup(title = stringResource(R.string.appearance)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8)) {
                     ThemeMode.entries.forEach { mode ->
                         FilterChip(
                             selected = settings.themeMode == mode,
@@ -166,8 +166,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.padding(top = KraftSpacing.Spacing8),
                 ) {
                     Category.entries.forEach { category ->
                         val selected = category in settings.categories
@@ -183,7 +183,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 10.dp),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
@@ -192,8 +192,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.padding(top = KraftSpacing.Spacing8),
                 ) {
                     Purity.entries.forEach { purity ->
                         val selected = purity in settings.purity
@@ -209,7 +209,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 10.dp),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
@@ -218,8 +218,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.padding(top = KraftSpacing.Spacing8),
                 ) {
                     Sorting.entries.forEach { sorting ->
                         FilterChip(
@@ -233,7 +233,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 10.dp),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
@@ -242,8 +242,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.padding(top = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    modifier = Modifier.padding(top = KraftSpacing.Spacing8),
                 ) {
                     Orientation.entries.forEach { orientation ->
                         FilterChip(
@@ -292,7 +292,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     )
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 10.dp),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Row(
@@ -411,7 +411,7 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
             text = title,
             style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
+            modifier = Modifier.padding(bottom = KraftSpacing.Spacing8, start = KraftSpacing.Spacing4),
         )
         Surface(
             shape = RoundedCornerShape(KraftRadius.Standard),

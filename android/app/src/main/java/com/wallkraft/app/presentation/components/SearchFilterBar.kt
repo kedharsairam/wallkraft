@@ -278,13 +278,13 @@ fun SearchFilterBar(
                     .clip(PanelShape)
                     .background(MaterialTheme.colorScheme.surface)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
+                    .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16),
             ) {
                 FilterSectionLabel(stringResource(R.string.filter_categories))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { cat ->
@@ -302,15 +302,15 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_purity))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Purity.entries.forEach { p ->
@@ -328,15 +328,15 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_sorting))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { s ->
@@ -347,15 +347,15 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_orientation))
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Orientation.entries.forEach { o ->
@@ -366,9 +366,9 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -379,7 +379,7 @@ fun SearchFilterBar(
                             draftFilters = WallhavenFilters(query = filters.query)
                         },
                         modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.filter_reset)) }
+                    ) { Text(stringResource(R.string.filter_reset), color = MaterialTheme.colorScheme.error) }
                     TextButton(
                         onClick = {
                             if (draftFilters != filters) onFiltersChange(draftFilters)
@@ -389,7 +389,7 @@ fun SearchFilterBar(
                         modifier = Modifier.weight(1f),
                     ) { Text(stringResource(R.string.filter_apply)) }
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
             }
         }
     }

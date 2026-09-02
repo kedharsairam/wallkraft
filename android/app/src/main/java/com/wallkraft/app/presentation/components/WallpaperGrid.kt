@@ -175,7 +175,7 @@ fun GridAppendFooter() {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp),
+            .height(48.dp),
     ) {
         CircularProgressIndicator(modifier = Modifier.height(24.dp).width(24.dp))
     }

@@ -172,4 +172,14 @@ object KraftConstants {
     const val OutlineVariantAlpha = 0.3f
     const val DividerAlpha = 0.4f
 
+    // -- Overlay Alphas (detail screen, crop dialog) --
+    const val OverlayScrimAlpha = 0.55f          // Top gradient scrim for status bar legibility
+    const val OverlayPillAlpha = 0.6f            // Data saver loading pill background
+    const val OverlayDragHandleAlpha = 0.38f     // Glass drag handle
+    const val OverlayHintAlpha = 0.55f           // Pull hint / section heading text
+    const val OverlayStatPillBg = 0.10f          // Stat pill background on images
+    const val OverlayStatPillBorder = 0.14f      // Stat pill border on images
+    const val OverlayCropScrimTop = 0.4f         // Crop dialog top scrim
+    const val OverlayCropPanelAlpha = 0.65f      // Crop dialog bottom panel
+
 }
