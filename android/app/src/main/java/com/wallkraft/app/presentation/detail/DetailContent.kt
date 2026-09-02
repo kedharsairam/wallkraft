@@ -118,6 +118,13 @@ internal fun DetailContent(
     var isSharing by remember { mutableStateOf(false) }
     val contentScope = rememberCoroutineScope()
     val hapticLocal = LocalHapticFeedback.current
+    // Reset sharing state if the composable is disposed mid-share (e.g.
+    // config change). Without this, a fresh composition would start with
+    // isSharing=false (correct) but the old coroutine could still be running
+    // and set it to true after the new composition initializes.
+    DisposableEffect(Unit) {
+        onDispose { isSharing = false }
+    }
 
     // Unified back while zoomed: animate internal zoom → fit and shared-element
     // bounds viewport→tile together in a single 220ms motion. Without this the
@@ -259,7 +266,7 @@ internal fun DetailContent(
                     modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing8),
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(KraftIconSize.Small),
                         strokeWidth = KraftSpacing.SpinnerStroke,
                         color = Color.White,
                     )
@@ -409,7 +416,10 @@ internal fun DetailContent(
                 ) {
                     DetailTextButton(
                         text = stringResource(R.string.set_as_wallpaper),
-                        onClick = onSetWallpaper,
+                        onClick = {
+                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onSetWallpaper()
+                        },
                         modifier = Modifier.weight(1f),
                     )
                     DetailCircleButton(
