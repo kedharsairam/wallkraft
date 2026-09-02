@@ -30,6 +30,27 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android build
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build
+            android/build
+            android/.gradle
+          key: ${{ runner.os }}-android-build-${{ hashFiles('android/**/*.kt', 'android/**/*.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-android-build-
+
       - name: Run unit tests
         run: ./gradlew test --no-daemon
 
@@ -38,3 +59,11 @@ jobs:
 
       - name: Run lint
         run: ./gradlew lint --no-daemon
+
+      - name: Report APK size
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## APK Size Report" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          ls -lh app/build/outputs/apk/debug/app-debug.apk 2>/dev/null || echo "APK not found"
+          echo '```' >> $GITHUB_STEP_SUMMARY
