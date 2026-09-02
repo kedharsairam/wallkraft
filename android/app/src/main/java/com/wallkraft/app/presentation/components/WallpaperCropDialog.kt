@@ -11,9 +11,15 @@ import android.graphics.RectF
 import android.os.Build
 import android.view.View
 import android.view.WindowManager
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -69,6 +75,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -192,7 +199,7 @@ fun WallpaperCropDialog(
 
         val bmp = bitmap
         if (bmp == null) {
-            // Loading or decode failure surface.
+            // Loading or decode failure surface — consistent error pattern (Apple HIG).
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -201,8 +208,29 @@ fun WallpaperCropDialog(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     if (loadFailed) {
-                        Text(stringResource(R.string.crop_load_failed))
-                        Spacer(Modifier.height(KraftSpacing.Spacing12))
+                        // Large icon circle — matches EmptyState pattern.
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
+                                modifier = Modifier.size(40.dp),
+                            )
+                        }
+                        Spacer(Modifier.height(KraftSpacing.Spacing16))
+                        Text(
+                            text = stringResource(R.string.crop_load_failed),
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing32),
+                        )
+                        Spacer(Modifier.height(KraftSpacing.Spacing16))
                         TextButton(onClick = onDismiss) {
                             Text(stringResource(R.string.cancel))
                         }
@@ -317,8 +345,8 @@ fun WallpaperCropDialog(
             )
 
             // Close button: top-left glass pill — same Kraft glass as detail
-            // screen (Black 0.38 + White 0.14 border, 12dp), so chrome is
-            // consistent across app.
+            // screen (Black 0.5 + White 0.18 border, 12dp), so chrome is
+            // consistent across app. Increased alpha for visibility on any wallpaper.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -326,8 +354,8 @@ fun WallpaperCropDialog(
                     .padding(KraftSpacing.Spacing12)
                     .size(48.dp)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .background(KraftColors.GlassDark)
-                    .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(KraftRadius.Standard))
                     .clickable(onClick = onDismiss),
                 contentAlignment = Alignment.Center,
             ) {
@@ -344,14 +372,21 @@ fun WallpaperCropDialog(
             // against the image — the standard approach. The image stays the hero;
             // the controls live on their own readable layer. The surface
             // extends to the bottom of the frame; only the content is padded
-            // above the nav bar.
-            Box(
+            // above the nav bar. Animated slide-in on first open.
+            AnimatedVisibility(
+                visible = true,
+                enter = expandVertically(tween(300, easing = FastOutSlowInEasing)) + fadeIn(tween(300)),
+                exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero))
-                    .background(Color.Black.copy(alpha = KraftConstants.OverlayCropPanelAlpha)),
+                    .fillMaxWidth(),
             ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero))
+                        .background(Color.Black.copy(alpha = KraftConstants.OverlayCropPanelAlpha)),
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -470,6 +505,7 @@ fun WallpaperCropDialog(
                             color = Color.White.copy(alpha = 0.8f),
                         )
                     }
+                }
                 }
             }
 

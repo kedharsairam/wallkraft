@@ -8,7 +8,9 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -154,6 +156,8 @@ fun WallKraftNavHost(container: AppContainer) {
                         navArgument("query") { type = NavType.StringType; defaultValue = "" },
                         navArgument("title") { type = NavType.StringType; defaultValue = "" },
                     ),
+                    enterTransition = { fadeIn(tween(220)) },
+                    exitTransition = { fadeOut(tween(220)) },
                 ) { entry ->
                     val query = entry.arguments?.getString("query").orEmpty()
                     val title = entry.arguments?.getString("title").orEmpty()
@@ -168,7 +172,11 @@ fun WallKraftNavHost(container: AppContainer) {
                         animatedVisibilityScope = this@composable,
                     )
                 }
-                composable(Routes.FAVORITES) {
+                composable(
+                    Routes.FAVORITES,
+                    enterTransition = { fadeIn(tween(220)) },
+                    exitTransition = { fadeOut(tween(220)) },
+                ) {
                     FavoritesScreen(
                         container = container,
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
@@ -178,7 +186,11 @@ fun WallKraftNavHost(container: AppContainer) {
                         animatedVisibilityScope = this@composable,
                     )
                 }
-                composable(Routes.SETTINGS) {
+                composable(
+                    Routes.SETTINGS,
+                    enterTransition = { fadeIn(tween(220)) },
+                    exitTransition = { fadeOut(tween(220)) },
+                ) {
                     SettingsScreen(
                         container = container,
                         navBarPadding = innerPadding.calculateBottomPadding(),

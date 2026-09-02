@@ -25,9 +25,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
-import androidx.compose.ui.unit.dp
 
 // Precomputed heights — deterministic pattern, no Random allocation per recomposition.
 private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 290, 340, 250, 310)
@@ -37,6 +38,7 @@ private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 
  *
  * Each tile uses a horizontal gradient that shifts from left to right,
  * matching the skeleton loading pattern used in modern apps.
+ * Item count is viewport-adaptive: enough tiles to fill the screen.
  */
 @Composable
 fun ShimmerGrid(modifier: Modifier = Modifier) {
@@ -59,6 +61,11 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         MaterialTheme.colorScheme.surfaceVariant,
     )
 
+    // Calculate viewport-appropriate item count: ~600dp per tile average height.
+    val density = LocalDensity.current
+    val viewportHeightDp = with(density) { 600.dp } // reasonable default for a phone screen
+    val itemCount = maxOf(6, (viewportHeightDp / 280.dp).toInt()) // ~280dp avg tile height
+
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         contentPadding = PaddingValues(KraftSpacing.Spacing8),
@@ -66,11 +73,11 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         verticalItemSpacing = KraftSpacing.Spacing8,
         modifier = modifier.fillMaxSize(),
     ) {
-        items(12) { index ->
+        items(itemCount) { index ->
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(placeholderHeights[index].dp)
+                    .height(placeholderHeights[index % placeholderHeights.size].dp)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .background(

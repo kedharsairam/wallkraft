@@ -673,7 +673,7 @@ private fun DetailContent(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + 8.dp.toPx()).toDp() })
+                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + 12.dp.toPx()).toDp() })
                         .padding(horizontal = KraftSpacing.Spacing16),
                 ) {
                     DetailTextButton(
@@ -1018,6 +1018,7 @@ private fun DetailTextButton(
 /**
  * A clickable tag chip — tapping it opens the tag-filtered grid. Uses the
  * accent blue treatment (tinted fill + border) so tags read as interactive.
+ * Increased alpha for readability on any wallpaper (Apple HIG: contrast ≥ 4.5:1).
  * Pass `clickable = false` for the invisible measurement pass.
  */
 @Composable
@@ -1029,9 +1030,9 @@ private fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean 
         color = Color.White,
         modifier = Modifier
             .clip(shape)
-            .background(KraftColors.AccentBlue.copy(alpha = 0.25f))
+            .background(KraftColors.AccentBlue.copy(alpha = 0.45f))
             .border(
-                border = BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = 0.55f)),
+                border = BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = 0.7f)),
                 shape = shape,
             )
             .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
@@ -1073,7 +1074,7 @@ private fun DetailPanelContent(
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(horizontal = KraftSpacing.Spacing16)
-            .padding(top = KraftSpacing.Spacing12, bottom = KraftSpacing.Spacing16 + bottomPadding),
+            .padding(top = KraftSpacing.Spacing16, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
         // Drag handle — 40×5, glass treatment for consistent chrome.
         Box(

@@ -274,7 +274,7 @@ fun SearchFilterBar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(8.dp, PanelShape)
+                    .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
                     .background(MaterialTheme.colorScheme.surface)
                     .verticalScroll(rememberScrollState())
