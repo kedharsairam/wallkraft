@@ -1,6 +1,7 @@
 ﻿package com.wallkraft.app.util
 
 import android.app.WallpaperManager
+import com.wallkraft.app.domain.model.WallpaperPosition
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
