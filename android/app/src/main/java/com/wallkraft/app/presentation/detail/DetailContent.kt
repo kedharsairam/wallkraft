@@ -64,7 +64,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -93,6 +92,12 @@ import kotlin.math.min
  * Pinch-to-zoom and double-tap work in place — no separate screen. The first
  * double-tap fills the image top-to-bottom exactly, the second zooms further,
  * the third returns.
+ *
+ * Layout: the image lives inside BoxWithConstraints (needed for zoom-level
+ * calculations and invisible measurement passes). The chrome overlay lives
+ * OUTSIDE BoxWithConstraints as a later sibling in the parent Box — this
+ * ensures it renders above the shared element's compositing layer via source
+ * order, without needing zIndex.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -120,24 +125,15 @@ internal fun DetailContent(
     var isSharing by remember { mutableStateOf(false) }
     val contentScope = rememberCoroutineScope()
     val hapticLocal = LocalHapticFeedback.current
-    // Reset sharing state if the composable is disposed mid-share (e.g.
-    // config change). Without this, a fresh composition would start with
-    // isSharing=false (correct) but the old coroutine could still be running
-    // and set it to true after the new composition initializes.
     DisposableEffect(Unit) {
         onDispose { isSharing = false }
     }
 
-    // Unified back while zoomed: animate internal zoom → fit and shared-element
-    // bounds viewport→tile together in a single 220ms motion. Without this the
-    // exit is two-step: snap to fit then shrink to tile.
     var resetZoomSignal by remember { mutableIntStateOf(0) }
     fun handleBack() {
         if (isZoomed) {
             resetZoomSignal++
             contentScope.launch {
-                // One frame so ZoomableImage's LaunchedEffect(resetZoomSignal)
-                // starts its 220ms animateTo before we pop — both run concurrently.
                 delay(16)
                 onBack()
             }
@@ -147,10 +143,6 @@ internal fun DetailContent(
     }
     androidx.activity.compose.BackHandler(enabled = isZoomed) { handleBack() }
 
-    // Chrome alpha — fades in from 0→1 on entry using the same spring spec
-    // as the shared element (dampingRatio=0.7, stiffness=400). Both animations
-    // start at the same frame with the same curve, so they feel like one
-    // cohesive transition.
     var chromeVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { chromeVisible = true }
     val chromeAlpha by animateFloatAsState(
@@ -159,7 +151,6 @@ internal fun DetailContent(
         label = "chromeAlpha",
     )
 
-    // Hide the system bars while zoomed so the image is truly edge-to-edge.
     val window = (context as? Activity)?.window
     if (window != null) {
         val controller = remember(window) { WindowInsetsControllerCompat(window, window.decorView) }
@@ -176,42 +167,34 @@ internal fun DetailContent(
     }
 
     val w = wallpaper.dimensionX.toFloat().takeIf { it > 0f } ?: 1f
-    val h = wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f
-    val aspect = w / h
+    val ht = wallpaper.dimensionY.toFloat().takeIf { it > 0f } ?: 1f
+    val aspect = w / ht
 
+    // ── Panel measurement state (hoisted so chrome can read outside BoxWithConstraints) ──
+    var collapsedContentHeight by remember { mutableIntStateOf(0) }
+    var fullContentHeight by remember { mutableIntStateOf(0) }
+    var constraintsMaxHeightDp by remember { mutableStateOf(0.dp) }
+    var expanded by remember(wallpaper.id) { mutableStateOf(false) }
+
+    // ── Image + invisible measurement boxes (inside BoxWithConstraints) ──
     BoxWithConstraints(modifier = modifier.background(Color.Black.copy(alpha = backgroundAlpha))) {
-        val constraintsMaxHeight = maxHeight
+        constraintsMaxHeightDp = maxHeight
         val viewW = maxWidth.value
         val viewH = maxHeight.value
-        // Fit size at 1x: ContentScale.Fit inside the viewport.
         val displayedW = if (aspect <= 0f) viewW else min(viewW, viewH * aspect)
         val displayedH = if (aspect <= 0f) viewH else min(viewW / aspect, viewH)
-        // Fill scale (relative to 1x fit) where the image covers the entire
-        // viewport — no black bars. Narrow fills height, wide fills width.
         val fillRelative = if (displayedW <= 0f || displayedH <= 0f) 1f
             else maxOf(viewW / displayedW, viewH / displayedH).coerceIn(1f, 8f)
-        // 1:1 native resolution (pixel zoom), always deeper than fill.
         val nativeRelative = if (aspect <= 0f || displayedH <= 0f) {
             (fillRelative * 2f).coerceAtMost(8f)
         } else {
-            (h / displayedH).coerceIn(fillRelative * 1.2f, 8f)
+            (ht / displayedH).coerceIn(fillRelative * 1.2f, 8f)
         }
-        // Double-tap cycle: fit (1x, full image) -> fill (no bars) -> native -> fit
         val zoomLevels = remember(fillRelative, nativeRelative) {
             listOf(fillRelative, nativeRelative, 1f)
         }
 
-        // -- No hero transition: the detail opens instantly showing the
-        // thumbnail, and the full-res image loads right away behind a subtle
-        // top loading bar. Simple and predictable — no animation to get wrong.
         var fullResLoaded by remember { mutableStateOf(false) }
-        // Data saver defers the full-res download until the user zooms (the
-        // moment they actually need the detail). A local file — like the
-        // offline favorite copy — costs zero data, so it loads immediately.
-        // Keyed on [imageModel] and [dataSaverEnabled] so it flips to true if
-        // a local copy appears while the screen is open (e.g. favoriting
-        // mid-view). While the setting is still unknown (null) we never
-        // start a download — that would bypass data saver on first open.
         var fullResRequested by remember(imageModel, dataSaverEnabled) {
             mutableStateOf(dataSaverEnabled == false || imageModel is File)
         }
@@ -225,21 +208,13 @@ internal fun DetailContent(
             imageHeight = wallpaper.dimensionY,
             resetZoomSignal = resetZoomSignal,
             clipRadius = KraftRadius.Standard * (1f - backgroundAlpha),
-            onLoaded = {
-                fullResLoaded = true
-            },
-            onZoomChanged = { scale ->
-                isZoomed = scale > 1.01f
-            },
+            onLoaded = { fullResLoaded = true },
+            onZoomChanged = { scale -> isZoomed = scale > 1.01f },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
             sharedElementModifier = sharedElementModifier,
         )
 
-        // Subtle loading bar at the very top while the full-res image loads.
-        // Indeterminate: pulses across the top to signal activity without
-        // faking progress. Only shown when the full-res is actually being
-        // requested — in data saver mode that's once the user zooms.
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
             enter = androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
@@ -253,9 +228,6 @@ internal fun DetailContent(
             )
         }
 
-        // Data saver: while zoomed before the full-res has arrived, show a
-        // small "loading full resolution" pill so the blurry thumbnail never
-        // reads as a broken image. Fades out the instant the image is ready.
         AnimatedVisibility(
             visible = isZoomed && fullResRequested && !fullResLoaded,
             enter = androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
@@ -285,219 +257,210 @@ internal fun DetailContent(
             }
         }
 
-        // -- Chrome overlay -- all UI elements in a single graphicsLayer --
-        // The shared element transition creates its own compositing layer that
-        // can render above the chrome. graphicsLayer alone isn't enough — we
-        // need explicit zIndex to force the chrome into a higher layer.
+        // Invisible measurement boxes — these MUST stay inside BoxWithConstraints
+        // because they need the viewport constraints to measure correctly.
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .zIndex(1f)
-                .graphicsLayer { alpha = chromeAlpha }
+                .fillMaxWidth()
+                .alpha(0f)
+                .onSizeChanged { collapsedContentHeight = it.height },
         ) {
-            // Top bar -- back button with gradient.
-            if (!isZoomed) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = KraftConstants.OverlayScrimAlpha),
-                                    Color.Transparent,
-                                ),
-                            ),
-                        )
-                        .statusBarsPadding(),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(KraftSpacing.TouchTarget)
-                                .clip(CircleShape)
-                                .background(KraftColors.GlassDark)
-                                .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape)
-                                .clickable(onClick = {
-                                    hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    handleBack()
-                                }),
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back),
-                                tint = Color.White,
-                                modifier = Modifier.size(KraftIconSize.Medium),
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Invisible measurement pass for collapsed panel height.
-            var collapsedContentHeight by remember { mutableIntStateOf(0) }
-            var fullContentHeight by remember { mutableIntStateOf(0) }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(0f)
-                    .onSizeChanged { collapsedContentHeight = it.height },
-            ) {
-                DetailPanelContent(
-                    wallpaper = wallpaper,
-                    onTagClick = onTagClick,
-                    onUploaderClick = onUploaderClick,
-                    isUploaderDeleted = isUploaderDeleted,
-                    clickable = false,
-                    collapsed = true,
-                    loadAvatar = false,
-                    bottomPadding = navBarPadding,
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = constraintsMaxHeight)
-                    .alpha(0f)
-                    .onSizeChanged { fullContentHeight = it.height },
-            ) {
-                DetailPanelContent(
-                    wallpaper = wallpaper,
-                    onTagClick = onTagClick,
-                    onUploaderClick = onUploaderClick,
-                    isUploaderDeleted = isUploaderDeleted,
-                    clickable = false,
-                    collapsed = false,
-                    loadAvatar = false,
-                    bottomPadding = navBarPadding,
-                )
-            }
-
-            val density = LocalDensity.current
-            // System navigation bar inset (gesture nav or 3-button nav).
-            val navInsetPx = remember {
-                (context as? Activity)?.window?.decorView
-                    ?.let { ViewCompat.getRootWindowInsets(it) }
-                    ?.getInsets(WindowInsetsCompat.Type.navigationBars())
-                    ?.bottom ?: 0
-            }
-            // Total bottom inset that DetailPanelContent's internal
-            // navigationBarsPadding() already accounts for: 16dp content
-            // padding + gesture bar height + system nav bar.
-            val bottomInsetPx = with(density) {
-                KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
-            }
-            // Expanded panel: min(full content, 65% of viewport).
-            val maxPanelHeightPx = min(
-                fullContentHeight.toFloat(),
-                with(density) { (constraintsMaxHeight * 0.65f).toPx() },
-            )
-            // Gesture bar height (gesture nav or 3-button nav area).
-            val gestureBarHeight = with(density) { navBarPadding.toPx() }
-            // Collapsed panel: measured content height minus the bottom
-            // inset (already applied by navigationBarsPadding inside the
-            // panel), plus the gesture bar back (the panel anchors to the
-            // gesture bar, not above it). Clamped to [0, maxPanelHeight].
-            val collapsedHeightPx = min(
-                (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight).coerceAtLeast(0f),
-                maxPanelHeightPx,
-            )
-            val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
-
-            var expanded by remember(wallpaper.id) { mutableStateOf(false) }
-
-            // -- Action buttons (horizontal row above bottom panel) --
-            if (!isZoomed && !expanded) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing12.toPx()).toDp() })
-                        .padding(horizontal = KraftSpacing.Spacing16),
-                ) {
-                    DetailCircleButton(
-                        onClick = {
-                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onSetWallpaper()
-                        },
-                        icon = Icons.Filled.Wallpaper,
-                        contentDescription = stringResource(R.string.set_as_wallpaper),
-                        borderColor = KraftColors.AuroraBlue,
-                    )
-                    DetailCircleButton(
-                        onClick = onToggleFavorite,
-                        icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
-                        iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
-                    )
-                    DetailCircleButton(
-                        onClick = onDownload,
-                        icon = Icons.Filled.Download,
-                        contentDescription = stringResource(R.string.download),
-                    )
-                    if (isSharing) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(KraftSpacing.TouchTarget)
-                                .clip(CircleShape)
-                                .background(KraftColors.GlassDark)
-                                .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape),
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(KraftIconSize.Medium),
-                                strokeWidth = KraftSpacing.SpinnerStroke,
-                                color = Color.White,
-                            )
-                        }
-                    } else {
-                        DetailCircleButton(
-                            onClick = {
-                                hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
-                                isSharing = true
-                                contentScope.launch {
-                                    try {
-                                        WallpaperActions.share(
-                                            context,
-                                            wallpaper,
-                                            container.favoriteImageStore.fileFor(wallpaper.id),
-                                        )
-                                    } finally {
-                                        isSharing = false
-                                    }
-                                }
-                            },
-                            icon = Icons.Filled.Share,
-                            contentDescription = stringResource(R.string.share),
-                        )
-                    }
-                }
-            }
-
-            // Bottom panel
-            BottomPanel(
+            DetailPanelContent(
                 wallpaper = wallpaper,
                 onTagClick = onTagClick,
                 onUploaderClick = onUploaderClick,
                 isUploaderDeleted = isUploaderDeleted,
-                collapsedHeightPx = collapsedHeightPx,
-                maxPanelHeightPx = maxPanelHeightPx,
-                contentOverflows = contentOverflows,
-                navBarPadding = navBarPadding,
-                isZoomed = isZoomed,
-                expanded = expanded,
-                onExpandedChange = { newExpanded ->
-                    if (newExpanded != expanded) {
-                        hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                    expanded = newExpanded
-                },
-                chromeAlpha = 1f, // parent already handles alpha
+                clickable = false,
+                collapsed = true,
+                loadAvatar = false,
+                bottomPadding = navBarPadding,
             )
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = maxHeight)
+                .alpha(0f)
+                .onSizeChanged { fullContentHeight = it.height },
+        ) {
+            DetailPanelContent(
+                wallpaper = wallpaper,
+                onTagClick = onTagClick,
+                onUploaderClick = onUploaderClick,
+                isUploaderDeleted = isUploaderDeleted,
+                clickable = false,
+                collapsed = false,
+                loadAvatar = false,
+                bottomPadding = navBarPadding,
+            )
+        }
+    }
+    // ── End BoxWithConstraints ──
+
+    // ── Chrome overlay (OUTSIDE BoxWithConstraints) ──
+    // Placed after BoxWithConstraints in the outer Box, so source order
+    // ensures it renders above the shared element's compositing layer.
+    val density = LocalDensity.current
+    val navInsetPx = remember {
+        (context as? Activity)?.window?.decorView
+            ?.let { ViewCompat.getRootWindowInsets(it) }
+            ?.getInsets(WindowInsetsCompat.Type.navigationBars())
+            ?.bottom ?: 0
+    }
+    val bottomInsetPx = with(density) {
+        KraftSpacing.Spacing16.toPx() + navBarPadding.toPx() + navInsetPx
+    }
+    val constraintsMaxHeight = constraintsMaxHeightDp
+    val maxPanelHeightPx = min(
+        fullContentHeight.toFloat(),
+        with(density) { (constraintsMaxHeight * 0.65f).toPx() },
+    )
+    val gestureBarHeight = with(density) { navBarPadding.toPx() }
+    // Small upward offset so the collapsed panel doesn't sit too low
+    // against the gesture bar. Matches the visual centering of the
+    // action buttons above it.
+    val panelLiftPx = with(density) { 4.dp.toPx() }
+    val collapsedHeightPx = min(
+        (collapsedContentHeight.toFloat() - bottomInsetPx + gestureBarHeight - panelLiftPx).coerceAtLeast(0f),
+        maxPanelHeightPx,
+    )
+    val contentOverflows = fullContentHeight.toFloat() > maxPanelHeightPx
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = chromeAlpha }
+    ) {
+        // Top bar
+        if (!isZoomed) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = KraftConstants.OverlayScrimAlpha),
+                                Color.Transparent,
+                            ),
+                        ),
+                    )
+                    .statusBarsPadding(),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(KraftSpacing.TouchTarget)
+                            .clip(CircleShape)
+                            .background(KraftColors.GlassDark)
+                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape)
+                            .clickable(onClick = {
+                                hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                                handleBack()
+                            }),
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = Color.White,
+                            modifier = Modifier.size(KraftIconSize.Medium),
+                        )
+                    }
+                }
+            }
+        }
+
+        // Action buttons
+        if (!isZoomed && !expanded) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing12.toPx()).toDp() })
+                    .padding(horizontal = KraftSpacing.Spacing16),
+            ) {
+                DetailCircleButton(
+                    onClick = {
+                        hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSetWallpaper()
+                    },
+                    icon = Icons.Filled.Wallpaper,
+                    contentDescription = stringResource(R.string.set_as_wallpaper),
+                    text = stringResource(R.string.set_as_wallpaper),
+                    borderColor = KraftColors.AuroraBlue,
+                )
+                DetailCircleButton(
+                    onClick = onToggleFavorite,
+                    icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
+                    iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                )
+                DetailCircleButton(
+                    onClick = onDownload,
+                    icon = Icons.Filled.Download,
+                    contentDescription = stringResource(R.string.download),
+                )
+                if (isSharing) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(KraftSpacing.TouchTarget)
+                            .clip(CircleShape)
+                            .background(KraftColors.GlassDark)
+                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape),
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(KraftIconSize.Medium),
+                            strokeWidth = KraftSpacing.SpinnerStroke,
+                            color = Color.White,
+                        )
+                    }
+                } else {
+                    DetailCircleButton(
+                        onClick = {
+                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                            isSharing = true
+                            contentScope.launch {
+                                try {
+                                    WallpaperActions.share(
+                                        context,
+                                        wallpaper,
+                                        container.favoriteImageStore.fileFor(wallpaper.id),
+                                    )
+                                } finally {
+                                    isSharing = false
+                                }
+                            }
+                        },
+                        icon = Icons.Filled.Share,
+                        contentDescription = stringResource(R.string.share),
+                    )
+                }
+            }
+        }
+
+        // Bottom panel
+        BottomPanel(
+            wallpaper = wallpaper,
+            onTagClick = onTagClick,
+            onUploaderClick = onUploaderClick,
+            isUploaderDeleted = isUploaderDeleted,
+            collapsedHeightPx = collapsedHeightPx,
+            maxPanelHeightPx = maxPanelHeightPx,
+            contentOverflows = contentOverflows,
+            navBarPadding = navBarPadding,
+            isZoomed = isZoomed,
+            expanded = expanded,
+            onExpandedChange = { newExpanded ->
+                if (newExpanded != expanded) {
+                    hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
+                expanded = newExpanded
+            },
+            chromeAlpha = 1f,
+        )
     }
 }
