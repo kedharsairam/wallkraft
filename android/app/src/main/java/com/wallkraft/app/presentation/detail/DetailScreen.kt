@@ -145,6 +145,9 @@ import java.io.File
 import kotlinx.coroutines.launch
 import kotlin.math.min
 
+private val SharedElementSpring = spring<androidx.compose.ui.geometry.Rect>(dampingRatio = 0.7f, stiffness = 400f)
+private val SharedElementSpringFloat = spring<Float>(dampingRatio = 0.7f, stiffness = 400f)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DetailScreen(
@@ -153,7 +156,6 @@ fun DetailScreen(
     onBack: () -> Unit,
     onTagClick: (String) -> Unit = {},
     onUploaderClick: (String) -> Unit = {},
-    onZoomChanged: (Boolean) -> Unit = {},
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
     previewThumb: String = "",
     previewPath: String = "",
@@ -201,7 +203,7 @@ fun DetailScreen(
     // read by DetailContent to color the background.
     val backgroundAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        backgroundAlpha.animateTo(1f, animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f))
+        backgroundAlpha.animateTo(1f, animationSpec = SharedElementSpringFloat)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -229,7 +231,7 @@ fun DetailScreen(
                             Modifier.sharedElement(
                                 state = rememberSharedContentState(key = wallpaper.id),
                                 animatedVisibilityScope = animatedVisibilityScope,
-                                boundsTransform = { _, _ -> spring(dampingRatio = 0.7f, stiffness = 400f) },
+                                boundsTransform = { _, _ -> SharedElementSpring },
                             )
                         }
                     } else {
@@ -282,7 +284,6 @@ fun DetailScreen(
                         onBack = onBack,
                         onTagClick = onTagClick,
                         onUploaderClick = onUploaderClick,
-                        onZoomChanged = onZoomChanged,
                         navBarPadding = navBarPadding,
                         modifier = Modifier.fillMaxSize(),
                         sharedElementModifier = sharedElementModifier,
@@ -389,7 +390,6 @@ private fun DetailContent(
     onBack: () -> Unit,
     onTagClick: (String) -> Unit,
     onUploaderClick: (String) -> Unit,
-    onZoomChanged: (Boolean) -> Unit,
     navBarPadding: androidx.compose.ui.unit.Dp,
     modifier: Modifier = Modifier,
     sharedElementModifier: Modifier = Modifier,
@@ -428,7 +428,7 @@ private fun DetailContent(
     LaunchedEffect(Unit) { chromeVisible = true }
     val chromeAlpha by animateFloatAsState(
         targetValue = if (chromeVisible) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        animationSpec = SharedElementSpringFloat,
         label = "chromeAlpha",
     )
 
@@ -498,14 +498,6 @@ private fun DetailContent(
             imageHeight = wallpaper.dimensionY,
             resetZoomSignal = resetZoomSignal,
             clipRadius = KraftRadius.Standard * (1f - backgroundAlpha),
-            onZoomChanged = { newScale ->
-                val zoomed = newScale > 1.01f
-                // First zoom is the user asking for detail — request the
-                // full-res image now (data saver). Harmless when already on.
-                if (zoomed) fullResRequested = true
-                isZoomed = zoomed
-                onZoomChanged(zoomed)
-            },
             onLoaded = {
                 fullResLoaded = true
             },
@@ -520,8 +512,8 @@ private fun DetailContent(
         // requested — in data saver mode that's once the user zooms.
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
-            enter = fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
-            exit = fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            enter = fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
@@ -536,8 +528,8 @@ private fun DetailContent(
         // reads as a broken image. Fades out the instant the image is ready.
         AnimatedVisibility(
             visible = isZoomed && fullResRequested && !fullResLoaded,
-            enter = fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
-            exit = fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            enter = fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = KraftSpacing.Spacing24),
         ) {
             Surface(
@@ -813,9 +805,9 @@ private fun BottomPanel(
         if (collapsedHeightPx > 0f) {
             val target = if (expanded) maxPanelHeightPx else collapsedHeightPx
             if (!userInteracted || target > panelHeight.value) {
-                panelHeight.animateTo(
+            panelHeight.animateTo(
                     targetValue = target,
-                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+            animationSpec = SharedElementSpringFloat,
                 )
             }
         }
@@ -935,7 +927,7 @@ private fun BottomPanel(
                                 panelHeight.snapTo(currentPx)
                                 panelHeight.animateTo(
                                     targetValue = if (settleExpanded) maxPanelHeightPx else collapsedHeightPx,
-                                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+                                    animationSpec = SharedElementSpringFloat,
                                 )
                             }
                             dragOffsetPx = 0f
@@ -1105,8 +1097,7 @@ private fun DetailPanelContent(
         }
         Crossfade(
             targetState = uploaderState,
-            animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
-            label = "uploaderRow",
+            animationSpec = SharedElementSpringFloat,
             modifier = Modifier,
         ) { state ->
             when (state) {
@@ -1133,8 +1124,8 @@ private fun DetailPanelContent(
         Spacer(Modifier.height(KraftSpacing.Spacing8))
         AnimatedVisibility(
             visible = pullHintVisible,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)),
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier,
         ) {
             Row(

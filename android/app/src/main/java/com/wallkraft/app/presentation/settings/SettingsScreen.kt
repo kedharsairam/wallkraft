@@ -101,6 +101,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     var cacheSizeText by remember { mutableStateOf("—") }
     var favSizeText by remember { mutableStateOf("—") }
     var favCount by remember { mutableStateOf(0) }
+    val githubUrl = stringResource(R.string.github_url)
 
     // Compute cache sizes
     LaunchedEffect(Unit) {
@@ -160,7 +161,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
             // Browsing — all 4 browse filters
             SettingsGroup(title = stringResource(R.string.browsing_title)) {
                 Text(
-                    text = "Categories",
+                    text = stringResource(R.string.settings_categories),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -186,7 +187,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
-                    text = "Purity",
+                    text = stringResource(R.string.settings_purity),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -212,7 +213,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
-                    text = "Sorting",
+                    text = stringResource(R.string.settings_sorting),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -236,7 +237,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
                 )
                 Text(
-                    text = "Orientation",
+                    text = stringResource(R.string.settings_orientation),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -336,7 +337,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(KraftRadius.Standard))
                         .clickable { showApiDialog = true }
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -382,7 +383,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     title = stringResource(R.string.github_title),
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/kedharsairam/wallkraft"))
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
                         context.startActivity(intent)
                     },
                 )
@@ -427,7 +428,7 @@ private fun AboutRow(title: String, subtitle: String? = null, onClick: () -> Uni
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(KraftRadius.Standard))
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,

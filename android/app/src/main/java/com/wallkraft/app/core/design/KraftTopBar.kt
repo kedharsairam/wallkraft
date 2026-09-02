@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.HorizontalDivider
@@ -39,7 +38,7 @@ fun KraftTopBar(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8)
-                .height(44.dp),
+                .height(KraftSpacing.TopBarHeight),
         ) {
             if (navigationIcon != null) {
                 navigationIcon()
@@ -57,7 +56,7 @@ fun KraftTopBar(
             }
         }
         HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
         )
     }
 }

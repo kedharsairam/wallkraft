@@ -47,9 +47,9 @@ class SettingsStore(private val context: Context) : SettingsRepository {
     override suspend fun current(): AppSettings = settings.first()
 
     override suspend fun update(transform: (AppSettings) -> AppSettings) {
-        // Read current API key from encrypted store, apply transform, write back.
-        val currentApiKey = encryptedKeyStore.getApiKey()
+        // Read current API key from encrypted store inside the edit block for atomicity.
         context.wallKraftDataStore.edit { prefs ->
+            val currentApiKey = encryptedKeyStore.getApiKey()
             val current = prefs.toSettings(currentApiKey)
             val updated = transform(current)
             // Persist API key to encrypted store (not DataStore).

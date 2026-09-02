@@ -16,6 +16,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.nio.file.Files
 
@@ -48,7 +49,7 @@ class SearchResponseCacheTest {
     )
 
     @Test
-    fun putAndGet_roundTrip() {
+    fun putAndGet_roundTrip() = runTest {
         val f = filters("cats")
         val r = response(listOf("a", "b"))
         cache.put(f, 1, r)
@@ -59,7 +60,7 @@ class SearchResponseCacheTest {
     }
 
     @Test
-    fun isFresh_trueWithinTtl_falseAfterTtl() {
+    fun isFresh_trueWithinTtl_falseAfterTtl() = runTest {
         val f = filters("dogs")
         cache.put(f, 1, response(listOf("x")))
         assertTrue(cache.isFresh(f, 1))
@@ -72,12 +73,12 @@ class SearchResponseCacheTest {
     }
 
     @Test
-    fun get_returnsNullWhenMissing() {
+    fun get_returnsNullWhenMissing() = runTest {
         assertNull(cache.get(filters("missing"), 1))
     }
 
     @Test
-    fun differentPage_isDifferentKey() {
+    fun differentPage_isDifferentKey() = runTest {
         val f = filters("q")
         cache.put(f, 1, response(listOf("p1")))
         cache.put(f, 2, response(listOf("p2")))
@@ -86,7 +87,7 @@ class SearchResponseCacheTest {
     }
 
     @Test
-    fun purity_isPartOfKey() {
+    fun purity_isPartOfKey() = runTest {
         val base = filters(query = "q", purity = setOf(Purity.SFW))
         val withSketchy = filters(query = "q", purity = setOf(Purity.SFW, Purity.Sketchy))
         cache.put(base, 1, response(listOf("base")))
@@ -97,11 +98,11 @@ class SearchResponseCacheTest {
     }
 
     @Test
-    fun eviction_keepsAtMost100() {
+    fun eviction_keepsAtMost100() = runTest {
         // Insert 101 entries, should evict oldest.
         for (i in 0 until 101) {
             cache.put(filters("q$i"), 1, response(listOf("id$i")))
-            Thread.sleep(5) // ensure distinct mtime
+            kotlinx.coroutines.delay(5) // ensure distinct mtime
         }
         val files = dir.listFiles()!!
         assertTrue(files.size <= 100)

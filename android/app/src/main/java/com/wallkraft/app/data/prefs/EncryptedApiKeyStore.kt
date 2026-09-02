@@ -2,6 +2,7 @@ package com.wallkraft.app.data.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
@@ -26,7 +27,8 @@ class EncryptedApiKeyStore(context: Context) {
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
+        Log.w("EncryptedApiKeyStore", "Keystore unavailable, using fallback", e)
         // Keystore unavailable (e.g. some emulators). Fall back to plain
         // storage — still functional, just not encrypted at rest.
         context.getSharedPreferences("wallkraft_fallback_prefs", Context.MODE_PRIVATE)

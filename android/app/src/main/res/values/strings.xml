@@ -72,6 +72,11 @@
     <string name="licenses_title">Open-source licenses</string>
     <string name="privacy_title">Privacy policy</string>
     <string name="github_title">GitHub</string>
+    <string name="github_url">https://github.com/kedharsairam/wallkraft</string>
+    <string name="settings_categories">Categories</string>
+    <string name="settings_purity">Purity</string>
+    <string name="settings_sorting">Sorting</string>
+    <string name="settings_orientation">Orientation</string>
     <string name="rate_app_title">Rate WallKraft</string>
     <string name="version_tap_hint">Tap to copy</string>
     <string name="copied">Copied</string>

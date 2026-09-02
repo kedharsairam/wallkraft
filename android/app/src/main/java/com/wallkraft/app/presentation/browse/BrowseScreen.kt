@@ -135,7 +135,7 @@ fun BrowseScreen(
         val filters = uiState.filters
         if (filters != lastScrolledFilters) {
             lastScrolledFilters = filters
-            effectiveGridState.scrollToItem(0)
+            effectiveGridState.animateScrollToItem(0)
         }
     }
 

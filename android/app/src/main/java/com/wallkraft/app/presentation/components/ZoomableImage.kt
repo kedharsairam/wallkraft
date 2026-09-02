@@ -40,11 +40,10 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.size.Size
+import com.wallkraft.app.core.design.KraftConstants
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-private const val MAX_SCALE = 8f
 
 @Composable
 fun ZoomableImage(
@@ -56,7 +55,7 @@ fun ZoomableImage(
     onZoomChanged: (Float) -> Unit = {},
     onLoaded: () -> Unit = {},
     loadFullRes: Boolean = true,
-    zoomLevels: List<Float> = listOf(2.5f, MAX_SCALE),
+    zoomLevels: List<Float> = listOf(2.5f, KraftConstants.MaxCropZoom),
     imageWidth: Int = 0,
     imageHeight: Int = 0,
     sharedElementModifier: Modifier = Modifier,
@@ -235,7 +234,7 @@ fun ZoomableImage(
                             var newY = offset.y + pan.y
                             if (pointerCount >= 2 && kotlin.math.abs(zoom - 1f) > 0.02f) {
                                 val newScale = (scale * zoom)
-                                    .coerceIn(1f, MAX_SCALE)
+                                    .coerceIn(1f, KraftConstants.MaxCropZoom)
                                 val k = newScale / scale
                                 newX = centroid.x + (newX - centroid.x) * k
                                 newY = centroid.y + (newY - centroid.y) * k
@@ -257,7 +256,7 @@ fun ZoomableImage(
                             val targetScale = if (scale > 1.01f) {
                                 1f
                             } else {
-                                zoomLevels.first().coerceIn(1f, MAX_SCALE)
+                                zoomLevels.first().coerceIn(1f, KraftConstants.MaxCropZoom)
                             }
                             if (targetScale <= 1.01f) {
                                 animateTo(1f, Offset.Zero)

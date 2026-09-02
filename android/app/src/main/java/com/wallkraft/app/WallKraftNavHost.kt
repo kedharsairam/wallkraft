@@ -118,7 +118,10 @@ fun WallKraftNavHost(container: AppContainer) {
                 ) {
                     tabs.forEach { tab ->
                         val selected =
-                            currentDestination?.hierarchy?.any { it.route == tab.route } == true
+                            currentDestination?.hierarchy?.any {
+                                if (tab.route == Routes.BROWSE) it.route?.startsWith("browse") == true
+                                else it.route == tab.route
+                            } == true
                         HigTabItem(
                             tab = tab,
                             selected = selected,

@@ -7,7 +7,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
@@ -21,17 +20,17 @@ object KraftColorSchemes {
     val Light = lightColorScheme(
         primary = KraftColors.AccentBlue,
         onPrimary = Color.White,
-        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.12f),
+        primaryContainer = KraftColors.AccentBlue.copy(alpha = KraftConstants.ContainerAlphaLight),
         onPrimaryContainer = KraftColors.AccentBlue,
-        secondary = KraftColors.AccentBlue,
+        secondary = KraftColors.AccentTeal,
         onSecondary = Color.White,
-        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.12f),
-        onSecondaryContainer = KraftColors.AccentBlue,
+        secondaryContainer = KraftColors.AccentTeal.copy(alpha = KraftConstants.ContainerAlphaLight),
+        onSecondaryContainer = KraftColors.AccentTeal,
         tertiary = KraftColors.AccentOrange,
         onTertiary = Color.White,
         error = KraftColors.AccentRed,
         onError = Color.White,
-        errorContainer = KraftColors.AccentRed.copy(alpha = 0.12f),
+        errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlphaLight),
         onErrorContainer = KraftColors.AccentRed,
         background = KraftColors.BackgroundLight,
         onBackground = KraftColors.TextPrimaryLight,
@@ -46,24 +45,28 @@ object KraftColorSchemes {
         surfaceContainerHighest = KraftColors.SurfaceTertiaryLight,
         surfaceDim = KraftColors.SurfaceDimLight,
         surfaceBright = KraftColors.SurfaceBrightLight,
+        inverseSurface = KraftColors.TextPrimaryDark,
+        inverseOnSurface = KraftColors.BackgroundDark,
+        inversePrimary = KraftColors.AccentBlueDark,
         outline = KraftColors.SeparatorLight,
-        outlineVariant = KraftColors.SeparatorLight.copy(alpha = 0.3f),
+        outlineVariant = KraftColors.SeparatorLight.copy(alpha = KraftConstants.OutlineVariantAlpha),
+        scrim = Color.Black,
     )
 
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlueDark,
         onPrimary = Color.Black,
-        primaryContainer = KraftColors.AccentBlue.copy(alpha = 0.2f),
+        primaryContainer = KraftColors.AccentBlueDark.copy(alpha = KraftConstants.ContainerAlphaDark),
         onPrimaryContainer = KraftColors.AccentBlueDark,
-        secondary = KraftColors.AccentBlueDark,
+        secondary = KraftColors.AccentTealDark,
         onSecondary = Color.Black,
-        secondaryContainer = KraftColors.AccentBlue.copy(alpha = 0.2f),
-        onSecondaryContainer = KraftColors.AccentBlueDark,
+        secondaryContainer = KraftColors.AccentTealDark.copy(alpha = KraftConstants.ContainerAlphaDark),
+        onSecondaryContainer = KraftColors.AccentTealDark,
         tertiary = KraftColors.AccentOrangeDark,
         onTertiary = Color.Black,
         error = KraftColors.AccentRedDark,
         onError = Color.Black,
-        errorContainer = KraftColors.AccentRed.copy(alpha = 0.2f),
+        errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlphaDark),
         onErrorContainer = KraftColors.AccentRedDark,
         background = KraftColors.BackgroundDark,
         onBackground = KraftColors.TextPrimaryDark,
@@ -78,8 +81,12 @@ object KraftColorSchemes {
         surfaceContainerHighest = KraftColors.SurfaceTertiaryDark,
         surfaceDim = KraftColors.SurfaceDimDark,
         surfaceBright = KraftColors.SurfaceBrightDark,
+        inverseSurface = KraftColors.TextPrimaryLight,
+        inverseOnSurface = KraftColors.BackgroundLight,
+        inversePrimary = KraftColors.AccentBlue,
+        scrim = Color.Black,
         outline = KraftColors.SeparatorDark,
-        outlineVariant = KraftColors.SeparatorDark.copy(alpha = 0.3f),
+        outlineVariant = KraftColors.SeparatorDark.copy(alpha = KraftConstants.OutlineVariantAlpha),
     )
 }
 
@@ -93,7 +100,6 @@ object KraftColorSchemes {
 object KraftTypography {
     val Typography = Typography(
         displayLarge = TextStyle(
-            fontFamily = FontFamily.Default,
             fontWeight = FontWeight.Bold,
             fontSize = KraftTypeScale.LargeTitle,
             lineHeight = 41.sp,
@@ -151,6 +157,7 @@ object KraftTypography {
         labelMedium = TextStyle(
             fontWeight = FontWeight.Medium,
             fontSize = KraftTypeScale.Footnote,
+            letterSpacing = 0.2.sp,
         ),
         labelSmall = TextStyle(
             fontWeight = FontWeight.Medium,
