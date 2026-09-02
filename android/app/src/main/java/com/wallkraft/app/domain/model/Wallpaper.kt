@@ -75,6 +75,20 @@ data class Wallpaper(
     /** True when the API reports this wallpaper as safe-for-work. */
     val isSFW: Boolean get() = purity == "sfw"
 
+    /** Purity as an enum value, parsed from the raw API string. */
+    val purityEnum: Purity get() = when (purity) {
+        "sfw" -> Purity.SFW
+        "sketchy" -> Purity.Sketchy
+        else -> Purity.SFW
+    }
+
+    /** Category as an enum value, parsed from the raw API string. */
+    val categoryEnum: Category get() = when (category) {
+        "anime" -> Category.Anime
+        "people" -> Category.People
+        else -> Category.General
+    }
+
     /**
      * The uploader's username, or "" when there is none — a deleted account,
      * a guest upload, or data that hasn't loaded the uploader yet (search
@@ -91,12 +105,11 @@ data class Wallpaper(
         return avatar.px128.ifBlank { avatar.px200.ifBlank { avatar.px32.ifBlank { avatar.px20 } } }
     }
 
-    fun fileSizeFormatted(): String =
-        if (fileSize < 1024 * 1024) {
-            String.format(Locale.US, "%.1f KB", fileSize / 1024.0)
-        } else {
-            String.format(Locale.US, "%.1f MB", fileSize / (1024.0 * 1024.0))
-        }
+    fun fileSizeFormatted(): String = when {
+        fileSize < 1024 * 1024 -> String.format(Locale.US, "%.1f KB", fileSize / 1024.0)
+        fileSize < 1024L * 1024 * 1024 -> String.format(Locale.US, "%.1f MB", fileSize / (1024.0 * 1024.0))
+        else -> String.format(Locale.US, "%.1f GB", fileSize / (1024.0 * 1024.0 * 1024.0))
+    }
 }
 
 @Immutable

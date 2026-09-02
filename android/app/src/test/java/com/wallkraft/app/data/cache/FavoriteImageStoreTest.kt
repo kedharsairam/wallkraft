@@ -9,6 +9,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.test.runTest
 import java.io.File
 import java.nio.file.Files
 
@@ -119,7 +120,7 @@ class FavoriteImageStoreTest {
     fun save_ignoresBlankPath() {
         // Should not throw or create file when path blank.
         val w = Wallpaper(id = "id1", path = "")
-        kotlinx.coroutines.runBlocking { store.save(w) }
+        runTest { store.save(w) }
         assertNull(store.fileFor("id1"))
     }
 }

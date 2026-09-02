@@ -13,7 +13,6 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import coil3.imageLoader
 import coil3.request.CachePolicy
@@ -33,6 +32,7 @@ import java.io.File
  */
 object WallpaperActions {
 
+    /** Enqueues a download for [wallpaper] via the system DownloadManager. */
     fun download(context: Context, wallpaper: Wallpaper): Long {
         val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         // Detect actual file extension from the URL instead of hardcoding .jpg.
@@ -57,11 +57,11 @@ object WallpaperActions {
             }.isSuccess
         }
 
-    /** Returns the set of downloaded wallpaper IDs. */
+    /** Returns the set of IDs for wallpapers that have been downloaded to the device. */
     fun downloadedIds(context: Context): Set<String> =
         downloadedFiles(context).map { it.wallpaperId }.toSet()
 
-    /** Returns the downloaded file for [wallpaperId], or null if not downloaded. */
+    /** Returns the [DownloadedFile] for [wallpaperId], or null if not downloaded. */
     fun downloadedFile(context: Context, wallpaperId: String): DownloadedFile? =
         downloadedFiles(context).firstOrNull { it.wallpaperId == wallpaperId }
 

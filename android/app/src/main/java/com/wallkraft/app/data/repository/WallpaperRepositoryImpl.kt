@@ -48,11 +48,11 @@ class WallpaperRepositoryImpl(
                 .distinctBy { it.id }
             val processed = WallpaperResponse(
                 data = filtered,
-                meta = response.meta,
+                meta = response.meta.copy(total = filtered.size),
             )
             searchCache.put(filters, page, processed)
             Result.success(processed)
-        } catch (e: WallpaperError) {
+        } catch (e: Exception) {
             // 3. Offline fallback — a stale cached copy beats an error.
             //    Skipped on a forced refresh too: pulling to refresh with no
             //    connection should surface the error, not silently replay old
@@ -60,15 +60,17 @@ class WallpaperRepositoryImpl(
             if (!forceRefresh) {
                 searchCache.get(filters, page)?.let { return Result.success(it) }
             }
-            Result.failure(e)
+            val error = if (e is WallpaperError) e else WallpaperError.Api("Unexpected error: ${e.message}")
+            Result.failure(error)
         }
 
     override suspend fun wallpaper(id: String): Result<Wallpaper> =
         cacheById.get(id)?.let { Result.success(it) }
             ?: try {
                 Result.success(api.wallpaper(id).also { cacheById.put(id, it) })
-            } catch (e: WallpaperError) {
-                Result.failure(e)
+            } catch (e: Exception) {
+                val error = if (e is WallpaperError) e else WallpaperError.Api("Unexpected error: ${e.message}")
+                Result.failure(error)
             }
 
     override fun observeRateLimited(): Flow<Boolean> = api.observeRateLimited()

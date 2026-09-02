@@ -242,8 +242,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-08-04
 
-## [1.3.0] - 2026-08-04
-
 ### Added
 - **Downloads page** — new tab with `DownloadManager` integration: query, open, and remove downloaded wallpapers.
 - **Wallpaper position selection** — `WallpaperPositionDialog` (Home / Lock / Both) via bottom action sheet before setting wallpaper.

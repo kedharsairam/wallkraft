@@ -6,7 +6,9 @@ import com.wallkraft.app.domain.model.WallpaperResponse
 import kotlinx.coroutines.flow.Flow
 
 sealed class WallpaperError : Exception() {
-    data object RateLimited : WallpaperError()
+    data object RateLimited : WallpaperError() {
+        override val message: String = "Rate limited"
+    }
     data class Api(override val message: String, val code: Int? = null) : WallpaperError()
 }
 

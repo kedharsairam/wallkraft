@@ -50,7 +50,7 @@ object KraftColors {
     // ─── Surface container levels (Material3 slots) ─────────────────────
     val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
     val SurfaceContainerLowLight = Color(0xFFF2F2F7)
-    val SurfaceContainerLight = Color(0xFFF2F2F7)
+    val SurfaceContainerLight = Color(0xFFE5E5EA)
     val SurfaceContainerHighLight = Color(0xFFE5E5EA)
     val SurfaceDimLight = Color(0xFFE5E5EA)
     val SurfaceBrightLight = Color(0xFFFFFFFF)
@@ -74,9 +74,7 @@ object KraftColors {
 
     // ─── Separators ─────────────────────────────────────────────────────
     val SeparatorLight = Color(0x4D3C3C43)       // separator — 30% of #3C3C43
-    val SeparatorDark = Color(0x543C3C43)         // separator — ~33% of #3C3C43
-    /** Default separator — use when light/dark is unknown. */
-    val Separator = SeparatorLight
+    val SeparatorDark = Color(0x4D3C3C43)         // separator — 30% of #3C3C43
 
     // ─── Glass (frosted overlays on images) ────────────────────────────
     // Dark translucent fill ensures pills are visible on ANY wallpaper.
@@ -94,7 +92,6 @@ object KraftSpacing {
     val Spacing4 = 4.dp
     val Spacing8 = 8.dp
     val Spacing12 = 12.dp
-    val Spacing14 = 14.dp
     val Spacing16 = 16.dp
     val Spacing20 = 20.dp
     val Spacing24 = 24.dp
@@ -109,6 +106,8 @@ object KraftSpacing {
 
     /** Minimum tile width for adaptive grid columns. */
     val GridTileMin = 150.dp
+    /** Top bar height. */
+    val TopBarHeight = 44.dp
 }
 
 object KraftRadius {
@@ -143,7 +142,7 @@ object KraftConstants {
     // -- Caching --
     const val SearchCacheTtlMs = 30 * 60 * 1000L
     const val SearchCacheMaxEntries = 100
-    const val FavoriteImageMaxBytes = 1L * 1024 * 1024 * 1024
+    const val FavoriteImageMaxBytes = 100L * 1024 * 1024
     const val CoilDiskMaxBytes = 512L * 1024 * 1024
     const val CoilMemoryPercent = 0.25
 
@@ -166,5 +165,11 @@ object KraftConstants {
     const val MaxDecodeDim = 4096
     const val MaxCropZoom = 8f
     const val CropAnimDurationMs = 220L
+
+    // -- Alphas --
+    const val ContainerAlphaLight = 0.12f
+    const val ContainerAlphaDark = 0.2f
+    const val OutlineVariantAlpha = 0.3f
+    const val DividerAlpha = 0.4f
 
 }

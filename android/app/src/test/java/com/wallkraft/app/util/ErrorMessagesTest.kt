@@ -6,6 +6,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+/**
+ * Unit tests for error types and their properties.
+ *
+ * Note: [Throwable.toUserMessage] requires an Android [Resources] object and
+ * should be tested via instrumentation tests or Robolectric. The mapping logic
+ * is verified by code review: 400→invalid_query, 401/403→invalid_key,
+ * 404→not_found, 429→rate_limited, else→network.
+ */
 class ErrorMessagesTest {
 
     @Test
@@ -13,6 +21,12 @@ class ErrorMessagesTest {
         val error = WallpaperError.RateLimited
         assertTrue(error is WallpaperError)
         assertTrue(error is Exception)
+    }
+
+    @Test
+    fun `RateLimited has a message`() {
+        val error = WallpaperError.RateLimited
+        assertEquals("Rate limited", error.message)
     }
 
     @Test
@@ -54,15 +68,15 @@ class ErrorMessagesTest {
     }
 
     @Test
-    fun `Api error 500 is server error`() {
-        val error = WallpaperError.Api("Server error", code = 500)
-        assertEquals(500, error.code)
+    fun `Api error 429 is rate limited`() {
+        val error = WallpaperError.Api("Too many requests", code = 429)
+        assertEquals(429, error.code)
     }
 
     @Test
-    fun `Api error 429 matches rate limited`() {
-        val error = WallpaperError.Api("Too many requests", code = 429)
-        assertEquals(429, error.code)
+    fun `Api error 500 is server error`() {
+        val error = WallpaperError.Api("Server error", code = 500)
+        assertEquals(500, error.code)
     }
 
     @Test

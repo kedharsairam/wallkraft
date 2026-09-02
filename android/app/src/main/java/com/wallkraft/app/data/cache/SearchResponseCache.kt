@@ -1,9 +1,12 @@
 package com.wallkraft.app.data.cache
 
+import android.util.Log
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.model.toPurityParam
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.security.MessageDigest
@@ -33,22 +36,24 @@ class SearchResponseCache(
     }
 
     /** Returns the cached response for this (filters, page), or null. */
-    fun get(filters: WallhavenFilters, page: Int): WallpaperResponse? {
-        val file = fileFor(filters, page)
-        if (!file.exists()) return null
-        return runCatching {
-            json.decodeFromString(WallpaperResponse.serializer(), file.readText())
-        }.getOrNull()
-    }
+    suspend fun get(filters: WallhavenFilters, page: Int): WallpaperResponse? =
+        withContext(Dispatchers.IO) {
+            val file = fileFor(filters, page)
+            if (!file.exists()) return@withContext null
+            runCatching {
+                json.decodeFromString(WallpaperResponse.serializer(), file.readText())
+            }.getOrNull()
+        }
 
     /** Stores a response for this (filters, page), evicting oldest entries. */
-    fun put(filters: WallhavenFilters, page: Int, response: WallpaperResponse) {
-        runCatching {
-            directory.mkdirs()
-            fileFor(filters, page).writeText(json.encodeToString(WallpaperResponse.serializer(), response))
-            evictIfNeeded()
+    suspend fun put(filters: WallhavenFilters, page: Int, response: WallpaperResponse) =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                directory.mkdirs()
+                fileFor(filters, page).writeText(json.encodeToString(WallpaperResponse.serializer(), response))
+                evictIfNeeded()
+            }
         }
-    }
 
     private fun evictIfNeeded() {
         val files = directory.listFiles() ?: return
@@ -60,8 +65,7 @@ class SearchResponseCache(
 
     private fun fileFor(filters: WallhavenFilters, page: Int): File {
         val key = "${filters.signature()}|$page"
-        val hash = MessageDigest.getInstance("SHA-256")
-            .digest(key.toByteArray())
+        val hash = digest.digest(key.toByteArray())
             .joinToString("") { "%02x".format(it) }
         return File(directory, "$hash.json")
     }
@@ -71,5 +75,6 @@ class SearchResponseCache(
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries
+        private val digest = MessageDigest.getInstance("SHA-256")
     }
 }

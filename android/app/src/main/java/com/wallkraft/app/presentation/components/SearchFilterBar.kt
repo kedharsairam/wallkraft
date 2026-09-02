@@ -13,6 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -280,14 +282,14 @@ fun SearchFilterBar(
             ) {
                 FilterSectionLabel(stringResource(R.string.filter_categories))
                 Spacer(Modifier.height(6.dp))
-                androidx.compose.foundation.layout.FlowRow(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { cat ->
                         val checked = cat in draftFilters.categories
-                        androidx.compose.material3.FilterChip(
+                        FilterChip(
                             selected = checked,
                             onClick = {
                                 val current = draftFilters.categories
@@ -306,14 +308,14 @@ fun SearchFilterBar(
 
                 FilterSectionLabel(stringResource(R.string.filter_purity))
                 Spacer(Modifier.height(6.dp))
-                androidx.compose.foundation.layout.FlowRow(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Purity.entries.forEach { p ->
                         val checked = p in draftFilters.purity
-                        androidx.compose.material3.FilterChip(
+                        FilterChip(
                             selected = checked,
                             onClick = {
                                 val current = draftFilters.purity
@@ -332,13 +334,13 @@ fun SearchFilterBar(
 
                 FilterSectionLabel(stringResource(R.string.filter_sorting))
                 Spacer(Modifier.height(6.dp))
-                androidx.compose.foundation.layout.FlowRow(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { s ->
-                        androidx.compose.material3.FilterChip(
+                        FilterChip(
                             selected = draftFilters.sorting == s,
                             onClick = { draftFilters = draftFilters.copy(sorting = s) },
                             label = { Text(s.displayName()) },
@@ -351,13 +353,13 @@ fun SearchFilterBar(
 
                 FilterSectionLabel(stringResource(R.string.filter_orientation))
                 Spacer(Modifier.height(6.dp))
-                androidx.compose.foundation.layout.FlowRow(
+                FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Orientation.entries.forEach { o ->
-                        androidx.compose.material3.FilterChip(
+                        FilterChip(
                             selected = draftFilters.orientation == o,
                             onClick = { draftFilters = draftFilters.copy(orientation = o) },
                             label = { Text(o.displayName()) },

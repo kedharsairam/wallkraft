@@ -16,6 +16,7 @@ fun Throwable.toUserMessage(resources: Resources): String = when (this) {
         400 -> resources.getString(R.string.error_invalid_query)
         401, 403 -> resources.getString(R.string.error_invalid_key)
         404 -> resources.getString(R.string.error_not_found)
+        429 -> resources.getString(R.string.error_rate_limited)
         else -> resources.getString(R.string.error_network)
     }
     else -> message ?: resources.getString(R.string.error_generic)

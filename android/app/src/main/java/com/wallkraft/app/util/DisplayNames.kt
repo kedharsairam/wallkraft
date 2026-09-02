@@ -11,6 +11,7 @@ import com.wallkraft.app.domain.model.ThemeMode
 
 /** Localized user-facing names. The enums keep their raw wire values for the API. */
 
+/** Returns the localized display name for this sorting option. */
 @Composable
 fun Sorting.displayName(): String = stringResource(
     when (this) {
@@ -22,6 +23,7 @@ fun Sorting.displayName(): String = stringResource(
     },
 )
 
+/** Returns the localized display name for this orientation. */
 @Composable
 fun Orientation.displayName(): String = stringResource(
     when (this) {
@@ -31,6 +33,7 @@ fun Orientation.displayName(): String = stringResource(
     },
 )
 
+/** Returns the localized display name for this category. */
 @Composable
 fun Category.displayName(): String = stringResource(
     when (this) {
@@ -40,6 +43,7 @@ fun Category.displayName(): String = stringResource(
     },
 )
 
+/** Returns the localized display name for this theme mode. */
 @Composable
 fun ThemeMode.displayName(): String = stringResource(
     when (this) {
@@ -49,6 +53,7 @@ fun ThemeMode.displayName(): String = stringResource(
     },
 )
 
+/** Returns the localized display name for this purity level. */
 @Composable
 fun Purity.displayName(): String = stringResource(
     when (this) {
@@ -57,7 +62,7 @@ fun Purity.displayName(): String = stringResource(
     },
 )
 
-/** Maps a raw Wallhaven category value ("anime") to its localized label. */
+/** Maps a raw Wallhaven category value (e.g. "anime") to its localized label. */
 @Composable
 fun wallpaperCategoryLabel(value: String): String {
     val category = Category.entries.firstOrNull { it.value == value }
