@@ -70,8 +70,11 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
@@ -79,7 +82,7 @@ import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.util.displayName
 
-private val PillShape = RoundedCornerShape(50)
+private val PillShape = RoundedCornerShape(KraftRadius.Pill)
 private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large)
 
 /**
@@ -150,14 +153,14 @@ fun SearchFilterBar(
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .height(KraftSpacing.TouchTarget)
                         .onFocusChanged { isFocused = it.isFocused },
                     decorationBox = { innerTextField ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(44.dp)
+.height(KraftSpacing.TouchTarget)
                                 .clip(PillShape)
                                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                                 .padding(horizontal = 14.dp),
@@ -202,7 +205,7 @@ fun SearchFilterBar(
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .size(44.dp)
+.size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                                 .clickable {
@@ -215,7 +218,7 @@ fun SearchFilterBar(
                                 imageVector = Icons.Filled.Search,
                                 contentDescription = stringResource(R.string.search_hint),
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(KraftIconSize.Medium),
                             )
                         }
                         Spacer(Modifier.width(KraftSpacing.Spacing8))
@@ -226,7 +229,7 @@ fun SearchFilterBar(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(KraftSpacing.TouchTarget)
                         .clip(PillShape)
                         .background(
                             if (showFilters) MaterialTheme.colorScheme.primary
@@ -243,13 +246,13 @@ fun SearchFilterBar(
                         contentDescription = stringResource(R.string.filters),
                         tint = if (showFilters) MaterialTheme.colorScheme.onPrimary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(KraftIconSize.Medium),
                     )
                 }
             }
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
             )
         }
 
@@ -303,7 +306,7 @@ fun SearchFilterBar(
                     }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_purity))
@@ -329,7 +332,7 @@ fun SearchFilterBar(
                     }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_sorting))
@@ -348,7 +351,7 @@ fun SearchFilterBar(
                     }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 FilterSectionLabel(stringResource(R.string.filter_orientation))
@@ -367,7 +370,7 @@ fun SearchFilterBar(
                     }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
 
                 Row(
@@ -399,7 +402,7 @@ fun SearchFilterBar(
 private fun FilterSectionLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
+        style = MaterialTheme.typography.labelLarge.copy(fontSize = KraftTypeScale.Footnote),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }

@@ -71,8 +71,11 @@ import com.wallkraft.app.AppContainer
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
@@ -197,7 +200,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha),
                 )
                 Text(
                     text = stringResource(R.string.settings_purity),
@@ -223,7 +226,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha),
                 )
                 Text(
                     text = stringResource(R.string.settings_sorting),
@@ -247,7 +250,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha),
                 )
                 Text(
                     text = stringResource(R.string.settings_orientation),
@@ -286,7 +289,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                             text = stringResource(R.string.data_saver_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp),
+                            modifier = Modifier.padding(top = KraftSpacing.Spacing2),
                         )
                     }
                     Switch(
@@ -306,7 +309,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha),
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -352,7 +355,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(KraftRadius.Standard))
                         .clickable { showApiDialog = true }
-                        .padding(vertical = 8.dp),
+                        .padding(vertical = KraftSpacing.Spacing8),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
@@ -370,7 +373,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForwardIos,
                         contentDescription = null,
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(KraftIconSize.Small),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
@@ -382,7 +385,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = KraftSpacing.Spacing12),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -391,7 +394,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         modifier = Modifier.weight(1f),
                     )
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha))
                 AboutRow(
                     title = stringResource(R.string.github_title),
                     onClick = {
@@ -422,7 +425,7 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
     Column {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp),
+            style = MaterialTheme.typography.labelLarge.copy(fontSize = KraftTypeScale.Footnote),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = KraftSpacing.Spacing8, start = KraftSpacing.Spacing4),
         )
@@ -431,7 +434,7 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
             color = MaterialTheme.colorScheme.surfaceContainer,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(modifier = Modifier.padding(16.dp)) { content() }
+            Column(modifier = Modifier.padding(KraftSpacing.Spacing16)) { content() }
         }
     }
 }
@@ -443,7 +446,7 @@ private fun AboutRow(title: String, subtitle: String? = null, onClick: () -> Uni
             .fillMaxWidth()
             .clip(RoundedCornerShape(KraftRadius.Standard))
             .clickable(onClick = onClick)
-            .padding(vertical = 12.dp),
+            .padding(vertical = KraftSpacing.Spacing12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -459,7 +462,7 @@ private fun AboutRow(title: String, subtitle: String? = null, onClick: () -> Uni
         Icon(
             Icons.AutoMirrored.Filled.ArrowForwardIos,
             contentDescription = null,
-            modifier = Modifier.size(12.dp),
+            modifier = Modifier.size(KraftIconSize.Tiny),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
@@ -478,7 +481,7 @@ private fun ApiKeyDialog(initial: String, onDismiss: () -> Unit, onSave: (String
                     text = stringResource(R.string.api_key_description),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp),
+                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing12),
                 )
                 OutlinedTextField(
                     value = text,

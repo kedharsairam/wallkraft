@@ -90,6 +90,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.WallpaperPosition
@@ -211,16 +212,16 @@ fun WallpaperCropDialog(
                         // Large icon circle — matches EmptyState pattern.
                         Box(
                             modifier = Modifier
-                                .size(80.dp)
+                                .size(KraftIconSize.XLarge * 2)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)),
+                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = KraftConstants.ErrorContainerAlpha)),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-                                modifier = Modifier.size(40.dp),
+                                tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = KraftConstants.ErrorIconAlpha),
+                                modifier = Modifier.size(KraftIconSize.XLarge),
                             )
                         }
                         Spacer(Modifier.height(KraftSpacing.Spacing16))
@@ -345,17 +346,16 @@ fun WallpaperCropDialog(
             )
 
             // Close button: top-left glass pill — same Kraft glass as detail
-            // screen (Black 0.5 + White 0.18 border, 12dp), so chrome is
-            // consistent across app. Increased alpha for visibility on any wallpaper.
+            // screen, so chrome is consistent across app.
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .statusBarsPadding()
                     .padding(KraftSpacing.Spacing12)
-                    .size(48.dp)
+                    .size(KraftSpacing.TouchTarget)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(KraftRadius.Standard))
+                    .background(KraftColors.GlassDark)
+                    .border(1.dp, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
                     .clickable(onClick = onDismiss),
                 contentAlignment = Alignment.Center,
             ) {
@@ -363,7 +363,7 @@ fun WallpaperCropDialog(
                     imageVector = Icons.Filled.Close,
                     contentDescription = stringResource(R.string.cancel),
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(KraftIconSize.Medium),
                 )
             }
 
@@ -486,7 +486,7 @@ fun WallpaperCropDialog(
                     ) {
                         if (applying) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(KraftIconSize.Medium),
                                 strokeWidth = 2.dp,
                                 color = Color.White,
                             )
@@ -522,7 +522,7 @@ fun WallpaperCropDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)),
+                        .background(Color.Black.copy(alpha = KraftConstants.SelectionOverlayAlpha)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
@@ -533,7 +533,7 @@ fun WallpaperCropDialog(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(72.dp),
+                            modifier = Modifier.size(KraftIconSize.XLarge * 1.8f),
                         )
                         Spacer(Modifier.height(KraftSpacing.Spacing12))
                         Text(

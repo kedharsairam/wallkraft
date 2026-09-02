@@ -34,6 +34,8 @@ import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
@@ -131,16 +133,16 @@ fun WallpaperCard(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(KraftSpacing.Spacing4)
-                    .size(20.dp)
+                    .size(KraftIconSize.Medium)
                     .clip(CircleShape)
-                    .background(KraftColors.AccentGreen.copy(alpha = 0.85f)),
+                    .background(KraftColors.AccentGreen.copy(alpha = KraftConstants.BadgeAlpha)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.Download,
                     contentDescription = stringResource(R.string.favorites_downloaded),
                     tint = Color.White,
-                    modifier = Modifier.size(12.dp),
+                    modifier = Modifier.size(KraftIconSize.Tiny),
                 )
             }
         }
@@ -151,11 +153,11 @@ fun WallpaperCard(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(KraftSpacing.Spacing4)
-                    .size(24.dp)
+                    .size(KraftIconSize.Large)
                     .clip(CircleShape)
                     .background(
                         if (selected) MaterialTheme.colorScheme.primary
-                        else Color.Black.copy(alpha = 0.4f),
+                        else Color.Black.copy(alpha = KraftConstants.SelectionOverlayAlpha),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -163,7 +165,7 @@ fun WallpaperCard(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(KraftIconSize.Medium),
                 )
             }
         }

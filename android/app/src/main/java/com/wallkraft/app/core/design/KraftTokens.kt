@@ -15,32 +15,49 @@ import androidx.compose.ui.unit.sp
  * Light mode uses pure white (#FFFFFF) — crisp, clean, iOS-native feel.
  */
 object KraftColors {
-    // ─── System Colors — Standard Palette ──────────────────────────────
-    val AccentBlue = Color(0xFF007AFF)        // iOS system blue
-    val AccentBlueDark = Color(0xFF0A84FF)    // Dark mode blue (slightly lighter)
-    val AccentGreen = Color(0xFF34C759)       // iOS system green
-    val AccentGreenDark = Color(0xFF32D74B)   // Dark mode green
-    val AccentRed = Color(0xFFFF3B30)         // iOS system red
-    val AccentRedDark = Color(0xFFFF453A)     // Dark mode red
-    val AccentOrange = Color(0xFFFF9500)      // iOS system orange
-    val AccentOrangeDark = Color(0xFFFF9F0A)  // Dark mode orange
-    val AccentPink = Color(0xFFFF2D55)        // iOS system pink
-    val AccentPinkDark = Color(0xFFFF375D)    // Dark mode pink
-    val AccentPurple = Color(0xFFAF52DE)      // iOS system purple
-    val AccentPurpleDark = Color(0xFFBF5AF2)  // Dark mode purple
-    val AccentIndigo = Color(0xFF5856D6)      // iOS system indigo
-    val AccentIndigoDark = Color(0xFF5E5CE6)  // Dark mode indigo
-    val AccentTeal = Color(0xFF00C7BE)        // iOS system teal
-    val AccentTealDark = Color(0xFF64D2FF)    // Dark mode teal
+    // ─── Brand Colors ──────────────────────────────────────────────────
+    // WallKraft's identity: Aurora palette inspired by the Northern Lights.
+    // These are the app's signature colors — used for active states, badges,
+    // and accent elements that feel distinctly WallKraft.
+    val AuroraBlue = Color(0xFF007AFF)        // Primary accent — trust, depth
+    val AuroraBlueDark = Color(0xFF0A84FF)    // Dark mode variant
+    val AuroraGreen = Color(0xFF34C759)       // Success, favorites, download
+    val AuroraGreenDark = Color(0xFF32D74B)   // Dark mode variant
+    val AuroraRed = Color(0xFFFF3B30)         // Destructive, unfavorite
+    val AuroraRedDark = Color(0xFFFF453A)     // Dark mode variant
+    val AuroraOrange = Color(0xFFFF9500)      // Warning, rate limit
+    val AuroraOrangeDark = Color(0xFFFF9F0A)  // Dark mode variant
+    val AuroraPurple = Color(0xFFAF52DE)      // Tags, special actions
+    val AuroraPurpleDark = Color(0xFFBF5AF2)  // Dark mode variant
+    val AuroraTeal = Color(0xFF00C7BE)        // Data saver, cache
+    val AuroraTealDark = Color(0xFF64D2FF)    // Dark mode variant
 
-    // ─── Backgrounds & Surfaces — Light (iOS Light Mode) ────────────────
+    // ─── Legacy aliases (mapped to Aurora palette) ─────────────────────
+    val AccentBlue get() = AuroraBlue
+    val AccentBlueDark get() = AuroraBlueDark
+    val AccentGreen get() = AuroraGreen
+    val AccentGreenDark get() = AuroraGreenDark
+    val AccentRed get() = AuroraRed
+    val AccentRedDark get() = AuroraRedDark
+    val AccentOrange get() = AuroraOrange
+    val AccentOrangeDark get() = AuroraOrangeDark
+    val AccentPink get() = Color(0xFFFF2D55)
+    val AccentPinkDark get() = Color(0xFFFF375D)
+    val AccentPurple get() = AuroraPurple
+    val AccentPurpleDark get() = AuroraPurpleDark
+    val AccentIndigo get() = Color(0xFF5856D6)
+    val AccentIndigoDark get() = Color(0xFF5E5CE6)
+    val AccentTeal get() = AuroraTeal
+    val AccentTealDark get() = AuroraTealDark
+
+    // ─── Backgrounds & Surfaces — Light Mode ────────────────────────────
     // Pure white background, system gray groupings.
     val BackgroundLight = Color(0xFFFFFFFF)           // systemBackground
     val SurfaceLight = Color(0xFFFFFFFF)              // secondarySystemBackground
     val SurfaceSecondaryLight = Color(0xFFF2F2F7)     // tertiarySystemBackground
     val SurfaceTertiaryLight = Color(0xFFE5E5EA)      // quaternarySystemBackground
 
-    // ─── Backgrounds & Surfaces — Dark (iOS Dark Mode) ──────────────────
+    // ─── Backgrounds & Surfaces — Dark Mode ─────────────────────────────
     // True black for OLED. System grays for surfaces.
     val BackgroundDark = Color(0xFF000000)             // systemBackground
     val SurfaceDark = Color(0xFF1C1C1E)                // secondarySystemBackground
@@ -80,6 +97,8 @@ object KraftColors {
     // Dark translucent fill ensures pills are visible on ANY wallpaper.
     val GlassDark = Color.Black.copy(alpha = 0.38f)
     val GlassBorderDark = Color.White.copy(alpha = 0.14f)
+    val GlassLight = Color.White.copy(alpha = 0.38f)
+    val GlassBorderLight = Color.Black.copy(alpha = 0.14f)
 
     // ─── Tab Bar ────────────────────────────────────────────────────────
     val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab
@@ -106,8 +125,24 @@ object KraftSpacing {
 
     /** Minimum tile width for adaptive grid columns. */
     val GridTileMin = 150.dp
+
+    /** Standard touch target — 44dp (Apple HIG minimum). */
+    val TouchTarget = 44.dp
+
     /** Top bar height. */
-    val TopBarHeight = 44.dp
+    val TopBarHeight = TouchTarget
+
+    /** Standard border width — 1dp hairline. */
+    val BorderWidth = 1.dp
+
+    /** Progress bar / loading indicator height. */
+    val ProgressBarHeight = 2.dp
+
+    /** Spinner stroke width. */
+    val SpinnerStroke = 2.dp
+
+    /** Avatar size — 32dp circular. */
+    val AvatarSize = 32.dp
 }
 
 object KraftRadius {
@@ -116,6 +151,17 @@ object KraftRadius {
     val Standard = 10.dp   // Cards, list items — standard card radius
     val Large = 14.dp      // Large cards, search bars
     val Hero = 22.dp       // Sheets, modals — sheet radius
+    val Pill = 50.dp       // Fully rounded — buttons, tags, filters
+    val DragHandle = 2.5.dp // Drag handle radius
+}
+
+object KraftIconSize {
+    /** Standard icon sizes — consistent across all screens. */
+    val Tiny = 12.dp       // Badges, indicators
+    val Small = 16.dp      // Inline icons, arrows
+    val Medium = 20.dp     // Button icons, toolbar icons
+    val Large = 24.dp      // Selection badges, prominent icons
+    val XLarge = 40.dp     // Empty state, error icons
 }
 
 object KraftTypeScale {
@@ -135,6 +181,9 @@ object KraftTypeScale {
     val Footnote = 13.sp     // .footnote
     val Caption1 = 12.sp     // .caption1
     val Caption2 = 11.sp     // .caption2
+
+    /** Letter spacing for section headings and labels. */
+    val LabelSpacing = 0.4.sp
 }
 
 /** Centralized tuning constants — every magic number lives here. */
@@ -182,4 +231,20 @@ object KraftConstants {
     const val OverlayCropScrimTop = 0.4f         // Crop dialog top scrim
     const val OverlayCropPanelAlpha = 0.65f      // Crop dialog bottom panel
 
+    // -- Error states --
+    const val ErrorContainerAlpha = 0.4f         // Error icon background
+    const val ErrorIconAlpha = 0.7f              // Error icon tint
+
+    // -- Skeleton / Shimmer --
+    const val SkeletonAlphaMin = 0.3f
+    const val SkeletonAlphaMax = 0.5f
+    const val ShimmerGradientAlpha = 0.5f
+
+    // -- Badges --
+    const val BadgeAlpha = 0.85f                 // Downloaded badge
+    const val SelectionOverlayAlpha = 0.4f       // Selection check overlay
+
+    // -- Card / Surface --
+    const val SurfaceVariantAlpha = 0.4f         // Empty state icon background
+    const val IconTintAlpha = 0.7f               // Empty state icon tint
 }

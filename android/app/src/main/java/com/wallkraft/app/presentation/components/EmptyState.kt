@@ -34,6 +34,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftSpacing
 
 /**
@@ -71,17 +73,17 @@ fun EmptyState(
         // Large icon circle — prominent icon in empty states.
         Box(
             modifier = Modifier
-                .size(80.dp)
+                .size(KraftIconSize.XLarge * 2)
                 .scale(iconScale)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = KraftConstants.SurfaceVariantAlpha)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.size(40.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = KraftConstants.IconTintAlpha),
+                modifier = Modifier.size(KraftIconSize.XLarge),
             )
         }
         Spacer(Modifier.height(KraftSpacing.Spacing16))
