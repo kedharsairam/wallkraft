@@ -56,6 +56,8 @@ import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.WallpaperActions
 import com.wallkraft.app.util.toUserMessage
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Warning
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
@@ -105,6 +107,8 @@ fun BrowseScreen(
     // from the detail screen (or outside the app) should show its badge immediately
     // when the user returns to Browse, without needing to restart.
     // MediaStore query can be heavy, so we do it off the main thread.
+    // Both ON_START and ON_RESUME are observed to catch every return path
+    // (e.g. multi-window, split-screen, notification overlay).
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
@@ -114,7 +118,7 @@ fun BrowseScreen(
     }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
+            if (event == Lifecycle.Event.ON_START) {
                 // Fire-and-forget off main thread to avoid jank when resuming.
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val ids = WallpaperActions.downloadedIds(context)
@@ -173,6 +177,7 @@ fun BrowseScreen(
                 },
                 filters = uiState.filters,
                 onFiltersChange = viewModel::setFilters,
+                onDismiss = { focusManager.clearFocus() },
             )
         },
     ) { innerPadding ->
@@ -201,6 +206,7 @@ fun BrowseScreen(
                     // Crossfade between states for smooth transitions (Apple HIG: content changes should feel cohesive).
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
+                        uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"
                         uiState.error != null && uiState.wallpapers.isEmpty() -> "error"
                         uiState.wallpapers.isEmpty() -> "empty"
                         else -> "grid"
@@ -212,6 +218,13 @@ fun BrowseScreen(
                     ) { state ->
                         when (state) {
                             "loading" -> ShimmerGrid()
+                            "rateLimited" -> EmptyState(
+                                title = stringResource(R.string.rate_limit_banner),
+                                message = stringResource(R.string.rate_limit_hint),
+                                icon = Icons.Outlined.Warning,
+                                actionLabel = stringResource(R.string.error_retry),
+                                onAction = viewModel::retry,
+                            )
                             "error" -> ErrorState(
                                 message = uiState.error ?: "",
                                 onRetry = viewModel::retry,

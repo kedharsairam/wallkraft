@@ -9,6 +9,8 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,6 +52,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,11 +62,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -77,6 +84,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -109,6 +117,7 @@ fun SearchFilterBar(
     filters: WallhavenFilters,
     onFiltersChange: (WallhavenFilters) -> Unit,
     modifier: Modifier = Modifier,
+    onDismiss: (() -> Unit)? = null,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
@@ -117,6 +126,21 @@ fun SearchFilterBar(
     var isFocused by remember { mutableStateOf(false) }
     var showFilters by remember { mutableStateOf(false) }
     var barHeight by remember { mutableIntStateOf(0) }
+
+    // Dismiss filter panel when search bar loses focus (e.g. user taps
+    // outside on the browse area). Only fires on focus LOSS — not on focus
+    // gain — so tapping the filter button while the search bar is focused
+    // doesn't race with the toggle.
+    LaunchedEffect(isFocused) {
+        if (!isFocused && showFilters) {
+            showFilters = false
+        }
+    }
+
+    // Notify parent when panel is dismissed (e.g. on outside tap)
+    LaunchedEffect(showFilters) {
+        if (!showFilters) onDismiss?.invoke()
+    }
 
     // Draft filters — staged inside the panel, only committed on Apply.
     var draftFilters by remember { mutableStateOf(filters) }
@@ -160,7 +184,7 @@ fun SearchFilterBar(
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .weight(1f)
-                        .height(KraftSpacing.TouchTarget)
+                        .height(KraftSpacing.SearchBarHeight)
                         .onFocusChanged { isFocused = it.isFocused },
                     decorationBox = { innerTextField ->
                         Row(
@@ -266,13 +290,20 @@ fun SearchFilterBar(
         }
 
         // ── Filter panel (drops down from below the bar) ────────────────
-        // Use layout {} to report zero size so the parent Box doesn't grow.
+        // The panel overlays on top of the content below without pushing it
+        // down. layout{} reports zero height so the parent Box doesn't grow,
+        // but the child is still drawn at the correct position via place().
+        // This is the standard pattern for dropdown menus and popover panels.
+        // Max height is dynamic: screen height minus search bar and bottom bar.
+        val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+        val panelMaxHeight = screenHeightDp - KraftSpacing.SearchBarHeight - 48.dp
         AnimatedVisibility(
             visible = showFilters,
             enter = expandVertically(tween(250)) + fadeIn(tween(250)),
             exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = panelMaxHeight)
                 .zIndex(1f)
                 .offset { IntOffset(0, barHeight) } // position below the measured bar
                 .layout { measurable, constraints ->
@@ -283,13 +314,36 @@ fun SearchFilterBar(
                     }
                 },
         ) {
+            val scrollState = rememberScrollState()
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
                     .background(MaterialTheme.colorScheme.surface)
-                    .verticalScroll(rememberScrollState())
+                    .pointerInput(Unit) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            val downY = down.position.y
+                            var draggedUp = false
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                val change = event.changes.firstOrNull() ?: break
+                                val dy = change.position.y - downY
+                                if (dy < -100f) {
+                                    draggedUp = true
+                                    change.consume()
+                                    break
+                                }
+                                if (!change.pressed) break
+                            }
+                            if (draggedUp) {
+                                showFilters = false
+                            }
+                        }
+                    }
+                    .verticalScroll(scrollState)
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing16),
             ) {
                 // ── Title ──────────────────────────────────────────────
@@ -321,6 +375,10 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(categories = updated)
                             },
                             label = { Text(cat.displayName()) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = KraftColors.ChipSelectedContainer,
+                                selectedLabelColor = KraftColors.ChipSelectedLabel,
+                            ),
                         )
                     }
                 }
@@ -339,12 +397,12 @@ fun SearchFilterBar(
                         val checked = p in draftFilters.purity
                         val chipColors = when (p) {
                             Purity.SFW -> FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFF4A6B4A),
-                                selectedLabelColor = Color(0xFF99FF99),
+                                selectedContainerColor = KraftColors.PuritySfwContainer,
+                                selectedLabelColor = KraftColors.PuritySfwLabel,
                             )
                             Purity.Sketchy -> FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Color(0xFF6B6B3D),
-                                selectedLabelColor = Color(0xFFFFFF99),
+                                selectedContainerColor = KraftColors.PuritySketchyContainer,
+                                selectedLabelColor = KraftColors.PuritySketchyLabel,
                             )
                             else -> FilterChipDefaults.filterChipColors()
                         }
@@ -382,6 +440,10 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(sorting = s)
                             },
                             label = { Text(s.displayName()) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = KraftColors.ChipSelectedContainer,
+                                selectedLabelColor = KraftColors.ChipSelectedLabel,
+                            ),
                         )
                     }
                 }
@@ -404,6 +466,10 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(orientation = o)
                             },
                             label = { Text(o.displayName()) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = KraftColors.ChipSelectedContainer,
+                                selectedLabelColor = KraftColors.ChipSelectedLabel,
+                            ),
                         )
                     }
                 }
@@ -444,7 +510,7 @@ fun SearchFilterBar(
 private fun FilterSectionLabel(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelLarge.copy(fontSize = KraftTypeScale.Footnote),
+        style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }

@@ -74,10 +74,11 @@ fun WallpaperCard(
 
     // Shared element stays on AsyncImage (not the outer Box) — putting it on
     // a clipped Box breaks the return transition: Compose resolves the pop
-    // target to (0,0) instead of the actual tile position. Corner morphing
-    // is handled on the detail side (clipRadius on ZoomableImage) and the
-    // outer clip on the grid side stays static — the shared element masks
-    // the instant pop because it's drawing over the grid during transition.
+    // target to (0,0) instead of the actual tile position. The clip is also
+    // applied to the AsyncImage (after sharedElementModifier) so the image
+    // content itself is clipped to rounded corners throughout the shared
+    // element transition — without it, the overlay draws sharp corners until
+    // the image lands back in the grid.
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(KraftRadius.Standard))
@@ -121,7 +122,14 @@ fun WallpaperCard(
                 // (graphicsLayer, offset, alpha) go after it per Compose docs.
                 // On the image (NOT the outer Box) so pop return resolves
                 // the correct tile position in the LazyGrid.
+                // Clip AFTER sharedElementModifier: ensures the image content is
+                // clipped to rounded corners throughout the shared element
+                // transition — without it, the overlay draws sharp corners until
+                // the image lands back in the grid. The outer Box also clips for
+                // combinedClickable, but this inner clip is needed during the
+                // transition when the image is drawn outside its parent bounds.
                 .then(sharedElementModifier)
+                .clip(RoundedCornerShape(KraftRadius.Standard))
                 .fillMaxWidth()
                 .aspectRatio(ratio)
                 .background(MaterialTheme.colorScheme.surfaceVariant),

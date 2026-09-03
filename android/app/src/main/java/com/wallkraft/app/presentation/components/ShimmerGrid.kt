@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.core.design.KraftConstants
@@ -62,9 +63,9 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         MaterialTheme.colorScheme.surfaceVariant,
     )
 
-    // Calculate viewport-appropriate item count: ~600dp per tile average height.
-    val density = LocalDensity.current
-    val viewportHeightDp = with(density) { 600.dp } // reasonable default for a phone screen
+    // Calculate viewport-appropriate item count based on actual screen height.
+    val configuration = LocalConfiguration.current
+    val viewportHeightDp = configuration.screenHeightDp.dp
     val itemCount = maxOf(6, (viewportHeightDp / 280.dp).toInt()) // ~280dp avg tile height
 
     LazyVerticalStaggeredGrid(
