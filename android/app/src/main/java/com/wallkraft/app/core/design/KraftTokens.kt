@@ -108,6 +108,17 @@ object KraftColors {
     // ─── Tab Bar ────────────────────────────────────────────────────────
     val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab
     val TabBarSeparator = Color(0x3C000000)    // 23% black — standard hairline
+
+    // ─── Filter Chips ──────────────────────────────────────────────────
+    // Non-purity chips (categories, sorting, orientation, theme mode).
+    val ChipSelectedContainer = Color(0xFF1E3A5F)   // muted blue
+    val ChipSelectedLabel = Color(0xFFA8C8E8)       // light blue text
+
+    // Purity chips — match Wallhaven's native colors.
+    val PuritySfwContainer = Color(0xFF4A6B4A)      // green background
+    val PuritySfwLabel = Color(0xFF99FF99)          // green text
+    val PuritySketchyContainer = Color(0xFF6B6B3D)  // amber background
+    val PuritySketchyLabel = Color(0xFFFFFF99)      // amber text
 }
 
 object KraftSpacing {
@@ -133,6 +144,9 @@ object KraftSpacing {
 
     /** Standard touch target — 44dp (accessibility minimum). */
     val TouchTarget = 44.dp
+
+    /** Search bar height — matches TouchTarget for visual consistency. */
+    val SearchBarHeight = TouchTarget
 
     /** Top bar height. */
     val TopBarHeight = TouchTarget
@@ -167,6 +181,7 @@ object KraftIconSize {
     val Medium = 20.dp     // Button icons, toolbar icons
     val Large = 24.dp      // Selection badges, prominent icons
     val XLarge = 40.dp     // Empty state, error icons
+    val TabBar = 25.dp     // Tab bar icons — standard platform size
 }
 
 object KraftTypeScale {

@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-09-03
+
+### Added
+- **App icon** — new launcher icon with adaptive icon support (foreground/background layers, 66dp safe zone). Black background, properly masked for circle/squircle/rounded-square launchers.
+- **Splash screen** — updated to use new icon on black background, matching the app's design language.
+- **Buy Me a Coffee** — support section in Settings with centered BMC button and left-aligned description. Opens `buymeacoffee.com/kedhartech`.
+- **Privacy policy** — in-app dialog showing full privacy policy. No external link needed.
+- **Developer credit** — About section now shows developer avatar (from GitHub), name, and title.
+- **Open-source licenses** — link to LICENSE file in About section.
+- **PRIVACY.md** — full privacy policy added to repo root.
+
+### Changed
+- **Settings > About** — reworked: developer avatar + name at top, version, GitHub, privacy policy, licenses. Removed tap-to-copy version gimmick.
+- **Filter chip colors centralized** — `ChipSelectedContainer`, `ChipSelectedLabel`, purity colors moved to `KraftColors` for single-source management.
+- **Filter panel dismiss** — fixed with `PointerEventPass.Initial` on Column. Also dismisses on focus loss and search bar tap.
+- **Filter panel max height** — dynamic: `screenHeightDp - SearchBarHeight - 48dp`.
+- **Typography fixes** — `labelLarge.copy(fontSize = Footnote)` replaced with `labelMedium` in SettingsGroup title and FilterSectionLabel.
+- **Tab bar icon size** — uses `KraftIconSize.TabBar` token instead of hardcoded 25.dp.
+- **Cache size refresh** — `DisposableEffect` with `ON_START` lifecycle observer.
+- **Cache clear confirmation** — AlertDialog with Cancel/Clear buttons.
+- **Data saver switch colors** — uses `MaterialTheme.colorScheme.onPrimary`/`.primary` instead of hardcoded.
+- **API key max length** — 64 characters enforced.
+- **Version tap-to-copy** — removed (useless for users).
+- **README** — rewritten with download badge, BMC support section, updated privacy link.
+
+### Fixed
+- **Filter panel swipe dismiss** — `pointerInput` with `PointerEventPass.Initial` detects swipe-up (>100px threshold).
+- **Divider alpha consistency** — all dividers use `DividerAlpha` (0.4f).
+- **Arrow icon size consistency** — AboutRow uses `KraftIconSize.Small` (16dp).
+- **ShimmerGrid viewport** — uses `LocalConfiguration.current.screenHeightDp.dp` instead of hardcoded 600dp.
+- **About section spacing** — all rows use consistent `Spacing12` vertical padding.
+
+### Removed
+- **Dead strings** — `version_tap_hint`, `copied` (no longer used).
+- **Old adaptive icon XMLs** — replaced with proper foreground PNGs and `mipmap-anydpi-v26` XML.
+- **VectorDrawable splash** — replaced with PNG-based splash icon.
+
 ## [1.14.0] - 2026-09-03
 
 ### Changed

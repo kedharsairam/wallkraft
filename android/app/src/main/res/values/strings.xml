@@ -44,10 +44,17 @@
     <string name="api_key_description">Optional. Unlocks higher rate limits and exclusive content with your account key.</string>
     <string name="api_key_hint">Paste your API key</string>
     <string name="appearance">Appearance</string>
-    <string name="browsing_title">Browsing</string>
+    <string name="browsing_title">Default Filters</string>
     <string name="data_title">Data</string>
     <string name="advanced_title">Advanced</string>
     <string name="about_title">About</string>
+    <string name="about_developer">Kedhar</string>
+    <string name="about_developer_subtitle">Developer &amp; Designer</string>
+    <string name="about_developer_bio">Built WallKraft with Jetpack Compose. Privacy-first, no tracking, no ads.</string>
+    <string name="privacy_title">Privacy policy</string>
+    <string name="privacy_content">WallKraft is a privacy-first wallpaper browsing app. Here\'s what you need to know:\n\nWhat we DON\'T collect\nNo personal data. No usage analytics. No device identifiers. No location data. No advertising IDs.\n\nWhat stays on your device\nYour favorites and downloads are stored locally. API keys are stored in Android\'s secure Keystore. Cache files are temporary and can be cleared anytime.\n\nNetwork usage\nWallKraft connects only to the Wallhaven API to fetch wallpapers. No data is sent to any other server.\n\nThird-party services\nWallhaven API — Used to browse and search wallpapers. Subject to Wallhaven\'s Terms.\n\nChanges\nIf this policy changes, the update will be published in the app\'s About section.\n\nContact\nFor questions about this policy, open an issue on GitHub.</string>
+    <string name="licenses_url">https://github.com/kedharsairam/wallkraft/blob/master/LICENSE</string>
+    <string name="github_avatar_url">https://avatars.githubusercontent.com/u/180870058?v=4</string>
     <string name="data_saver_title">Data saver</string>
     <string name="data_saver_description">Load full-resolution images only when you zoom, set, or share. Saves mobile data.</string>
     <string name="loading_full_resolution">Loading full resolution…</string>
@@ -60,7 +67,7 @@
     <string name="theme_dark">Dark</string>
     <string name="version_format">WallKraft v%1$s</string>
     <string name="cache_title">Cache</string>
-    <string name="cache_description">Temporary search results and image cache. Favorites are kept.</string>
+    <string name="cache_description">Temporary files from browsing. Clearing does not remove favorites.</string>
     <string name="clear_cache">Clear cache</string>
     <string name="cache_cleared">Cache cleared</string>
     <string name="favorites_storage_format">%1$d wallpapers • %2$s</string>
@@ -70,7 +77,6 @@
     <string name="api_key_saved">API key saved</string>
     <string name="api_key_not_set">Not set</string>
     <string name="licenses_title">Open-source licenses</string>
-    <string name="privacy_title">Privacy policy</string>
     <string name="github_title">GitHub</string>
     <string name="github_url">https://github.com/kedharsairam/wallkraft</string>
     <string name="settings_categories">Categories</string>
@@ -78,8 +84,6 @@
     <string name="settings_sorting">Sorting</string>
     <string name="settings_orientation">Orientation</string>
     <string name="rate_app_title">Rate WallKraft</string>
-    <string name="version_tap_hint">Tap to copy</string>
-    <string name="copied">Copied</string>
 
     <!-- Favorites -->
     <string name="favorites_title">Favorites</string>
@@ -151,4 +155,7 @@
     <string name="error_invalid_key">Your API key was rejected. Check it in Settings.</string>
     <string name="error_not_found">This wallpaper no longer exists.</string>
     <string name="rate_limit_banner">Rate limit reached. Please wait a moment before browsing more.</string>
+    <string name="rate_limit_hint">Wallhaven\'s API limit has been reached. Wait a minute and try again.</string>
+    <string name="buy_me_a_coffee_title">Support</string>
+    <string name="buy_me_a_coffee_description">If you enjoy using WallKraft, consider buying me a coffee. It keeps the project going.</string>
 </resources>

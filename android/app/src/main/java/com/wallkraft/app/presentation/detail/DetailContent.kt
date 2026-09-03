@@ -130,8 +130,20 @@ internal fun DetailContent(
         onDispose { isSharing = false }
     }
 
+    var chromeVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { chromeVisible = true }
+    val chromeAlpha by animateFloatAsState(
+        targetValue = if (chromeVisible) 1f else 0f,
+        animationSpec = SharedElementSpringFloat,
+        label = "chromeAlpha",
+    )
+
     var resetZoomSignal by remember { mutableIntStateOf(0) }
     fun handleBack() {
+        // Hide chrome immediately so it's invisible during the return transition.
+        // Without this, chrome stays visible in the overlay until the navigation
+        // fade-out completes — visually jarring because all UI elements flash.
+        chromeVisible = false
         if (isZoomed) {
             resetZoomSignal++
             contentScope.launch {
@@ -143,14 +155,6 @@ internal fun DetailContent(
         }
     }
     androidx.activity.compose.BackHandler(enabled = isZoomed) { handleBack() }
-
-    var chromeVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { chromeVisible = true }
-    val chromeAlpha by animateFloatAsState(
-        targetValue = if (chromeVisible) 1f else 0f,
-        animationSpec = SharedElementSpringFloat,
-        label = "chromeAlpha",
-    )
 
     val window = (context as? Activity)?.window
     if (window != null) {
@@ -320,17 +324,20 @@ internal fun DetailContent(
             .graphicsLayer { alpha = chromeAlpha }
     ) {
         // ── Chrome overlay (OUTSIDE BoxWithConstraints) ──
-        // renderInSharedTransitionScopeOverlay() is the official Compose API
-        // for keeping non-shared UI above a shared element during its
-        // transition. Without it, Modifier.sharedElement() elevates the image
-        // into the SharedTransitionScope overlay, causing it to render on top
-        // of siblings. This modifier places the chrome in the same overlay
-        // with a higher zIndex so it stays visible throughout the animation.
-        val chromeModifier = if (sharedTransitionScope != null) {
+        // renderInSharedTransitionScopeOverlay() keeps chrome above the shared
+        // element during its transition. animateEnterExit() fades the chrome out
+        // during the pop exit transition so it disappears immediately when the
+        // user navigates back, rather than lingering until the nav fade completes.
+        val chromeModifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
             with(sharedTransitionScope) {
-                Modifier
-                    .fillMaxSize()
-                    .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
+                with(animatedVisibilityScope) {
+                    Modifier
+                        .fillMaxSize()
+                        .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
+                        .animateEnterExit(
+                            exit = androidx.compose.animation.fadeOut(SharedElementSpringFloat),
+                        )
+                }
             }
         } else {
             Modifier.fillMaxSize()

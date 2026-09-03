@@ -16,7 +16,12 @@ No ads. No analytics. No trackers. Your data never leaves your device.
 - **Data Saver** — defers full-resolution downloads until you zoom
 - **Offline-first** — search results and favorites cached for offline use
 - **Dark Mode** — follows system theme (light, dark, or system default)
-- **Localized** — English and Hindi
+
+## Download
+
+[![Download APK](https://img.shields.io/badge/Download-APK-blue?style=for-the-badge)](https://github.com/kedharsairam/wallkraft/releases/latest)
+
+Or grab the latest from [Releases](https://github.com/kedharsairam/wallkraft/releases).
 
 ## Tech Stack
 
@@ -85,7 +90,17 @@ WallKraft is private by default:
 - Your Wallhaven API key (optional) is stored only on your device
 - Favorites and downloads are stored locally and never leave your device
 
-See [android/docs/privacy-policy.md](android/docs/privacy-policy.md) for details.
+See [PRIVACY.md](PRIVACY.md) for the full policy.
+
+## Support
+
+If you enjoy using WallKraft, consider buying me a coffee. It keeps the project going.
+
+<p align="center">
+  <a href="https://buymeacoffee.com/kedhartech">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="182">
+  </a>
+</p>
 
 ## License
 
