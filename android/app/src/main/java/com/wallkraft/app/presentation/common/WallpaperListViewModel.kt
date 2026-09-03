@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.Category
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
@@ -85,11 +86,17 @@ abstract class WallpaperListViewModel(
             } else {
                 settings.categories
             }
+            // NSFW requires a valid API key — strip it if no key is set or invalid.
+            val effectivePurity = if (settings.apiKeyValid) {
+                settings.purity
+            } else {
+                settings.purity - Purity.NSFW
+            }
             _uiState.update {
                 it.copy(
                     filters = WallhavenFilters(
                         categories = initialCategories,
-                        purity = settings.purity,
+                        purity = effectivePurity,
                         sorting = settings.sorting,
                         orientation = settings.orientation,
                         query = initialQuery,

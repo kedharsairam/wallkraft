@@ -5,12 +5,14 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +36,7 @@ internal fun DetailCircleButton(
     contentDescription: String? = null,
     text: String? = null,
     iconTint: Color = Color.White,
-    borderColor: Color = KraftColors.GlassBorderDark,
+    borderColor: Color = KraftColors.GlassBorder,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -48,7 +50,7 @@ internal fun DetailCircleButton(
                 }
             )
             .clip(CircleShape)
-            .background(KraftColors.GlassDark)
+            .background(KraftColors.Glass)
             .border(KraftSpacing.BorderWidth, borderColor, CircleShape)
             .clickable(onClick = onClick)
             .padding(horizontal = if (text != null) KraftSpacing.Spacing12 else 0.dp),
@@ -87,9 +89,9 @@ internal fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean
         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier
             .clip(shape)
-            .background(KraftColors.AccentBlue.copy(alpha = 0.45f))
+            .background(KraftColors.AccentBlue.copy(alpha = KraftConstants.TagChipFillAlpha))
             .border(
-                border = androidx.compose.foundation.BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = 0.7f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = KraftConstants.TagChipBorderAlpha)),
                 shape = shape,
             )
             .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
@@ -97,20 +99,27 @@ internal fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean
     )
 }
 
-/** A compact stat pill (resolution, size, category) in the bottom panel. */
+/** A compact stat item (resolution, size, category) in the bottom panel. */
 @Composable
-internal fun StatPill(text: String) {
-    val shape = RoundedCornerShape(KraftRadius.Small)
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
-        modifier = Modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = KraftConstants.OverlayStatPillBg))
-            .border(
-                androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = KraftConstants.OverlayStatPillBorder)),
-                shape,
-            )
-            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
-    )
+internal fun StatItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+        modifier = modifier,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(KraftIconSize.Small),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+        )
+    }
 }

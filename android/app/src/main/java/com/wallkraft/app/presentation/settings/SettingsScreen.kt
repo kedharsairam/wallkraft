@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -88,7 +89,6 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.util.displayName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -96,11 +96,39 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
 
+/** Chip colors — dark theme only. */
+@Composable
+private fun chipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.ChipSelectedContainer,
+    selectedLabelColor = KraftColors.ChipSelectedLabel,
+)
+
+/** Purity SFW chip colors — dark theme only. */
+@Composable
+private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PuritySfwContainer,
+    selectedLabelColor = KraftColors.PuritySfwLabel,
+)
+
+/** Purity sketchy chip colors — dark theme only. */
+@Composable
+private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PuritySketchyContainer,
+    selectedLabelColor = KraftColors.PuritySketchyLabel,
+)
+
+/** Purity NSFW chip colors — dark theme only. */
+@Composable
+private fun purityNsfwChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PurityNsfwContainer,
+    selectedLabelColor = KraftColors.PurityNsfwLabel,
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     val viewModel: SettingsViewModel = viewModel(
-        factory = viewModelFactory { initializer { SettingsViewModel(container.settings) } },
+        factory = viewModelFactory { initializer { SettingsViewModel(container.settings, container.api) } },
     )
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
@@ -160,38 +188,6 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 .padding(bottom = navBarPadding),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing24),
         ) {
-            // Appearance
-            SettingsGroup(title = stringResource(R.string.appearance)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8)) {
-                    ThemeMode.entries.forEach { mode ->
-                        val isSelected = settings.themeMode == mode
-                        val scale by animateFloatAsState(
-                            targetValue = if (isSelected) 1f else 0.95f,
-                            // Matches the standard spring used across the app for
-                            // selection feedback — snappy but not harsh.
-                            animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
-                            label = "chipScale",
-                        )
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.setThemeMode(mode)
-                            },
-                            label = { Text(mode.displayName()) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                selectedLabelColor = KraftColors.ChipSelectedLabel,
-                            ),
-                            modifier = Modifier.graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                            },
-                        )
-                    }
-                }
-            }
-
             // Default Filters — single collapsible section. Shows a compact
             // summary when collapsed, all filter chips when expanded.
             SettingsGroup(title = stringResource(R.string.browsing_title)) {
@@ -201,6 +197,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 val catPeople = stringResource(R.string.category_people)
                 val puritySfw = stringResource(R.string.purity_sfw)
                 val puritySketchy = stringResource(R.string.purity_sketchy)
+                val purityNsfw = stringResource(R.string.purity_nsfw)
                 val sortDateAdded = stringResource(R.string.sorting_date_added)
                 val sortHot = stringResource(R.string.sorting_hot)
                 val sortRandom = stringResource(R.string.sorting_random)
@@ -246,6 +243,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                                 when (p) {
                                     Purity.SFW -> puritySfw
                                     Purity.Sketchy -> puritySketchy
+                                    Purity.NSFW -> purityNsfw
                                 }
                             }
                         }
@@ -303,16 +301,13 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                                         viewModel.setCategories(newSet)
                                     },
                                     label = { Text(category.displayName()) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                        selectedLabelColor = KraftColors.ChipSelectedLabel,
-                                    ),
+                                    colors = chipColors(),
                                 )
                             }
                         }
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
+                            color = MaterialTheme.colorScheme.outline,
                         )
                         // Purity
                         FilterSectionLabel(stringResource(R.string.settings_purity))
@@ -322,33 +317,42 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
+                            // NSFW shown always — locked when no valid API key.
+                            val hasApiKey = settings.apiKeyValid
                             Purity.entries.forEach { purity ->
-                                val selected = purity in settings.purity
-                                val chipColors = when (purity) {
-                                    Purity.SFW -> FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KraftColors.PuritySfwContainer,
-                                        selectedLabelColor = KraftColors.PuritySfwLabel,
+                                val isNsfwLocked = purity == Purity.NSFW && !hasApiKey
+                                val selected = purity in settings.purity && !isNsfwLocked
+                                val currentChipColors = when {
+                                    purity == Purity.SFW -> puritySfwChipColors()
+                                    purity == Purity.Sketchy -> puritySketchyChipColors()
+                                    isNsfwLocked -> FilterChipDefaults.filterChipColors(
+                                        containerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
+                                        labelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
+                                        disabledContainerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
+                                        disabledLabelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
                                     )
-                                    Purity.Sketchy -> FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KraftColors.PuritySketchyContainer,
-                                        selectedLabelColor = KraftColors.PuritySketchyLabel,
-                                    )
+                                    else -> purityNsfwChipColors()
                                 }
                                 FilterChip(
                                     selected = selected,
                                     onClick = {
+                                        if (isNsfwLocked) return@FilterChip
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         val newSet = if (selected) settings.purity - purity else settings.purity + purity
                                         viewModel.setPurity(newSet)
                                     },
                                     label = { Text(purity.displayName()) },
-                                    colors = chipColors,
+                                    leadingIcon = if (isNsfwLocked) {
+                                        { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(KraftIconSize.Tiny)) }
+                                    } else null,
+                                    colors = currentChipColors,
+                                    enabled = !isNsfwLocked,
                                 )
                             }
                         }
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
+                            color = MaterialTheme.colorScheme.outline,
                         )
                         // Sorting
                         FilterSectionLabel(stringResource(R.string.settings_sorting))
@@ -366,16 +370,13 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                                         viewModel.setSorting(sorting)
                                     },
                                     label = { Text(sorting.displayName()) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                        selectedLabelColor = KraftColors.ChipSelectedLabel,
-                                    ),
+                                    colors = chipColors(),
                                 )
                             }
                         }
                         HorizontalDivider(
                             modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
+                            color = MaterialTheme.colorScheme.outline,
                         )
                         // Orientation
                         FilterSectionLabel(stringResource(R.string.settings_orientation))
@@ -393,10 +394,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                                         viewModel.setOrientation(orientation)
                                     },
                                     label = { Text(orientation.displayName()) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                        selectedLabelColor = KraftColors.ChipSelectedLabel,
-                                    ),
+                                    colors = chipColors(),
                                 )
                             }
                         }
@@ -439,7 +437,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                 }
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.OutlineVariantAlpha),
+                    color = MaterialTheme.colorScheme.outline,
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -497,11 +495,20 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                             text = stringResource(R.string.api_key_title),
                             style = MaterialTheme.typography.titleSmall,
                         )
+                        val statusText = when {
+                            apiKeyText.isBlank() -> stringResource(R.string.api_key_not_set)
+                            settings.apiKeyValid -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_valid)}"
+                            else -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_invalid)}"
+                        }
+                        val statusColor = when {
+                            apiKeyText.isBlank() -> MaterialTheme.colorScheme.onSurfaceVariant
+                            settings.apiKeyValid -> KraftColors.AuroraGreen
+                            else -> KraftColors.AuroraRed
+                        }
                         Text(
-                            text = if (apiKeyText.isBlank()) stringResource(R.string.api_key_not_set)
-                            else "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_advanced_description)}",
+                            text = statusText,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = statusColor,
                         )
                     }
                     Icon(
@@ -542,13 +549,13 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Text(
                     text = stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 AboutRow(
                     title = stringResource(R.string.github_title),
                     onClick = {
@@ -557,7 +564,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         context.startActivity(intent)
                     },
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 AboutRow(
                     title = stringResource(R.string.privacy_title),
                     onClick = {
@@ -565,7 +572,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         showPrivacyDialog = true
                     },
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 val licensesUrl = stringResource(R.string.licenses_url)
                 AboutRow(
                     title = stringResource(R.string.licenses_title),
@@ -652,7 +659,9 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
         )
         Surface(
             shape = RoundedCornerShape(KraftRadius.Standard),
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            // Apple HIG: settings group card
+            // Light: #FFFFFF (white on #F2F2F7 page), Dark: #1C1C1E (on #000000 page)
+            color = MaterialTheme.colorScheme.surfaceBright,
             modifier = Modifier.fillMaxWidth(),
         ) {
             Column(modifier = Modifier.padding(KraftSpacing.Spacing16)) { content() }

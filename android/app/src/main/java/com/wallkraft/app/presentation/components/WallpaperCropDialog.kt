@@ -360,8 +360,8 @@ fun WallpaperCropDialog(
                     .padding(KraftSpacing.Spacing12)
                     .size(KraftSpacing.TouchTarget)
                     .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .background(KraftColors.GlassDark)
-                    .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, RoundedCornerShape(KraftRadius.Standard))
+                    .background(KraftColors.Glass)
+                    .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, RoundedCornerShape(KraftRadius.Standard))
                     .clickable {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         onDismiss()
@@ -416,7 +416,7 @@ fun WallpaperCropDialog(
                     Text(
                         text = stringResource(R.string.crop_hint),
                         style = MaterialTheme.typography.bodySmall,
-                        color = KraftColors.TextSecondaryDark,
+                        color = KraftColors.TextSecondary,
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing16))
                     // Position choice: segmented control (Home | Lock | Both),
@@ -439,10 +439,10 @@ fun WallpaperCropDialog(
                                 colors = SegmentedButtonDefaults.colors(
                                     activeContainerColor = Color.White,
                                     activeContentColor = Color.Black,
-                                    inactiveContainerColor = KraftColors.SurfaceContainerDark,
-                                    inactiveContentColor = Color.White.copy(alpha = 0.8f),
+                                    inactiveContainerColor = KraftColors.Surface,
+                                    inactiveContentColor = Color.White.copy(alpha = KraftConstants.CropDialogSecondaryAlpha),
                                 ),
-                                border = BorderStroke(1.dp, KraftColors.SeparatorDark),
+                                border = BorderStroke(1.dp, KraftColors.Separator),
                                 icon = {},
                             ) {
                                 Text(stringResource(labelRes))
@@ -512,7 +512,7 @@ fun WallpaperCropDialog(
                     ) {
                         Text(
                             text = stringResource(R.string.cancel),
-                            color = Color.White.copy(alpha = 0.8f),
+                            color = Color.White.copy(alpha = KraftConstants.CropDialogSecondaryAlpha),
                         )
                     }
                 }

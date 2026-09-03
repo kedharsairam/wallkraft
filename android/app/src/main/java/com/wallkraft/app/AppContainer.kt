@@ -51,6 +51,9 @@ class AppContainer(context: Context) {
         WallhavenApi(okHttpClient, json, settings)
     }
 
+    /** Expose API for key validation in Settings. */
+    val api: WallhavenApi get() = wallhavenApi
+
     /** File-backed cache of search responses (30-min TTL, offline fallback). */
     val searchCache: SearchResponseCache by lazy {
         SearchResponseCache(

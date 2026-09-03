@@ -127,7 +127,7 @@ internal fun BottomPanel(
                 .graphicsLayer { alpha = chromeAlpha * (if (isZoomed) 0f else 1f) }
                 .height(with(density) { currentHeightPx.toDp() })
                 .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
                     // Settled height where the drag started. Read at release to
                     // tell an upward pull from a downward drag, so the expand and

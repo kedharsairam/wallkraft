@@ -7,7 +7,6 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.ThemeMode
 
 /** Localized user-facing names. The enums keep their raw wire values for the API. */
 
@@ -43,22 +42,13 @@ fun Category.displayName(): String = stringResource(
     },
 )
 
-/** Returns the localized display name for this theme mode. */
-@Composable
-fun ThemeMode.displayName(): String = stringResource(
-    when (this) {
-        ThemeMode.System -> R.string.theme_system
-        ThemeMode.Light -> R.string.theme_light
-        ThemeMode.Dark -> R.string.theme_dark
-    },
-)
-
 /** Returns the localized display name for this purity level. */
 @Composable
 fun Purity.displayName(): String = stringResource(
     when (this) {
         Purity.SFW -> R.string.purity_sfw
         Purity.Sketchy -> R.string.purity_sketchy
+        Purity.NSFW -> R.string.purity_nsfw
     },
 )
 

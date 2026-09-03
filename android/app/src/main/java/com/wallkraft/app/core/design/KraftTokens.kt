@@ -5,120 +5,77 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * WallKraft — Design Tokens.
+ * WallKraft — Design Tokens (dark only).
  *
- * Every color, spacing, radius, and type scale value matches the standard human
- * Interface Guidelines. Wallpapers are the hero; the UI is a clean, neutral
- * canvas that gets out of the way.
- *
- * Dark mode uses true black (#000000) for OLED — wallpapers pop, no gray haze.
- * Light mode uses pure white (#FFFFFF) — crisp, clean, platform-native feel.
+ * True black (#000000) OLED backgrounds. System grays for surfaces.
+ * White labels, brighter accent colors. Wallpaper-first.
  */
 object KraftColors {
     // ─── Brand Colors ──────────────────────────────────────────────────
     // WallKraft's identity: Aurora palette inspired by the Northern Lights.
-    // These are the app's signature colors — used for active states, badges,
-    // and accent elements that feel distinctly WallKraft.
-    val AuroraBlue = Color(0xFF007AFF)        // Primary accent — trust, depth
-    val AuroraBlueDark = Color(0xFF0A84FF)    // Dark mode variant
-    val AuroraGreen = Color(0xFF34C759)       // Success, favorites, download
-    val AuroraGreenDark = Color(0xFF32D74B)   // Dark mode variant
-    val AuroraRed = Color(0xFFFF3B30)         // Destructive, unfavorite
-    val AuroraRedDark = Color(0xFFFF453A)     // Dark mode variant
-    val AuroraOrange = Color(0xFFFF9500)      // Warning, rate limit
-    val AuroraOrangeDark = Color(0xFFFF9F0A)  // Dark mode variant
-    val AuroraPink = Color(0xFFFF2D55)        // Special accent
-    val AuroraPinkDark = Color(0xFFFF375D)    // Dark mode variant
-    val AuroraPurple = Color(0xFFAF52DE)      // Tags, special actions
-    val AuroraPurpleDark = Color(0xFFBF5AF2)  // Dark mode variant
-    val AuroraIndigo = Color(0xFF5856D6)      // Secondary accent
-    val AuroraIndigoDark = Color(0xFF5E5CE6)  // Dark mode variant
-    val AuroraTeal = Color(0xFF00C7BE)        // Data saver, cache
-    val AuroraTealDark = Color(0xFF64D2FF)    // Dark mode variant
+    // Dark-only: use the Dark variants directly.
+    val AuroraBlue = Color(0xFF0A84FF)        // Primary accent — Apple HIG systemBlue dark
+    val AuroraGreen = Color(0xFF30D158)       // Success, favorites, download — Apple HIG systemGreen dark
+    val AuroraRed = Color(0xFFFF453A)         // Destructive, unfavorite — Apple HIG systemRed dark
+    val AuroraOrange = Color(0xFFFF9F0A)      // Warning, rate limit — Apple HIG systemOrange dark
+    val AuroraPink = Color(0xFFFF375F)        // Special accent — Apple HIG systemPink dark
+    val AuroraPurple = Color(0xFFBF5AF2)      // Tags, special actions — Apple HIG systemPurple dark
+    val AuroraIndigo = Color(0xFF5E5CE6)      // Secondary accent — Apple HIG systemIndigo dark
+    val AuroraTeal = Color(0xFF40CBE0)        // Data saver, cache — Apple HIG systemTeal dark
 
     // ─── Legacy aliases ────────────────────────────────────────────────
     // Kept for backwards compatibility. New code should use Aurora* names.
     val AccentBlue = AuroraBlue
-    val AccentBlueDark = AuroraBlueDark
     val AccentGreen = AuroraGreen
-    val AccentGreenDark = AuroraGreenDark
     val AccentRed = AuroraRed
-    val AccentRedDark = AuroraRedDark
     val AccentOrange = AuroraOrange
-    val AccentOrangeDark = AuroraOrangeDark
     val AccentPink = AuroraPink
-    val AccentPinkDark = AuroraPinkDark
     val AccentPurple = AuroraPurple
-    val AccentPurpleDark = AuroraPurpleDark
     val AccentIndigo = AuroraIndigo
-    val AccentIndigoDark = AuroraIndigoDark
     val AccentTeal = AuroraTeal
-    val AccentTealDark = AuroraTealDark
 
-    // ─── Backgrounds & Surfaces — Light Mode ────────────────────────────
-    // Pure white background, system gray groupings.
-    val BackgroundLight = Color(0xFFFFFFFF)           // systemBackground
-    val SurfaceLight = Color(0xFFFFFFFF)              // secondarySystemBackground
-    val SurfaceSecondaryLight = Color(0xFFF2F2F7)     // tertiarySystemBackground
-    val SurfaceTertiaryLight = Color(0xFFE5E5EA)      // quaternarySystemBackground
-
-    // ─── Backgrounds & Surfaces — Dark Mode ─────────────────────────────
+    // ─── Backgrounds & Surfaces — Apple HIG Dark Mode ──────────────────
     // True black for OLED. System grays for surfaces.
-    val BackgroundDark = Color(0xFF000000)             // systemBackground
-    val SurfaceDark = Color(0xFF1C1C1E)                // secondarySystemBackground
-    val SurfaceSecondaryDark = Color(0xFF2C2C2E)       // tertiarySystemBackground
-    val SurfaceTertiaryDark = Color(0xFF3A3A3C)        // quaternarySystemBackground
+    val Background = Color(0xFF000000)              // systemBackground — page canvas
+    val Surface = Color(0xFF1C1C1E)                 // secondarySystemBackground — cards, elevated surfaces
+    val SurfaceSecondary = Color(0xFF2C2C2E)        // tertiarySystemBackground — highest elevation
+    val SurfaceTertiary = Color(0xFF3A3A3C)         // quaternary — maximum elevation
+    /** Search bar background — slightly lighter than page for depth. */
+    val SearchBar = Color(0xFF1C1C1E)
 
-    // ─── Surface container levels (Material3 slots) ─────────────────────
-    val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
-    val SurfaceContainerLowLight = Color(0xFFF2F2F7)
-    val SurfaceContainerLight = Color(0xFFE5E5EA)
-    val SurfaceContainerHighLight = Color(0xFFE5E5EA)
-    val SurfaceDimLight = Color(0xFFE5E5EA)
-    val SurfaceBrightLight = Color(0xFFFFFFFF)
-
-    val SurfaceContainerLowestDark = Color(0xFF000000)
-    val SurfaceContainerLowDark = Color(0xFF1C1C1E)
-    val SurfaceContainerDark = Color(0xFF2C2C2E)
-    val SurfaceContainerHighDark = Color(0xFF3A3A3C)
-    val SurfaceDimDark = Color(0xFF000000)
-    val SurfaceBrightDark = Color(0xFF2C2C2E)
-
-    // ─── Text — Light Mode ──────────────────────────────────────────────
-    val TextPrimaryLight = Color(0xFF000000)     // label — 100% opacity
-    val TextSecondaryLight = Color(0x99000000)   // secondaryLabel — 60% opacity
-    val TextTertiaryLight = Color(0x4C000000)    // tertiaryLabel — 30% opacity
-
-    // ─── Text — Dark Mode ───────────────────────────────────────────────
-    val TextPrimaryDark = Color(0xFFFFFFFF)       // label — 100% opacity
-    val TextSecondaryDark = Color(0x99FFFFFF)     // secondaryLabel — 60% opacity
-    val TextTertiaryDark = Color(0x4CFFFFFF)      // tertiaryLabel — 30% opacity
+    // ─── Text — Apple HIG Dark Mode ────────────────────────────────────
+    // Apple HIG: labels use #EBEBF5 base (cool gray-white, not pure white).
+    val TextPrimary = Color(0xFFFFFFFF)       // label — 100% opacity
+    val TextSecondary = Color(0x99EBEBF5)     // secondaryLabel — 60% of #EBEBF5
+    val TextTertiary = Color(0x4CEBEBF5)      // tertiaryLabel — 30% of #EBEBF5
 
     // ─── Separators ─────────────────────────────────────────────────────
-    val SeparatorLight = Color(0x4D3C3C43)       // separator — 30% of #3C3C43
-    val SeparatorDark = Color(0x4D3C3C43)         // separator — 30% of #3C3C43
+    // Apple HIG: separator = #545458 at ~35% alpha on dark backgrounds
+    val Separator = Color(0x59545458)
+    // Apple HIG: opaqueSeparator = #38383A for structural hairlines
+    val OpaqueSeparator = Color(0xFF38383A)
 
     // ─── Glass (frosted overlays on images) ────────────────────────────
     // Dark translucent fill ensures pills are visible on ANY wallpaper.
-    val GlassDark = Color.Black.copy(alpha = 0.38f)
-    val GlassBorderDark = Color.White.copy(alpha = 0.14f)
-    val GlassLight = Color.White.copy(alpha = 0.38f)
-    val GlassBorderLight = Color.Black.copy(alpha = 0.14f)
+    val Glass = Color.Black.copy(alpha = 0.55f)
+    val GlassBorder = Color.White.copy(alpha = 0.25f)
 
     // ─── Tab Bar ────────────────────────────────────────────────────────
-    val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab
-    val TabBarSeparator = Color(0x3C000000)    // 23% black — standard hairline
+    val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab — ~4.2:1 on #000000
+    val TabBarSeparator = Color(0xFF38383A)    // opaque separator — structural hairline
 
     // ─── Filter Chips ──────────────────────────────────────────────────
-    // Non-purity chips (categories, sorting, orientation, theme mode).
-    val ChipSelectedContainer = Color(0xFF1E3A5F)   // muted blue
-    val ChipSelectedLabel = Color(0xFFA8C8E8)       // light blue text
+    // Non-purity chips (categories, sorting, orientation).
+    val ChipSelectedContainer = AuroraBlue.copy(alpha = 0.2f)  // subtle blue tint — Apple HIG selected chip
+    val ChipSelectedLabel = AuroraBlue                         // full system blue label
 
-    // Purity chips — match Wallhaven's native colors.
-    val PuritySfwContainer = Color(0xFF4A6B4A)      // green background
-    val PuritySfwLabel = Color(0xFF99FF99)          // green text
-    val PuritySketchyContainer = Color(0xFF6B6B3D)  // amber background
-    val PuritySketchyLabel = Color(0xFFFFFF99)      // amber text
+    // Purity chips — Aurora palette for cohesion.
+    val PuritySfwContainer = AuroraGreen.copy(alpha = 0.2f)   // subtle green tint
+    val PuritySfwLabel = AuroraGreen                           // full green label
+    val PuritySketchyContainer = AuroraOrange.copy(alpha = 0.2f) // subtle orange tint
+    val PuritySketchyLabel = AuroraOrange                      // full orange label
+    val PurityNsfwContainer = AuroraRed.copy(alpha = 0.2f)    // subtle red tint
+    val PurityNsfwLabel = AuroraRed                            // full red label
 }
 
 object KraftSpacing {
@@ -236,10 +193,7 @@ object KraftConstants {
     const val CropAnimDurationMs = 220L
 
     // -- Alphas --
-    const val ContainerAlphaLight = 0.12f
-    const val ContainerAlphaDark = 0.2f
-    const val OutlineVariantAlpha = 0.3f
-    const val DividerAlpha = 0.4f
+    const val ContainerAlpha = 0.2f
 
     // -- Overlay Alphas (detail screen, crop dialog) --
     const val OverlayScrimAlpha = 0.55f          // Top gradient scrim for status bar legibility
@@ -250,6 +204,9 @@ object KraftConstants {
     const val OverlayStatPillBorder = 0.25f      // Stat pill border on images (increased for contrast)
     const val OverlayCropScrimTop = 0.4f         // Crop dialog top scrim
     const val OverlayCropPanelAlpha = 0.65f      // Crop dialog bottom panel
+    const val TagChipFillAlpha = 0.45f           // Tag chip background fill on images
+    const val TagChipBorderAlpha = 0.7f          // Tag chip border on images
+    const val CropDialogSecondaryAlpha = 0.8f    // Crop dialog secondary text (cancel, inactive segments)
 
     // -- Error states --
     const val ErrorContainerAlpha = 0.4f         // Error icon background
@@ -266,7 +223,8 @@ object KraftConstants {
 
     // -- Card / Surface --
     const val SurfaceVariantAlpha = 0.4f         // Empty state icon background
-    const val IconTintAlpha = 0.7f               // Empty state icon tint
+    const val IconTintAlpha = 0.85f              // Empty state icon tint — clearly visible
+    const val EmptyStateIconBgAlpha = 0.40f      // Empty state circle — clearly visible on black
 
     // -- Deleted uploader --
     const val DeletedUploaderBgAlpha = 0.12f     // Deleted account avatar background

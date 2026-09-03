@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-09-04
+
+### Added
+- **NSFW purity filter** — new purity tier behind API key wall. Locked pill with lock icon shown when no valid API key. Unlocks automatically when valid key is entered. Uses `AuroraRed` accent.
+- **API key validation** — validates against Wallhaven API using `apikey` query parameter. Shows green "Valid key — NSFW unlocked" or red "Invalid key — check and try again" status in Settings.
+- **API key validation state** — `apiKeyValid` persisted in settings, re-validated on key change and on app clear.
+- **NSFW filter support in API** — `toPurityParam()` emits `1` for NSFW, repository adds `"nsfw"` to allowed purity set when selected.
+
+### Changed
+- **Dark-only theme** — light theme fully removed. `ThemeMode` enum deleted, `isSystemInDarkTheme()` checks removed, `LightColorScheme` removed. Single dark color scheme throughout.
+- **Filter chip colors updated** — `ChipSelectedContainer` changed from steel blue to `AuroraBlue.copy(alpha = 0.2f)`, `ChipSelectedLabel` changed to `AuroraBlue`. Purity chips: SFW=Green@20%, Sketchy=Orange@20%, NSFW=Red@20%.
+- **Panel backgrounds** — SearchFilterBar and KraftTopBar now use `SurfaceSecondary` (#2C2C2E) for visual hierarchy. Filter button uses `Surface` (#1C1C1E) to stand out.
+- **Detail panel stats** — `StatPill` replaced with `StatItem` (icon + text vertical list). Icons: AspectRatio, Storage, Visibility, Favorite. All white on glass.
+- **NSFW locked pill appearance** — reduced container alpha from 40% to 15% for subtler look.
+- **NSFW stripped when invalid** — purity set automatically drops NSFW when API key is blank or invalid.
+- **SettingsViewModel accepts `WallhavenApi`** — validation runs on 500ms debounce and on `onCleared()`.
+
+### Fixed
+- **API key validation always showing invalid** — `SettingsStore.update()` was overriding `apiKeyValid` to `false` whenever the key changed, discarding the validation result. Now always persists the validated value.
+- **NSFW results filtered client-side** — `WallpaperRepositoryImpl` was stripping NSFW wallpapers from API response even when user selected NSFW purity. Fixed allowed purity set logic.
+- **SettingsStore `apiKeyValid` reset** — removed incorrect reset-to-false on key change; the validation result from `SettingsViewModel` is now always respected.
+
+### Removed
+- **Light theme** — `ThemeMode`, `lightColorScheme()`, `isSystemInDarkTheme()` conditionals. Single dark theme only.
+
 ## [1.15.0] - 2026-09-03
 
 ### Added
