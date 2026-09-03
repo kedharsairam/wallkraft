@@ -32,24 +32,28 @@ fun Set<Category>.toCategoryParam(): String = buildString {
     append(if (contains(Category.People)) '1' else '0')
 }
 
-/** Wallhaven purity — SFW and/or Sketchy; NSFW (001) is never requested. */
+/**
+ * Wallhaven purity — SFW, Sketchy, and NSFW.
+ * NSFW requires a valid API key to access.
+ */
 enum class Purity {
     SFW,
     Sketchy,
+    NSFW,
 }
 
 fun Set<Purity>.toPurityParam(): String = buildString {
     append(if (contains(Purity.SFW)) '1' else '0')
     append(if (contains(Purity.Sketchy)) '1' else '0')
-    append('0')
+    append(if (contains(Purity.NSFW)) '1' else '0')
 }
 
 /**
  * Search filters for the Wallhaven API.
  *
  * Defaults: All categories (111), SFW only (100), newest first. Matches wallhaven.cc.
- * NSFW is never requested (third char always 0).
- * Purity is multi-select like categories: SFW, Sketchy, or both.
+ * NSFW requires a valid API key — it's gated at the UI level and stripped if no key is set.
+ * Purity is multi-select like categories: SFW, Sketchy, or NSFW.
  */
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),

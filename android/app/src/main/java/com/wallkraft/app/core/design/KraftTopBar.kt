@@ -1,5 +1,6 @@
 package com.wallkraft.app.core.design
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -31,7 +32,9 @@ fun KraftTopBar(
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.background(KraftColors.SurfaceSecondary),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -56,7 +59,8 @@ fun KraftTopBar(
             }
         }
         HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
+            // Apple HIG: separator = outline color (already encodes correct alpha)
+            color = MaterialTheme.colorScheme.outline,
         )
     }
 }

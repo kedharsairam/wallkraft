@@ -34,6 +34,8 @@
     <string name="category_people">People</string>
     <string name="purity_sfw">SFW</string>
     <string name="purity_sketchy">Sketchy</string>
+    <string name="purity_nsfw">NSFW</string>
+    <string name="purity_nsfw_locked">Requires API key</string>
     <string name="orientation_both">Both</string>
     <string name="orientation_portrait">Portrait</string>
     <string name="orientation_landscape">Landscape</string>
@@ -72,6 +74,8 @@
     <string name="cache_cleared">Cache cleared</string>
     <string name="favorites_storage_format">%1$d wallpapers • %2$s</string>
     <string name="api_key_advanced_description">Optional key for higher limits. Tap to edit.</string>
+    <string name="api_key_valid">Valid key — NSFW unlocked</string>
+    <string name="api_key_invalid">Invalid key — check and try again</string>
     <string name="api_key_dialog_title">Wallhaven API key</string>
     <string name="api_key_dialog_save">Save</string>
     <string name="api_key_saved">API key saved</string>

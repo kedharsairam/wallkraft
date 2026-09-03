@@ -367,8 +367,8 @@ internal fun DetailContent(
                         modifier = Modifier
                             .size(KraftSpacing.TouchTarget)
                             .clip(CircleShape)
-                            .background(KraftColors.GlassDark)
-                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape)
+                            .background(KraftColors.Glass)
+                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
                             .clickable(onClick = {
                                 hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
                                 handleBack()
@@ -419,8 +419,8 @@ internal fun DetailContent(
                         modifier = Modifier
                             .size(KraftSpacing.TouchTarget)
                             .clip(CircleShape)
-                            .background(KraftColors.GlassDark)
-                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorderDark, CircleShape),
+                            .background(KraftColors.Glass)
+                            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape),
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(KraftIconSize.Medium),

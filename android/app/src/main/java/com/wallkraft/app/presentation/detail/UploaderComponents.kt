@@ -215,7 +215,7 @@ internal fun DeletedUploaderRow() {
 /** Deterministic avatar color per username, picked from the Aurora palette. */
 private val avatarPalette = listOf(
     KraftColors.AccentBlue,
-    KraftColors.AccentBlueDark,
+    KraftColors.AccentBlue,
     KraftColors.AccentOrange,
     KraftColors.AccentGreen,
     KraftColors.AccentRed,

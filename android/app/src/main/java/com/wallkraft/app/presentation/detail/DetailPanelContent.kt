@@ -25,7 +25,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AspectRatio
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -89,7 +93,7 @@ internal fun DetailPanelContent(
                 .size(width = KraftSpacing.Spacing40, height = KraftSpacing.Spacing4)
                 .shadow(KraftSpacing.Spacing4, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
                 .clip(RoundedCornerShape(KraftRadius.DragHandle))
-                .background(KraftColors.GlassDark),
+                .background(KraftColors.Glass),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
 
@@ -174,19 +178,30 @@ internal fun DetailPanelContent(
             Column {
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
 
-                // Stat pills: resolution, file size, views, favorites — category
-                // is implied by tags and adds no decision value.
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                // Stat list: resolution, file size, views, favorites — vertical
+                // layout with icons for scannability.
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
                 ) {
-                    StatPill(wallpaper.resolution)
-                    StatPill(wallpaper.fileSizeFormatted())
+                    StatItem(
+                        icon = Icons.Outlined.AspectRatio,
+                        text = wallpaper.resolution,
+                    )
+                    StatItem(
+                        icon = Icons.Outlined.Storage,
+                        text = wallpaper.fileSizeFormatted(),
+                    )
                     if (wallpaper.views > 0) {
-                        StatPill(stringResource(R.string.stat_views, formatCount(wallpaper.views)))
+                        StatItem(
+                            icon = Icons.Outlined.Visibility,
+                            text = stringResource(R.string.stat_views, formatCount(wallpaper.views)),
+                        )
                     }
                     if (wallpaper.favorites > 0) {
-                        StatPill(stringResource(R.string.stat_favorites, formatCount(wallpaper.favorites)))
+                        StatItem(
+                            icon = Icons.Outlined.Favorite,
+                            text = stringResource(R.string.stat_favorites, formatCount(wallpaper.favorites)),
+                        )
                     }
                 }
 

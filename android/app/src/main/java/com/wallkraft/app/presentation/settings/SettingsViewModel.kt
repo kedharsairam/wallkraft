@@ -2,12 +2,12 @@ package com.wallkraft.app.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +25,7 @@ import kotlinx.coroutines.FlowPreview
 @OptIn(FlowPreview::class)
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
+    private val api: WallhavenApi,
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -70,12 +71,26 @@ class SettingsViewModel(
         // after the last one. Skips writes before the seed completes (so a
         // slow first read can never wipe the stored key) and skips writes that
         // don't change the persisted value (so seeding is a no-op).
+        // When the API key is removed, NSFW is automatically stripped from purity.
+        // When the API key changes, it is validated against the Wallhaven API.
         appScope.launch {
             _apiKeyText
                 .debounce(500)
                 .collect { key ->
+                    android.util.Log.d("SettingsViewModel", "Debounced key: '${key.take(4)}...${key.takeLast(4)}' (length=${key.length})")
                     if (seedComplete && key != lastPersisted) {
-                        settingsRepository.update { it.copy(apiKey = key) }
+                        // Validate the key against the API
+                        val isValid = api.validateApiKey(key)
+                        android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
+                        settingsRepository.update { current ->
+                            val updated = current.copy(apiKey = key, apiKeyValid = isValid)
+                            if (key.isBlank() || !isValid) {
+                                // No API key or invalid — strip NSFW from purity.
+                                updated.copy(purity = updated.purity - Purity.NSFW)
+                            } else {
+                                updated
+                            }
+                        }
                         lastPersisted = key
                     }
                 }
@@ -85,10 +100,6 @@ class SettingsViewModel(
     fun setApiKey(key: String) {
         hasUserInput = true
         _apiKeyText.value = key
-    }
-
-    fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch { settingsRepository.update { it.copy(themeMode = mode) } }
     }
 
     fun setSorting(sorting: Sorting) {
@@ -122,7 +133,15 @@ class SettingsViewModel(
         val latest = _apiKeyText.value
         if (hasUserInput && latest != lastPersisted) {
             appScope.launch {
-                settingsRepository.update { it.copy(apiKey = latest) }
+                val isValid = api.validateApiKey(latest)
+                settingsRepository.update { current ->
+                    val updated = current.copy(apiKey = latest, apiKeyValid = isValid)
+                    if (latest.isBlank() || !isValid) {
+                        updated.copy(purity = updated.purity - Purity.NSFW)
+                    } else {
+                        updated
+                    }
+                }
                 // Cancel the scope after the flush completes so it doesn't leak.
                 appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
             }

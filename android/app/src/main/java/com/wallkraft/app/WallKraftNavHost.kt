@@ -112,17 +112,21 @@ fun WallKraftNavHost(container: AppContainer) {
         bottomBar = {
             if (!isDetail) {
                 // ── Tab Bar ───────────────────────────────────────────
-                // Solid background, thin top separator, no indicator pill.
+                // Solid surface background, thin top separator, no indicator pill.
                 // Icons: 25dp, labels: 10sp, active = primary, inactive = #8E8E93.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .background(KraftColors.TabBarSeparator.copy(alpha = 0.15f)) // subtle tint
-                        .navigationBarsPadding(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    androidx.compose.material3.HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline,
+                        thickness = 0.5.dp,
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                            .navigationBarsPadding(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                     tabs.forEach { tab ->
                         val selected =
                             currentDestination?.hierarchy?.any {
@@ -143,6 +147,7 @@ fun WallKraftNavHost(container: AppContainer) {
                                 }
                             },
                         )
+                    }
                     }
                 }
             }

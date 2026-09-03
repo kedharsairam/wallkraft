@@ -3,7 +3,6 @@ package com.wallkraft.app.core.design
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -11,82 +10,52 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Color schemes — clean, neutral, wallpaper-first.
+ * Color scheme — dark only, OLED-optimized.
  *
- * Light: pure white backgrounds, black labels, system blue accent.
- * Dark: true black backgrounds, white labels, brighter blue accent.
+ * True black (#000000) backgrounds. System grays for surfaces.
+ * White labels, brighter accent colors. Wallpaper-first.
  */
 object KraftColorSchemes {
-    val Light = lightColorScheme(
+    val Dark = darkColorScheme(
         primary = KraftColors.AccentBlue,
-        onPrimary = Color.White,
-        primaryContainer = KraftColors.AccentBlue.copy(alpha = KraftConstants.ContainerAlphaLight),
+        onPrimary = Color.Black,
+        primaryContainer = KraftColors.AccentBlue.copy(alpha = KraftConstants.ContainerAlpha),
         onPrimaryContainer = KraftColors.AccentBlue,
         secondary = KraftColors.AccentTeal,
-        onSecondary = Color.White,
-        secondaryContainer = KraftColors.AccentTeal.copy(alpha = KraftConstants.ContainerAlphaLight),
+        onSecondary = Color.Black,
+        secondaryContainer = KraftColors.AccentTeal.copy(alpha = KraftConstants.ContainerAlpha),
         onSecondaryContainer = KraftColors.AccentTeal,
         tertiary = KraftColors.AccentOrange,
-        onTertiary = Color.White,
-        error = KraftColors.AccentRed,
-        onError = Color.White,
-        errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlphaLight),
-        onErrorContainer = KraftColors.AccentRed,
-        background = KraftColors.BackgroundLight,
-        onBackground = KraftColors.TextPrimaryLight,
-        surface = KraftColors.SurfaceLight,
-        onSurface = KraftColors.TextPrimaryLight,
-        surfaceVariant = KraftColors.SurfaceTertiaryLight,
-        onSurfaceVariant = KraftColors.TextSecondaryLight,
-        surfaceContainerLowest = KraftColors.SurfaceContainerLowestLight,
-        surfaceContainerLow = KraftColors.SurfaceContainerLowLight,
-        surfaceContainer = KraftColors.SurfaceContainerLight,
-        surfaceContainerHigh = KraftColors.SurfaceContainerHighLight,
-        surfaceContainerHighest = KraftColors.SurfaceTertiaryLight,
-        surfaceDim = KraftColors.SurfaceDimLight,
-        surfaceBright = KraftColors.SurfaceBrightLight,
-        inverseSurface = KraftColors.TextPrimaryDark,
-        inverseOnSurface = KraftColors.BackgroundDark,
-        inversePrimary = KraftColors.AccentBlueDark,
-        outline = KraftColors.SeparatorLight,
-        outlineVariant = KraftColors.SeparatorLight.copy(alpha = KraftConstants.OutlineVariantAlpha),
-        scrim = Color.Black,
-    )
-
-    val Dark = darkColorScheme(
-        primary = KraftColors.AccentBlueDark,
-        onPrimary = Color.Black,
-        primaryContainer = KraftColors.AccentBlueDark.copy(alpha = KraftConstants.ContainerAlphaDark),
-        onPrimaryContainer = KraftColors.AccentBlueDark,
-        secondary = KraftColors.AccentTealDark,
-        onSecondary = Color.Black,
-        secondaryContainer = KraftColors.AccentTealDark.copy(alpha = KraftConstants.ContainerAlphaDark),
-        onSecondaryContainer = KraftColors.AccentTealDark,
-        tertiary = KraftColors.AccentOrangeDark,
         onTertiary = Color.Black,
-        error = KraftColors.AccentRedDark,
+        error = KraftColors.AccentRed,
         onError = Color.Black,
-        errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlphaDark),
-        onErrorContainer = KraftColors.AccentRedDark,
-        background = KraftColors.BackgroundDark,
-        onBackground = KraftColors.TextPrimaryDark,
-        surface = KraftColors.SurfaceDark,
-        onSurface = KraftColors.TextPrimaryDark,
-        surfaceVariant = KraftColors.SurfaceTertiaryDark,
-        onSurfaceVariant = KraftColors.TextSecondaryDark,
-        surfaceContainerLowest = KraftColors.SurfaceContainerLowestDark,
-        surfaceContainerLow = KraftColors.SurfaceContainerLowDark,
-        surfaceContainer = KraftColors.SurfaceContainerDark,
-        surfaceContainerHigh = KraftColors.SurfaceContainerHighDark,
-        surfaceContainerHighest = KraftColors.SurfaceTertiaryDark,
-        surfaceDim = KraftColors.SurfaceDimDark,
-        surfaceBright = KraftColors.SurfaceBrightDark,
-        inverseSurface = KraftColors.TextPrimaryLight,
-        inverseOnSurface = KraftColors.BackgroundLight,
+        errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlpha),
+        onErrorContainer = KraftColors.AccentRed,
+        // Apple HIG: page background = #000000 (OLED true black)
+        background = Color.Black,
+        onBackground = KraftColors.TextPrimary,
+        // Apple HIG: surface = #1C1C1E (card surfaces — elevated above page)
+        surface = KraftColors.Surface,
+        onSurface = KraftColors.TextPrimary,
+        // surfaceVariant = #2C2C2E (tertiarySystemGroupedBackground)
+        surfaceVariant = KraftColors.SurfaceSecondary,
+        onSurfaceVariant = KraftColors.TextSecondary,
+        // Apple grouped layout: page is #000000, cards are #1C1C1E
+        surfaceContainerLowest = Color.Black,                         // #000000 — page background
+        surfaceContainerLow = KraftColors.Surface,                    // #1C1C1E — card surface
+        surfaceContainer = Color.Black,                               // #000000 — page background
+        surfaceContainerHigh = KraftColors.Surface,                   // #1C1C1E — elevated (search bar, chips)
+        surfaceContainerHighest = KraftColors.SurfaceSecondary,       // #2C2C2E — highest elevation
+        surfaceDim = Color.Black,                                     // #000000 — dimmed = page
+        surfaceBright = KraftColors.Surface,                          // #1C1C1E — brightest = cards
+        inverseSurface = KraftColors.TextPrimary,
+        inverseOnSurface = Color.Black,
         inversePrimary = KraftColors.AccentBlue,
         scrim = Color.Black,
-        outline = KraftColors.SeparatorDark,
-        outlineVariant = KraftColors.SeparatorDark.copy(alpha = KraftConstants.OutlineVariantAlpha),
+        // Apple HIG: separator = outline color (~35% alpha of #545458)
+        outline = KraftColors.Separator,
+        // outlineVariant = opaque separator for less prominent borders
+        outlineVariant = KraftColors.OpaqueSeparator,
     )
 }
 
@@ -167,14 +136,13 @@ object KraftTypography {
     )
 }
 
-/** Theme wrapper — clean, neutral, wallpaper-first. */
+/** Theme wrapper — dark only, OLED-optimized. */
 @Composable
 fun KraftTheme(
-    darkTheme: Boolean,
     content: @Composable () -> Unit,
 ) {
     MaterialTheme(
-        colorScheme = if (darkTheme) KraftColorSchemes.Dark else KraftColorSchemes.Light,
+        colorScheme = KraftColorSchemes.Dark,
         typography = KraftTypography.Typography,
         content = content,
     )

@@ -96,6 +96,10 @@ fun BrowseScreen(
     var searchText by remember { mutableStateOf(title.ifBlank { uiState.filters.query }) }
     val keyboard = LocalSoftwareKeyboardController.current
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
+    // API key validity — gates NSFW purity option in the filter bar.
+    // Observed reactively so it updates when the key is validated in Settings.
+    val settings by container.settings.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
+    val hasApiKey = settings.apiKeyValid
     // Data saver: skip the full-res prefetch on tap so opening a wallpaper
     // doesn't download it until the user actually zooms.
     var prefetchFullRes by remember { mutableStateOf(true) }
@@ -178,6 +182,7 @@ fun BrowseScreen(
                 filters = uiState.filters,
                 onFiltersChange = viewModel::setFilters,
                 onDismiss = { focusManager.clearFocus() },
+                hasApiKey = hasApiKey,
             )
         },
     ) { innerPadding ->

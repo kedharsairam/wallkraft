@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -99,6 +100,34 @@ import com.wallkraft.app.util.displayName
 private val PillShape = RoundedCornerShape(KraftRadius.Pill)
 private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large)
 
+/** Chip colors — dark theme only. */
+@Composable
+private fun chipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.ChipSelectedContainer,
+    selectedLabelColor = KraftColors.ChipSelectedLabel,
+)
+
+/** Purity SFW chip colors — dark theme only. */
+@Composable
+private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PuritySfwContainer,
+    selectedLabelColor = KraftColors.PuritySfwLabel,
+)
+
+/** Purity sketchy chip colors — dark theme only. */
+@Composable
+private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PuritySketchyContainer,
+    selectedLabelColor = KraftColors.PuritySketchyLabel,
+)
+
+/** Purity NSFW chip colors — dark theme only. */
+@Composable
+private fun purityNsfwChipColors() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = KraftColors.PurityNsfwContainer,
+    selectedLabelColor = KraftColors.PurityNsfwLabel,
+)
+
 /**
  * Clean search + filter bar.
  *
@@ -118,6 +147,7 @@ fun SearchFilterBar(
     onFiltersChange: (WallhavenFilters) -> Unit,
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
+    hasApiKey: Boolean = false,
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
@@ -151,9 +181,11 @@ fun SearchFilterBar(
     Box(modifier = modifier) {
         // ── Main content ────────────────────────────────────────────────
         Column(
-            modifier = Modifier.onGloballyPositioned { coordinates ->
-                barHeight = coordinates.size.height
-            },
+            modifier = Modifier
+                .background(KraftColors.SurfaceSecondary)
+                .onGloballyPositioned { coordinates ->
+                    barHeight = coordinates.size.height
+                },
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +225,8 @@ fun SearchFilterBar(
                                 .fillMaxWidth()
                                 .height(KraftSpacing.TouchTarget)
                                 .clip(PillShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                // Apple HIG: search bar = #1C1C1E for depth against #000000 page.
+                                .background(KraftColors.SearchBar)
                                 .padding(horizontal = KraftSpacing.Spacing16),
                         ) {
                             Box(
@@ -265,7 +298,7 @@ fun SearchFilterBar(
                         .clip(PillShape)
                         .background(
                             if (showFilters) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            else KraftColors.Surface,
                         )
                         .clickable {
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
@@ -285,7 +318,8 @@ fun SearchFilterBar(
             }
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha),
+                // Apple HIG: separator = outline color (~35% of #545458)
+                color = MaterialTheme.colorScheme.outline,
             )
         }
 
@@ -321,7 +355,8 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    // Elevated surface for visual separation from content.
+                    .background(KraftColors.SurfaceSecondary)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -375,14 +410,11 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(categories = updated)
                             },
                             label = { Text(cat.displayName()) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                selectedLabelColor = KraftColors.ChipSelectedLabel,
-                            ),
+                            colors = chipColors(),
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
 
                 // ── Purity ─────────────────────────────────────────────
@@ -394,21 +426,23 @@ fun SearchFilterBar(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Purity.entries.forEach { p ->
-                        val checked = p in draftFilters.purity
-                        val chipColors = when (p) {
-                            Purity.SFW -> FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.PuritySfwContainer,
-                                selectedLabelColor = KraftColors.PuritySfwLabel,
+                        val isNsfwLocked = p == Purity.NSFW && !hasApiKey
+                        val checked = p in draftFilters.purity && !isNsfwLocked
+                        val currentChipColors = when {
+                            p == Purity.SFW -> puritySfwChipColors()
+                            p == Purity.Sketchy -> puritySketchyChipColors()
+                            isNsfwLocked -> FilterChipDefaults.filterChipColors(
+                                containerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
+                                labelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
+                                disabledContainerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
+                                disabledLabelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
                             )
-                            Purity.Sketchy -> FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.PuritySketchyContainer,
-                                selectedLabelColor = KraftColors.PuritySketchyLabel,
-                            )
-                            else -> FilterChipDefaults.filterChipColors()
+                            else -> purityNsfwChipColors()
                         }
                         FilterChip(
                             selected = checked,
                             onClick = {
+                                if (isNsfwLocked) return@FilterChip
                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                 val current = draftFilters.purity
                                 val updated = if (p in current) {
@@ -417,11 +451,15 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(purity = updated)
                             },
                             label = { Text(p.displayName()) },
-                            colors = chipColors,
+                            leadingIcon = if (isNsfwLocked) {
+                                { Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(KraftIconSize.Tiny)) }
+                            } else null,
+                            colors = currentChipColors,
+                            enabled = !isNsfwLocked,
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
 
                 // ── Sorting ────────────────────────────────────────────
@@ -440,14 +478,11 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(sorting = s)
                             },
                             label = { Text(s.displayName()) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                selectedLabelColor = KraftColors.ChipSelectedLabel,
-                            ),
+                            colors = chipColors(),
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = KraftConstants.DividerAlpha))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
 
                 // ── Orientation ────────────────────────────────────────
@@ -466,10 +501,7 @@ fun SearchFilterBar(
                                 draftFilters = draftFilters.copy(orientation = o)
                             },
                             label = { Text(o.displayName()) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = KraftColors.ChipSelectedContainer,
-                                selectedLabelColor = KraftColors.ChipSelectedLabel,
-                            ),
+                            colors = chipColors(),
                         )
                     }
                 }

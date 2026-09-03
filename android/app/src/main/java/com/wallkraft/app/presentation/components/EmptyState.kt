@@ -76,7 +76,7 @@ fun EmptyState(
                 .size(KraftIconSize.XLarge * 2)
                 .scale(iconScale)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = KraftConstants.SurfaceVariantAlpha)),
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = KraftConstants.EmptyStateIconBgAlpha)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(

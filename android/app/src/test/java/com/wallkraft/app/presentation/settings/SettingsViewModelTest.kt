@@ -1,9 +1,9 @@
 package com.wallkraft.app.presentation.settings
 
+import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import okhttp3.OkHttpClient
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -23,10 +24,12 @@ import org.junit.Test
 class SettingsViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private lateinit var fakeApi: WallhavenApi
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        fakeApi = WallhavenApi(OkHttpClient(), kotlinx.serialization.json.Json {}, FakeSettingsRepository())
     }
 
     @After
@@ -37,28 +40,16 @@ class SettingsViewModelTest {
     @Test
     fun `settings starts with defaults`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         assertEquals(AppSettings(), vm.settings.value)
     }
 
     @Test
-    fun `setThemeMode updates repository`() = runTest(dispatcher) {
-        val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
-        advanceUntilIdle()
-
-        vm.setThemeMode(ThemeMode.Dark)
-        advanceUntilIdle()
-
-        assertEquals(ThemeMode.Dark, repo._settings.value.themeMode)
-    }
-
-    @Test
     fun `setSorting updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         vm.setSorting(Sorting.Views)
@@ -70,7 +61,7 @@ class SettingsViewModelTest {
     @Test
     fun `setApiKey updates apiKeyText`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         vm.setApiKey("my-secret-key")
@@ -83,7 +74,7 @@ class SettingsViewModelTest {
     fun `apiKeyText seeds from persisted value`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         repo._settings.value = AppSettings(apiKey = "existing-key")
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         assertEquals("existing-key", vm.apiKeyText.value)
@@ -92,7 +83,7 @@ class SettingsViewModelTest {
     @Test
     fun `setOrientation updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         vm.setOrientation(Orientation.Portrait)
@@ -104,7 +95,7 @@ class SettingsViewModelTest {
     @Test
     fun `setDataSaverMode updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         vm.setDataSaverMode(true)
@@ -116,7 +107,7 @@ class SettingsViewModelTest {
     @Test
     fun `dataSaverMode defaults to off`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo)
+        val vm = SettingsViewModel(repo, fakeApi)
         advanceUntilIdle()
 
         assertEquals(false, vm.settings.value.dataSaverMode)

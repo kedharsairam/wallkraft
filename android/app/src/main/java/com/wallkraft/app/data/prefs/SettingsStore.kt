@@ -13,7 +13,6 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
-import com.wallkraft.app.domain.model.ThemeMode
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -30,12 +29,12 @@ class SettingsStore(private val context: Context) : SettingsRepository {
     private val encryptedKeyStore = EncryptedApiKeyStore(context)
 
     private object Keys {
-        val THEME_MODE = stringPreferencesKey("theme_mode")
         val CATEGORIES = stringPreferencesKey("categories")
         val PURITY = stringPreferencesKey("purity")
         val SORTING = stringPreferencesKey("sorting")
         val ORIENTATION = stringPreferencesKey("orientation")
         val DATA_SAVER_MODE = booleanPreferencesKey("data_saver_mode")
+        val API_KEY_VALID = booleanPreferencesKey("api_key_valid")
     }
 
     override val settings: Flow<AppSettings> = context.wallKraftDataStore.data
@@ -56,7 +55,8 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             if (updated.apiKey != currentApiKey) {
                 encryptedKeyStore.setApiKey(updated.apiKey)
             }
-            prefs[Keys.THEME_MODE] = updated.themeMode.name
+            // Always persist the apiKeyValid value from the transform (which performs validation).
+            prefs[Keys.API_KEY_VALID] = updated.apiKeyValid
             prefs[Keys.CATEGORIES] = updated.categories.joinToString(",") { it.name }
             prefs[Keys.PURITY] = updated.purity.joinToString(",") { it.name }
             prefs[Keys.SORTING] = updated.sorting.name
@@ -80,7 +80,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
 
         return AppSettings(
             apiKey = apiKey,
-            themeMode = enumOr(Keys.THEME_MODE, ThemeMode.System),
+            apiKeyValid = this[Keys.API_KEY_VALID] ?: false,
             categories = categories.ifEmpty { defaults.categories },
             purity = purity.ifEmpty { defaults.purity },
             sorting = enumOr(Keys.SORTING, Sorting.DateAdded),
