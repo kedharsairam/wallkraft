@@ -11,15 +11,10 @@ import android.graphics.RectF
 import android.os.Build
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,14 +36,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -69,7 +61,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -137,12 +128,10 @@ fun WallpaperCropDialog(
     var panY by remember { mutableFloatStateOf(0f) }
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
-    // Applying state: true while the wallpaper is being set (button shows a
-    // spinner and is disabled). setResult is null until the apply finishes,
-    // then true (success → centered checkmark, then dismiss) or false
-    // (failure → snackbar, dialog stays open to retry).
+    // Applying state: true while the wallpaper is being set (spinner shown).
     var applying by remember { mutableStateOf(false) }
     var setResult by remember { mutableStateOf<Boolean?>(null) }
+    var showPositionPicker by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val setFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
@@ -198,6 +187,8 @@ fun WallpaperCropDialog(
                     lp.flags = lp.flags or
                         WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                     window.attributes = lp
+                    // Black background prevents flash during dialog open.
+                    window.setBackgroundDrawableResource(android.R.color.black)
                     break
                 }
                 v = v.parent as? View
@@ -206,11 +197,12 @@ fun WallpaperCropDialog(
 
         val bmp = bitmap
         if (bmp == null) {
-            // Loading or decode failure surface — consistent error pattern.
+            // Loading or decode failure surface — black to match dialog,
+            // no flash during transition.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(Color.Black),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -334,145 +326,80 @@ fun WallpaperCropDialog(
                     .fillMaxSize(),
             )
 
-            // Thin top scrim: just enough for the status-bar icons on light
-            // wallpapers. Short and subtle — the image stays the hero.
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to Color.Black.copy(alpha = KraftConstants.OverlayCropScrimTop),
-                                1.0f to Color.Transparent,
-                            ),
-                        ),
-                    ),
-            )
-
-            // Close button: top-left glass pill — same Kraft glass as detail
-            // screen, so chrome is consistent across app.
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .statusBarsPadding()
-                    .padding(KraftSpacing.Spacing12)
-                    .size(KraftSpacing.TouchTarget)
-                    .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .background(KraftColors.Glass)
-                    .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, RoundedCornerShape(KraftRadius.Standard))
-                    .clickable {
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        onDismiss()
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = stringResource(R.string.cancel),
-                    tint = Color.White,
-                    modifier = Modifier.size(KraftIconSize.Medium),
-                )
-            }
-
-            // Bottom panel: a distinct dark surface (translucent so the image
-            // stays dimly visible for WYSIWYG cropping) with a hard top edge
-            // against the image — the standard approach. The image stays the hero;
-            // the controls live on their own readable layer. The surface
-            // extends to the bottom of the frame; only the content is padded
-            // above the nav bar. Animated slide-in on first open.
-            AnimatedVisibility(
-                visible = true,
-                enter = expandVertically(tween(300, easing = FastOutSlowInEasing)) + fadeIn(tween(300)),
-                exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth(),
-            ) {
+            // Checkmark button: top-right glass circle — opens position picker.
+            // Hidden while applying or when position picker is visible.
+            if (!applying && !showPositionPicker) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero))
-                        .background(Color.Black.copy(alpha = KraftConstants.OverlayCropPanelAlpha)),
+                        .align(Alignment.TopEnd)
+                        .statusBarsPadding()
+                        .padding(KraftSpacing.Spacing12)
+                        .size(KraftSpacing.TouchTarget)
+                        .clip(CircleShape)
+                        .background(KraftColors.Glass)
+                        .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
+                        .clickable {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            showPositionPicker = true
+                        },
+                    contentAlignment = Alignment.Center,
                 ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Check,
+                        contentDescription = stringResource(R.string.set_as_wallpaper),
+                        tint = Color.White,
+                        modifier = Modifier.size(KraftIconSize.Medium),
+                    )
+                }
+            }
+
+            // Dim overlay + position picker popup.
+            // Appears when the user taps the checkmark.
+            if (showPositionPicker) {
+                // Dim overlay — taps dismiss the picker.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                        .clickable {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            showPositionPicker = false
+                        },
+                )
+
+                // Position picker: centered glass card with 3 options.
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = bottomPadding)
-                        .padding(KraftSpacing.Spacing16),
+                        .align(Alignment.Center)
+                        .padding(KraftSpacing.Spacing32)
+                        .clip(RoundedCornerShape(KraftRadius.Hero))
+                        .background(KraftColors.Glass)
+                        .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, RoundedCornerShape(KraftRadius.Hero))
+                        .clickable(enabled = false) { /* consume, don't dismiss */ }
+                        .padding(KraftSpacing.Spacing24),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // Failure feedback: snackbar at the top of the panel, above
-                    // the title, so it never covers the controls.
-                    SnackbarHost(hostState = snackbarHostState)
-                    Spacer(Modifier.height(KraftSpacing.Spacing8))
                     Text(
                         text = stringResource(R.string.wallpaper_position_title),
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         color = Color.White,
                     )
-                    Spacer(Modifier.height(KraftSpacing.Spacing4))
-                    Text(
-                        text = stringResource(R.string.crop_hint),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = KraftColors.TextSecondary,
-                    )
-                    Spacer(Modifier.height(KraftSpacing.Spacing16))
-                    // Position choice: segmented control (Home | Lock | Both),
-                    // the standard idiom for a mutually-exclusive pick.
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        listOf(
-                            WallpaperPosition.HOME to R.string.wallpaper_position_home,
-                            WallpaperPosition.LOCK to R.string.wallpaper_position_lock,
-                            WallpaperPosition.BOTH to R.string.wallpaper_position_both,
-                        ).forEachIndexed { index, (pos, labelRes) ->
-                            SegmentedButton(
-                                selected = position == pos,
-                                onClick = { position = pos },
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = 3,
-                                ),
-                                colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = Color.White,
-                                    activeContentColor = Color.Black,
-                                    inactiveContainerColor = KraftColors.Surface,
-                                    inactiveContentColor = Color.White.copy(alpha = KraftConstants.CropDialogSecondaryAlpha),
-                                ),
-                                border = BorderStroke(1.dp, KraftColors.Separator),
-                                icon = {},
-                            ) {
-                                Text(stringResource(labelRes))
-                            }
-                        }
-                    }
-                    Spacer(Modifier.height(KraftSpacing.Spacing16))
-                    Button(
+                    Spacer(Modifier.height(KraftSpacing.Spacing20))
+                    // Home screen
+                    PositionOption(
+                        label = stringResource(R.string.wallpaper_position_home),
                         onClick = {
-                            if (applying) return@Button
                             haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            showPositionPicker = false
+                            position = WallpaperPosition.HOME
                             applying = true
                             scope.launch {
-                                // Crop is ~16MB at 1080×2400×4 — allocate off the main thread
-                                // to avoid jank/OOM, and recycle on failure so we don't leak.
                                 val crop = withContext(Dispatchers.Default) {
-                                    val c = createBitmap(
-                                        frameWpx.toInt(),
-                                        frameHpx.toInt(),
-                                        Bitmap.Config.ARGB_8888,
-                                    )
-                                    android.graphics.Canvas(c).drawBitmap(
-                                        bmp,
-                                        null as android.graphics.Rect?,
-                                        RectF(left, top, left + scaledW, top + scaledH),
-                                        null as android.graphics.Paint?,
-                                    )
+                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
+                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
                                     c
                                 }
-                                val ok = onConfirm(crop, position)
+                                val ok = onConfirm(crop, WallpaperPosition.HOME)
                                 if (!ok) runCatching { crop.recycle() }
                                 if (ok) {
                                     setResult = true
@@ -480,42 +407,112 @@ fun WallpaperCropDialog(
                                     onDismiss()
                                 } else {
                                     applying = false
+                                    showPositionPicker = true
                                     snackbarHostState.showSnackbar(setFailedMsg)
                                 }
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(KraftRadius.Standard),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = KraftColors.AccentBlue,
-                            contentColor = Color.White,
-                        ),
-                        enabled = !applying,
-                    ) {
-                        if (applying) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(KraftIconSize.Medium),
-                                strokeWidth = 2.dp,
-                                color = Color.White,
-                            )
-                        } else {
-                            Text(stringResource(R.string.set_as_wallpaper))
-                        }
-                    }
+                    )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    TextButton(
-                        onClick = onDismiss,
-                        enabled = !applying,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.cancel),
-                            color = Color.White.copy(alpha = KraftConstants.CropDialogSecondaryAlpha),
-                        )
-                    }
+                    // Lock screen
+                    PositionOption(
+                        label = stringResource(R.string.wallpaper_position_lock),
+                        onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            showPositionPicker = false
+                            position = WallpaperPosition.LOCK
+                            applying = true
+                            scope.launch {
+                                val crop = withContext(Dispatchers.Default) {
+                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
+                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
+                                    c
+                                }
+                                val ok = onConfirm(crop, WallpaperPosition.LOCK)
+                                if (!ok) runCatching { crop.recycle() }
+                                if (ok) {
+                                    setResult = true
+                                    delay(1200)
+                                    onDismiss()
+                                } else {
+                                    applying = false
+                                    showPositionPicker = true
+                                    snackbarHostState.showSnackbar(setFailedMsg)
+                                }
+                            }
+                        },
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    // Both screens
+                    PositionOption(
+                        label = stringResource(R.string.wallpaper_position_both),
+                        onClick = {
+                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            showPositionPicker = false
+                            position = WallpaperPosition.BOTH
+                            applying = true
+                            scope.launch {
+                                val crop = withContext(Dispatchers.Default) {
+                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
+                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
+                                    c
+                                }
+                                val ok = onConfirm(crop, WallpaperPosition.BOTH)
+                                if (!ok) runCatching { crop.recycle() }
+                                if (ok) {
+                                    setResult = true
+                                    delay(1200)
+                                    onDismiss()
+                                } else {
+                                    applying = false
+                                    showPositionPicker = true
+                                    snackbarHostState.showSnackbar(setFailedMsg)
+                                }
+                            }
+                        },
+                    )
                 }
+            }
+
+            // Back button: top-left glass circle — dismisses popup if open,
+            // otherwise cancels and returns to detail screen.
+            // Rendered AFTER the dim overlay so it stays fully visible and tappable.
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
+                    .padding(KraftSpacing.Spacing12)
+                    .size(KraftSpacing.TouchTarget)
+                    .clip(CircleShape)
+                    .background(KraftColors.Glass)
+                    .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
+                    .clickable {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onDismiss()
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back),
+                    tint = Color.White,
+                    modifier = Modifier.size(KraftIconSize.Medium),
+                )
+            }
+
+            // Applying overlay: spinner while wallpaper is being set.
+            if (applying && setResult == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(KraftIconSize.XLarge),
+                        strokeWidth = 3.dp,
+                        color = Color.White,
+                    )
                 }
             }
 
@@ -555,6 +552,31 @@ fun WallpaperCropDialog(
                 }
             }
         }
+    }
+}
+
+/** A single position option in the picker — pill-shaped glass button. */
+@Composable
+private fun PositionOption(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(KraftSpacing.TouchTarget)
+            .clip(CircleShape)
+            .background(KraftColors.Surface)
+            .border(KraftSpacing.BorderWidth, KraftColors.Separator, CircleShape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = KraftSpacing.Spacing16),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = Color.White,
+        )
     }
 }
 
