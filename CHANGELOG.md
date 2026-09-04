@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **NSFW purity filter** — new purity tier behind API key wall. Locked pill with lock icon shown when no valid API key. Unlocks automatically when valid key is entered. Uses `AuroraRed` accent.
 - **API key validation** — validates against Wallhaven API using `apikey` query parameter. Shows green "Valid key — NSFW unlocked" or red "Invalid key — check and try again" status in Settings.
+- **API key verifying state** — shows "Verifying..." loading indicator while the validation API call is in flight, instead of briefly flashing invalid.
 - **API key validation state** — `apiKeyValid` persisted in settings, re-validated on key change and on app clear.
 - **NSFW filter support in API** — `toPurityParam()` emits `1` for NSFW, repository adds `"nsfw"` to allowed purity set when selected.
 
@@ -28,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API key validation always showing invalid** — `SettingsStore.update()` was overriding `apiKeyValid` to `false` whenever the key changed, discarding the validation result. Now always persists the validated value.
 - **NSFW results filtered client-side** — `WallpaperRepositoryImpl` was stripping NSFW wallpapers from API response even when user selected NSFW purity. Fixed allowed purity set logic.
 - **SettingsStore `apiKeyValid` reset** — removed incorrect reset-to-false on key change; the validation result from `SettingsViewModel` is now always respected.
+- **API key flash invalid then valid** — added `isValidating` state to `SettingsViewModel` and "Verifying..." UI in Settings. Now shows a neutral loading state during the API call instead of briefly flashing invalid before flipping to valid.
 
 ### Removed
 - **Light theme** — `ThemeMode`, `lightColorScheme()`, `isSystemInDarkTheme()` conditionals. Single dark theme only.
