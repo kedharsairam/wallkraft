@@ -59,7 +59,7 @@ fun KraftTopBar(
             }
         }
         HorizontalDivider(
-            // Apple HIG: separator = outline color (already encodes correct alpha)
+            // Separator = outline color (already encodes correct alpha)
             color = MaterialTheme.colorScheme.outline,
         )
     }

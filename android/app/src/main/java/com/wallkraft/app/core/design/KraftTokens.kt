@@ -14,14 +14,14 @@ object KraftColors {
     // ─── Brand Colors ──────────────────────────────────────────────────
     // WallKraft's identity: Aurora palette inspired by the Northern Lights.
     // Dark-only: use the Dark variants directly.
-    val AuroraBlue = Color(0xFF0A84FF)        // Primary accent — Apple HIG systemBlue dark
-    val AuroraGreen = Color(0xFF30D158)       // Success, favorites, download — Apple HIG systemGreen dark
-    val AuroraRed = Color(0xFFFF453A)         // Destructive, unfavorite — Apple HIG systemRed dark
-    val AuroraOrange = Color(0xFFFF9F0A)      // Warning, rate limit — Apple HIG systemOrange dark
-    val AuroraPink = Color(0xFFFF375F)        // Special accent — Apple HIG systemPink dark
-    val AuroraPurple = Color(0xFFBF5AF2)      // Tags, special actions — Apple HIG systemPurple dark
-    val AuroraIndigo = Color(0xFF5E5CE6)      // Secondary accent — Apple HIG systemIndigo dark
-    val AuroraTeal = Color(0xFF40CBE0)        // Data saver, cache — Apple HIG systemTeal dark
+    val AuroraBlue = Color(0xFF0A84FF)        // Primary accent — systemBlue dark
+    val AuroraGreen = Color(0xFF30D158)       // Success, favorites, download — systemGreen dark
+    val AuroraRed = Color(0xFFFF453A)         // Destructive, unfavorite — systemRed dark
+    val AuroraOrange = Color(0xFFFF9F0A)      // Warning, rate limit — systemOrange dark
+    val AuroraPink = Color(0xFFFF375F)        // Special accent — systemPink dark
+    val AuroraPurple = Color(0xFFBF5AF2)      // Tags, special actions — systemPurple dark
+    val AuroraIndigo = Color(0xFF5E5CE6)      // Secondary accent — systemIndigo dark
+    val AuroraTeal = Color(0xFF40CBE0)        // Data saver, cache — systemTeal dark
 
     // ─── Legacy aliases ────────────────────────────────────────────────
     // Kept for backwards compatibility. New code should use Aurora* names.
@@ -34,7 +34,7 @@ object KraftColors {
     val AccentIndigo = AuroraIndigo
     val AccentTeal = AuroraTeal
 
-    // ─── Backgrounds & Surfaces — Apple HIG Dark Mode ──────────────────
+    // ─── Backgrounds & Surfaces — Dark Mode ───────────────────────────
     // True black for OLED. System grays for surfaces.
     val Background = Color(0xFF000000)              // systemBackground — page canvas
     val Surface = Color(0xFF1C1C1E)                 // secondarySystemBackground — cards, elevated surfaces
@@ -43,16 +43,16 @@ object KraftColors {
     /** Search bar background — slightly lighter than page for depth. */
     val SearchBar = Color(0xFF1C1C1E)
 
-    // ─── Text — Apple HIG Dark Mode ────────────────────────────────────
-    // Apple HIG: labels use #EBEBF5 base (cool gray-white, not pure white).
+    // ─── Text — Dark Mode ──────────────────────────────────────────────
+    // Labels use #EBEBF5 base (cool gray-white, not pure white).
     val TextPrimary = Color(0xFFFFFFFF)       // label — 100% opacity
     val TextSecondary = Color(0x99EBEBF5)     // secondaryLabel — 60% of #EBEBF5
     val TextTertiary = Color(0x4CEBEBF5)      // tertiaryLabel — 30% of #EBEBF5
 
     // ─── Separators ─────────────────────────────────────────────────────
-    // Apple HIG: separator = #545458 at ~35% alpha on dark backgrounds
+    // Separator = #545458 at ~35% alpha on dark backgrounds
     val Separator = Color(0x59545458)
-    // Apple HIG: opaqueSeparator = #38383A for structural hairlines
+    // OpaqueSeparator = #38383A for structural hairlines
     val OpaqueSeparator = Color(0xFF38383A)
 
     // ─── Glass (frosted overlays on images) ────────────────────────────
@@ -66,16 +66,16 @@ object KraftColors {
 
     // ─── Filter Chips ──────────────────────────────────────────────────
     // Non-purity chips (categories, sorting, orientation).
-    val ChipSelectedContainer = AuroraBlue.copy(alpha = 0.2f)  // subtle blue tint — Apple HIG selected chip
-    val ChipSelectedLabel = AuroraBlue                         // full system blue label
+    val ChipSelectedContainer = AuroraBlue.copy(alpha = 0.2f)  // subtle blue tint — selected chip
+    val ChipSelectedLabel = Color.White                       // white label on blue container for contrast
 
     // Purity chips — Aurora palette for cohesion.
     val PuritySfwContainer = AuroraGreen.copy(alpha = 0.2f)   // subtle green tint
-    val PuritySfwLabel = AuroraGreen                           // full green label
+    val PuritySfwLabel = Color.White                            // white label on green container
     val PuritySketchyContainer = AuroraOrange.copy(alpha = 0.2f) // subtle orange tint
-    val PuritySketchyLabel = AuroraOrange                      // full orange label
+    val PuritySketchyLabel = Color.White                        // white label on orange container
     val PurityNsfwContainer = AuroraRed.copy(alpha = 0.2f)    // subtle red tint
-    val PurityNsfwLabel = AuroraRed                            // full red label
+    val PurityNsfwLabel = Color.White                           // white label on red container
 }
 
 object KraftSpacing {

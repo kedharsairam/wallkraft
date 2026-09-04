@@ -208,7 +208,7 @@ fun BrowseScreen(
                         .fillMaxSize()
                         .clipToBounds(),
                 ) {
-                    // Crossfade between states for smooth transitions (Apple HIG: content changes should feel cohesive).
+                    // Crossfade between states for smooth transitions (content changes should feel cohesive).
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
                         uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"

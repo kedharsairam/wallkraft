@@ -75,7 +75,7 @@ internal fun DetailCircleButton(
 /**
  * A clickable tag chip — tapping it opens the tag-filtered grid. Uses the
  * accent blue treatment (tinted fill + border) so tags read as interactive.
- * Increased alpha for readability on any wallpaper (Apple HIG: contrast >= 4.5:1).
+ * Increased alpha for readability on any wallpaper (contrast >= 4.5:1).
  * Pass `clickable = false` for the invisible measurement pass.
  */
 @Composable

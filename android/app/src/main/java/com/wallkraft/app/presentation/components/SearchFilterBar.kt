@@ -225,7 +225,7 @@ fun SearchFilterBar(
                                 .fillMaxWidth()
                                 .height(KraftSpacing.TouchTarget)
                                 .clip(PillShape)
-                                // Apple HIG: search bar = #1C1C1E for depth against #000000 page.
+                                // Search bar = #1C1C1E for depth against #000000 page.
                                 .background(KraftColors.SearchBar)
                                 .padding(horizontal = KraftSpacing.Spacing16),
                         ) {
@@ -318,7 +318,7 @@ fun SearchFilterBar(
             }
 
             HorizontalDivider(
-                // Apple HIG: separator = outline color (~35% of #545458)
+                // Separator = outline color (~35% of #545458)
                 color = MaterialTheme.colorScheme.outline,
             )
         }

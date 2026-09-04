@@ -31,16 +31,16 @@ object KraftColorSchemes {
         onError = Color.Black,
         errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlpha),
         onErrorContainer = KraftColors.AccentRed,
-        // Apple HIG: page background = #000000 (OLED true black)
+        // Page background = #000000 (OLED true black)
         background = Color.Black,
         onBackground = KraftColors.TextPrimary,
-        // Apple HIG: surface = #1C1C1E (card surfaces — elevated above page)
+        // Surface = #1C1C1E (card surfaces — elevated above page)
         surface = KraftColors.Surface,
         onSurface = KraftColors.TextPrimary,
         // surfaceVariant = #2C2C2E (tertiarySystemGroupedBackground)
         surfaceVariant = KraftColors.SurfaceSecondary,
         onSurfaceVariant = KraftColors.TextSecondary,
-        // Apple grouped layout: page is #000000, cards are #1C1C1E
+        // Grouped layout: page is #000000, cards are #1C1C1E
         surfaceContainerLowest = Color.Black,                         // #000000 — page background
         surfaceContainerLow = KraftColors.Surface,                    // #1C1C1E — card surface
         surfaceContainer = Color.Black,                               // #000000 — page background
@@ -52,7 +52,7 @@ object KraftColorSchemes {
         inverseOnSurface = Color.Black,
         inversePrimary = KraftColors.AccentBlue,
         scrim = Color.Black,
-        // Apple HIG: separator = outline color (~35% alpha of #545458)
+        // Separator = outline color (~35% alpha of #545458)
         outline = KraftColors.Separator,
         // outlineVariant = opaque separator for less prominent borders
         outlineVariant = KraftColors.OpaqueSeparator,
