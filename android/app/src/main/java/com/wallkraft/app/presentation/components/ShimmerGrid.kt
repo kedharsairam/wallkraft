@@ -46,7 +46,7 @@ private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 
 fun ShimmerGrid(modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "shimmer")
     // Sweep offset: animates from -1f (off-screen left) to 2f (off-screen right)
-    // EaseInOut for natural shimmer feel (Apple HIG: motion should feel organic).
+    // EaseInOut for natural shimmer feel (motion should feel organic).
     val sweepOffset by transition.animateFloat(
         initialValue = -1f,
         targetValue = 2f,

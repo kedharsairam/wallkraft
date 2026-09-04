@@ -1,8 +1,10 @@
 package com.wallkraft.app.presentation.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +40,7 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Wallpaper
 
 /**
@@ -79,6 +82,14 @@ fun WallpaperCard(
     // content itself is clipped to rounded corners throughout the shared
     // element transition — without it, the overlay draws sharp corners until
     // the image lands back in the grid.
+    // Purity border — orange for Sketchy, red for NSFW (matches Wallhaven).
+    // Subtle: 1dp with reduced alpha so it hints without dominating.
+    val purityBorder = when (wallpaper.purityEnum) {
+        Purity.Sketchy -> BorderStroke(2.dp, KraftColors.AuroraOrange.copy(alpha = 0.6f))
+        Purity.NSFW -> BorderStroke(2.dp, KraftColors.AuroraRed.copy(alpha = 0.6f))
+        else -> null
+    }
+
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(KraftRadius.Standard))
@@ -130,6 +141,7 @@ fun WallpaperCard(
                 // transition when the image is drawn outside its parent bounds.
                 .then(sharedElementModifier)
                 .clip(RoundedCornerShape(KraftRadius.Standard))
+                .then(purityBorder?.let { Modifier.border(it, RoundedCornerShape(KraftRadius.Standard)) } ?: Modifier)
                 .fillMaxWidth()
                 .aspectRatio(ratio)
                 .background(MaterialTheme.colorScheme.surfaceVariant),

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-09-04
+
+### Changed
+- **Filter chip label contrast** — all selected filter chip labels (categories, sorting, orientation, purity) now use white text for maximum readability on colored containers.
+- **Purity borders on wallpaper cards** — Sketchy images show a 2dp orange border, NSFW images show a 2dp red border (at 60% alpha for subtlety). Matches Wallhaven's visual language.
+- **Purity border timing** — border is applied to the AsyncImage (shared element) so it stays visible during the detail-to-grid return transition.
+
+### Fixed
+- **Purity enum mapping** — `Wallpaper.purityEnum` now correctly maps `"nsfw"` to `Purity.NSFW` (was falling through to SFW).
+- **API key verifying state** — `isValidating` is set immediately in `setApiKey()` so the UI shows "Verifying..." from the first frame instead of briefly flashing invalid.
+- **API key status text** — simplified to show just the validity label without the key prefix.
+
+### Removed
+- **Apple references** — all "Apple HIG" mentions removed from codebase comments.
+
 ## [1.16.0] - 2026-09-04
 
 ### Added

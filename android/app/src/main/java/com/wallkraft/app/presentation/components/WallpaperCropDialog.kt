@@ -206,7 +206,7 @@ fun WallpaperCropDialog(
 
         val bmp = bitmap
         if (bmp == null) {
-            // Loading or decode failure surface — consistent error pattern (Apple HIG).
+            // Loading or decode failure surface — consistent error pattern.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -520,7 +520,7 @@ fun WallpaperCropDialog(
             }
 
             // Success feedback: centered checkmark + message, then auto-dismiss.
-            // Scale-in animation for the checkmark (Apple HIG: confirmation should feel satisfying).
+            // Scale-in animation for the checkmark (confirmation should feel satisfying).
             if (setResult == true) {
                 var successEntered by remember { mutableStateOf(false) }
                 LaunchedEffect(Unit) { successEntered = true }

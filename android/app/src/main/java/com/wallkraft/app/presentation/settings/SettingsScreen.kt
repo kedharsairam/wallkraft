@@ -499,8 +499,8 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         val statusText = when {
                             apiKeyText.isBlank() -> stringResource(R.string.api_key_not_set)
                             isValidating -> stringResource(R.string.api_key_verifying)
-                            settings.apiKeyValid -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_valid)}"
-                            else -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_invalid)}"
+                            settings.apiKeyValid -> stringResource(R.string.api_key_valid)
+                            else -> stringResource(R.string.api_key_invalid)
                         }
                         val statusColor = when {
                             apiKeyText.isBlank() -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -662,7 +662,7 @@ private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
         )
         Surface(
             shape = RoundedCornerShape(KraftRadius.Standard),
-            // Apple HIG: settings group card
+            // Settings group card
             // Light: #FFFFFF (white on #F2F2F7 page), Dark: #1C1C1E (on #000000 page)
             color = MaterialTheme.colorScheme.surfaceBright,
             modifier = Modifier.fillMaxWidth(),

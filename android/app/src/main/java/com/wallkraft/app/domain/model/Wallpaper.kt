@@ -79,6 +79,7 @@ data class Wallpaper(
     val purityEnum: Purity get() = when (purity) {
         "sfw" -> Purity.SFW
         "sketchy" -> Purity.Sketchy
+        "nsfw" -> Purity.NSFW
         else -> Purity.SFW
     }
 
