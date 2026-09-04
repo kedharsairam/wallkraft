@@ -80,6 +80,7 @@
     <string name="api_key_dialog_save">Save</string>
     <string name="api_key_saved">API key saved</string>
     <string name="api_key_not_set">Not set</string>
+    <string name="api_key_verifying">Verifying…</string>
     <string name="licenses_title">Open-source licenses</string>
     <string name="github_title">GitHub</string>
     <string name="github_url">https://github.com/kedharsairam/wallkraft</string>

@@ -132,6 +132,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     )
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
+    val isValidating by viewModel.isValidating.collectAsState()
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -497,11 +498,13 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                         )
                         val statusText = when {
                             apiKeyText.isBlank() -> stringResource(R.string.api_key_not_set)
+                            isValidating -> stringResource(R.string.api_key_verifying)
                             settings.apiKeyValid -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_valid)}"
                             else -> "••••${apiKeyText.takeLast(4)} • ${stringResource(R.string.api_key_invalid)}"
                         }
                         val statusColor = when {
                             apiKeyText.isBlank() -> MaterialTheme.colorScheme.onSurfaceVariant
+                            isValidating -> MaterialTheme.colorScheme.onSurfaceVariant
                             settings.apiKeyValid -> KraftColors.AuroraGreen
                             else -> KraftColors.AuroraRed
                         }
