@@ -100,42 +100,6 @@ import com.wallkraft.app.util.displayName
 private val PillShape = RoundedCornerShape(KraftRadius.Pill)
 private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large)
 
-/** Chip colors — dark theme only. */
-@Composable
-private fun chipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.ChipSelectedContainer,
-    selectedLabelColor = KraftColors.ChipSelectedLabel,
-)
-
-/** Purity SFW chip colors — dark theme only. */
-@Composable
-private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PuritySfwContainer,
-    selectedLabelColor = KraftColors.PuritySfwLabel,
-)
-
-/** Purity sketchy chip colors — dark theme only. */
-@Composable
-private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PuritySketchyContainer,
-    selectedLabelColor = KraftColors.PuritySketchyLabel,
-)
-
-/** Purity NSFW chip colors — dark theme only. */
-@Composable
-private fun purityNsfwChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PurityNsfwContainer,
-    selectedLabelColor = KraftColors.PurityNsfwLabel,
-)
-
 /**
  * Clean search + filter bar.
  *

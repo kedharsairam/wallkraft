@@ -28,7 +28,7 @@ class EncryptedApiKeyStore(context: Context) {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
     } catch (e: Exception) {
-        Log.w("EncryptedApiKeyStore", "Keystore unavailable, using fallback", e)
+        Log.w("EncryptedApiKeyStore", "Keystore unavailable, using unencrypted fallback")
         // Keystore unavailable (e.g. some emulators). Fall back to plain
         // storage — still functional, just not encrypted at rest.
         context.getSharedPreferences("wallkraft_fallback_prefs", Context.MODE_PRIVATE)

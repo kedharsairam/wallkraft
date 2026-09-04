@@ -25,8 +25,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "1.16.2"
+        versionCode = 24
+        versionName = "1.17.0"
         resourceConfigurations += setOf("en")
     }
 
@@ -45,6 +45,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

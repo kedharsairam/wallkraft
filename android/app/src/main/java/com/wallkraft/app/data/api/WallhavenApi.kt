@@ -101,8 +101,9 @@ class WallhavenApi(
                 client.newCall(request).execute().use { response ->
                     val rateLimit = response.header("X-RateLimit-Limit")?.toIntOrNull()
                     val rateRemaining = response.header("X-RateLimit-Remaining")?.toIntOrNull()
-                    val bodySnippet = response.body?.string()?.take(200) ?: "null"
-                    android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining, body=$bodySnippet")
+                    // Consume body to release connection
+                    response.body?.string()
+                    android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining")
                     // 200 = valid key, 401 = invalid key
                     response.code == 200
                 }

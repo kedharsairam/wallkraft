@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-09-04
+
+### Fixed
+- **Thread-safety bug** — `SearchResponseCache` used a shared `MessageDigest` instance that was not thread-safe. Switched to `ThreadLocal` to prevent corrupted cache hashes on concurrent access.
+- **Secret logging** — API keys and response bodies were logged to logcat in `WallhavenApi` and `SettingsViewModel`. Removed all sensitive data from logs.
+- **Rate limit race condition** — `RateLimitState.update()` and `reset()` now use `@Synchronized` to prevent concurrent callers from corrupting cooldown state.
+- **Error swallowing** — `WallpaperRepositoryImpl` now rethrows `Error` types (OOM, StackOverflow) instead of silently catching them.
+- **Crop dialog spinner** — "Setting wallpaper…" text now shown below the spinner during wallpaper application.
+- **Double data load** — `BrowseScreen` loaded downloaded IDs twice on first visit. Removed redundant `LaunchedEffect`.
+- **Image loader init** — `GridImageLoader.init()` moved from `WallKraftApp` composable (called every recomposition) to `Application.onCreate` (called once).
+
+### Changed
+- **Network security** — Added `network_security_config.xml` enforcing HTTPS for all traffic. Added `android:usesCleartextTraffic="false"` to manifest.
+- **Chip colors extracted** — Shared `ChipColors.kt` eliminates duplicate chip color definitions across `SearchFilterBar` and `SettingsScreen`.
+- **Crop dialog dedup** — Extracted `applyAtPosition()` function, removing 84 lines of copy-pasted code across 3 position options.
+- **RateLimitBanner** — Removed redundant `AnimatedVisibility` wrapper (parent controls composition).
+- **Release build hardening** — Added `isDebuggable = false` to release buildType.
+
 ## [1.16.2] - 2026-09-04
 
 ### Fixed

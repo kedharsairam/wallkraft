@@ -20,6 +20,7 @@ class WallKraftApplication : Application() {
         super.onCreate()
         installCrashHandler()
         com.wallkraft.app.data.api.RateLimitState.attachScope(applicationScope)
+        com.wallkraft.app.core.cache.GridImageLoader.init(this)
         container = AppContainer(this)
     }
 

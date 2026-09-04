@@ -137,6 +137,7 @@
     <string name="wallpaper_position_home">Home screen</string>
     <string name="wallpaper_position_lock">Lock screen</string>
     <string name="wallpaper_position_both">Both screens</string>
+    <string name="wallpaper_applying">Setting wallpaper…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>
     <string name="cancel">Cancel</string>
     <string name="crop_hint">Pinch to zoom, drag to position</string>
