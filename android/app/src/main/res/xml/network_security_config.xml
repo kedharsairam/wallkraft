@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security configuration for WallKraft.
+
+  - Enforces HTTPS for all traffic (no cleartext).
+  - No certificate pinning: Wallhaven uses CDN with rotating certificates,
+    making pinning impractical. The app only fetches wallpapers and metadata,
+    no sensitive user data is transmitted.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

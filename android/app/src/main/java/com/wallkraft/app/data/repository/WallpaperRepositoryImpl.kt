@@ -52,6 +52,9 @@ class WallpaperRepositoryImpl(
             searchCache.put(filters, page, processed)
             Result.success(processed)
         } catch (e: Exception) {
+            // Rethrow JVM errors (OutOfMemoryError, StackOverflowError, etc.) —
+            // these are programming issues that should crash in development.
+            if (e is Error) throw e
             // 3. Offline fallback — a stale cached copy beats an error.
             //    Skipped on a forced refresh too: pulling to refresh with no
             //    connection should surface the error, not silently replay old
@@ -68,6 +71,7 @@ class WallpaperRepositoryImpl(
             ?: try {
                 Result.success(api.wallpaper(id).also { cacheById.put(id, it) })
             } catch (e: Exception) {
+                if (e is Error) throw e
                 val error = if (e is WallpaperError) e else WallpaperError.Api("Unexpected error: ${e.message}")
                 Result.failure(error)
             }

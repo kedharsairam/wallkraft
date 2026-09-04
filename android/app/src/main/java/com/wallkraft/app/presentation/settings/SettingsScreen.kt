@@ -87,6 +87,10 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.presentation.components.chipColors
+import com.wallkraft.app.presentation.components.purityNsfwChipColors
+import com.wallkraft.app.presentation.components.puritySfwChipColors
+import com.wallkraft.app.presentation.components.puritySketchyChipColors
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.util.displayName
@@ -95,42 +99,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.roundToInt
-
-/** Chip colors — dark theme only. */
-@Composable
-private fun chipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.ChipSelectedContainer,
-    selectedLabelColor = KraftColors.ChipSelectedLabel,
-)
-
-/** Purity SFW chip colors — dark theme only. */
-@Composable
-private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PuritySfwContainer,
-    selectedLabelColor = KraftColors.PuritySfwLabel,
-)
-
-/** Purity sketchy chip colors — dark theme only. */
-@Composable
-private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PuritySketchyContainer,
-    selectedLabelColor = KraftColors.PuritySketchyLabel,
-)
-
-/** Purity NSFW chip colors — dark theme only. */
-@Composable
-private fun purityNsfwChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = KraftColors.PurityNsfwContainer,
-    selectedLabelColor = KraftColors.PurityNsfwLabel,
-)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

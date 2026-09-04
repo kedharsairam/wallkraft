@@ -67,7 +67,7 @@ class SearchResponseCache(
 
     private fun fileFor(filters: WallhavenFilters, page: Int): File {
         val key = "${filters.signature()}|$page"
-        val hash = digest.digest(key.toByteArray())
+        val hash = threadLocalDigest.get()!!.digest(key.toByteArray())
             .joinToString("") { "%02x".format(it) }
         return File(directory, "$hash.json")
     }
@@ -77,6 +77,6 @@ class SearchResponseCache(
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries
-        private val digest = MessageDigest.getInstance("SHA-256")
+        private val threadLocalDigest = ThreadLocal.withInitial { MessageDigest.getInstance("SHA-256") }
     }
 }

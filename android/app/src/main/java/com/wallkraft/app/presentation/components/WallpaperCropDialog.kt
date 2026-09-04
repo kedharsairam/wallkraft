@@ -385,91 +385,46 @@ fun WallpaperCropDialog(
                         color = Color.White,
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing20))
-                    // Home screen
+
+                    /** Creates a cropped bitmap and applies it as wallpaper at the given position. */
+                    fun applyAtPosition(pos: WallpaperPosition) {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        showPositionPicker = false
+                        position = pos
+                        applying = true
+                        scope.launch {
+                            val crop = withContext(Dispatchers.Default) {
+                                val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
+                                android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
+                                c
+                            }
+                            val ok = onConfirm(crop, pos)
+                            if (!ok) runCatching { crop.recycle() }
+                            if (ok) {
+                                setResult = true
+                                delay(1200)
+                                onDismiss()
+                            } else {
+                                applying = false
+                                showPositionPicker = true
+                                snackbarHostState.showSnackbar(setFailedMsg)
+                            }
+                        }
+                    }
+
                     PositionOption(
                         label = stringResource(R.string.wallpaper_position_home),
-                        onClick = {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            showPositionPicker = false
-                            position = WallpaperPosition.HOME
-                            applying = true
-                            scope.launch {
-                                val crop = withContext(Dispatchers.Default) {
-                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
-                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
-                                    c
-                                }
-                                val ok = onConfirm(crop, WallpaperPosition.HOME)
-                                if (!ok) runCatching { crop.recycle() }
-                                if (ok) {
-                                    setResult = true
-                                    delay(1200)
-                                    onDismiss()
-                                } else {
-                                    applying = false
-                                    showPositionPicker = true
-                                    snackbarHostState.showSnackbar(setFailedMsg)
-                                }
-                            }
-                        },
+                        onClick = { applyAtPosition(WallpaperPosition.HOME) },
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    // Lock screen
                     PositionOption(
                         label = stringResource(R.string.wallpaper_position_lock),
-                        onClick = {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            showPositionPicker = false
-                            position = WallpaperPosition.LOCK
-                            applying = true
-                            scope.launch {
-                                val crop = withContext(Dispatchers.Default) {
-                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
-                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
-                                    c
-                                }
-                                val ok = onConfirm(crop, WallpaperPosition.LOCK)
-                                if (!ok) runCatching { crop.recycle() }
-                                if (ok) {
-                                    setResult = true
-                                    delay(1200)
-                                    onDismiss()
-                                } else {
-                                    applying = false
-                                    showPositionPicker = true
-                                    snackbarHostState.showSnackbar(setFailedMsg)
-                                }
-                            }
-                        },
+                        onClick = { applyAtPosition(WallpaperPosition.LOCK) },
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    // Both screens
                     PositionOption(
                         label = stringResource(R.string.wallpaper_position_both),
-                        onClick = {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            showPositionPicker = false
-                            position = WallpaperPosition.BOTH
-                            applying = true
-                            scope.launch {
-                                val crop = withContext(Dispatchers.Default) {
-                                    val c = createBitmap(frameWpx.toInt(), frameHpx.toInt(), Bitmap.Config.ARGB_8888)
-                                    android.graphics.Canvas(c).drawBitmap(bmp, null as android.graphics.Rect?, RectF(left, top, left + scaledW, top + scaledH), null as android.graphics.Paint?)
-                                    c
-                                }
-                                val ok = onConfirm(crop, WallpaperPosition.BOTH)
-                                if (!ok) runCatching { crop.recycle() }
-                                if (ok) {
-                                    setResult = true
-                                    delay(1200)
-                                    onDismiss()
-                                } else {
-                                    applying = false
-                                    showPositionPicker = true
-                                    snackbarHostState.showSnackbar(setFailedMsg)
-                                }
-                            }
-                        },
+                        onClick = { applyAtPosition(WallpaperPosition.BOTH) },
                     )
                 }
             }
@@ -508,11 +463,19 @@ fun WallpaperCropDialog(
                         .background(Color.Black.copy(alpha = 0.4f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(KraftIconSize.XLarge),
-                        strokeWidth = 3.dp,
-                        color = Color.White,
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(KraftIconSize.XLarge),
+                            strokeWidth = 3.dp,
+                            color = Color.White,
+                        )
+                        Spacer(Modifier.height(KraftSpacing.Spacing12))
+                        Text(
+                            text = stringResource(R.string.wallpaper_applying),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White,
+                        )
+                    }
                 }
             }
 

@@ -42,6 +42,7 @@ object RateLimitState {
     val limited: StateFlow<Boolean> = _limited.asStateFlow()
     val remaining: StateFlow<Int> = _remaining.asStateFlow()
 
+    @Synchronized
     fun update(remaining: Int) {
         _remaining.value = remaining
         cooldownJob?.cancel()
@@ -58,6 +59,7 @@ object RateLimitState {
         }
     }
 
+    @Synchronized
     fun reset() {
         cooldownJob?.cancel()
         _remaining.value = KraftConstants.RateLimitDefaultRemaining

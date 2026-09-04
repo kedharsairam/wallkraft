@@ -115,11 +115,6 @@ fun BrowseScreen(
     // (e.g. multi-window, split-screen, notification overlay).
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
-        downloadedIds = withContext(Dispatchers.IO) {
-            WallpaperActions.downloadedIds(context)
-        }
-    }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {

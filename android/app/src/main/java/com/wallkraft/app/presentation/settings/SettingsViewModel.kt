@@ -82,7 +82,7 @@ class SettingsViewModel(
                 .debounce(500)
                 .collect { key ->
                     val trimmed = key.trim()
-                    android.util.Log.d("SettingsViewModel", "Debounced key: '${trimmed.take(4)}...${trimmed.takeLast(4)}' (length=${trimmed.length})")
+                    android.util.Log.d("SettingsViewModel", "Debounced key (length=${trimmed.length})")
                     if (seedComplete && trimmed != lastPersisted) {
                         // Show verifying state while the API call is in flight.
                         _isValidating.value = true
