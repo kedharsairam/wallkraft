@@ -83,30 +83,33 @@ class WallhavenApi(
 
     /**
      * Validates the API key by making a lightweight search request.
-     * Uses the apikey query parameter (Wallhaven's documented auth method).
+     * Uses the X-API-Key header (same auth method as actual search requests).
      * Checks response code: 200 = valid, 401 = invalid.
      */
     suspend fun validateApiKey(key: String): Boolean {
-        if (key.isBlank()) return false
-        return try {
-            // Use the apikey query parameter as documented by Wallhaven
-            val url = "$baseUrl/search?q=&page=1&limit=1&apikey=$key"
-            val request = Request.Builder()
-                .url(url)
-                .header("Accept", "application/json")
-                .get()
-                .build()
-            client.newCall(request).execute().use { response ->
-                val rateLimit = response.header("X-RateLimit-Limit")?.toIntOrNull()
-                val rateRemaining = response.header("X-RateLimit-Remaining")?.toIntOrNull()
-                val bodySnippet = response.body?.string()?.take(200) ?: "null"
-                android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining, body=$bodySnippet")
-                // 200 = valid key, 401 = invalid key
-                response.code == 200
+        val trimmed = key.trim()
+        if (trimmed.isBlank()) return false
+        return withContext(Dispatchers.IO) {
+            try {
+                val url = "$baseUrl/search?q=&page=1&limit=1"
+                val request = Request.Builder()
+                    .url(url)
+                    .header("Accept", "application/json")
+                    .header("X-API-Key", trimmed)
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val rateLimit = response.header("X-RateLimit-Limit")?.toIntOrNull()
+                    val rateRemaining = response.header("X-RateLimit-Remaining")?.toIntOrNull()
+                    val bodySnippet = response.body?.string()?.take(200) ?: "null"
+                    android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining, body=$bodySnippet")
+                    // 200 = valid key, 401 = invalid key
+                    response.code == 200
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("WallhavenApi", "validateApiKey error: ${e.message}", e)
+                false
             }
-        } catch (e: Exception) {
-            android.util.Log.e("WallhavenApi", "validateApiKey error: ${e.message}", e)
-            false
         }
     }
 

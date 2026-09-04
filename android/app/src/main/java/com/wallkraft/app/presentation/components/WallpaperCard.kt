@@ -85,8 +85,8 @@ fun WallpaperCard(
     // Purity border — orange for Sketchy, red for NSFW (matches Wallhaven).
     // Subtle: 1dp with reduced alpha so it hints without dominating.
     val purityBorder = when (wallpaper.purityEnum) {
-        Purity.Sketchy -> BorderStroke(2.dp, KraftColors.AuroraOrange.copy(alpha = 0.6f))
-        Purity.NSFW -> BorderStroke(2.dp, KraftColors.AuroraRed.copy(alpha = 0.6f))
+        Purity.Sketchy -> BorderStroke(2.dp, KraftColors.AuroraOrange)
+        Purity.NSFW -> BorderStroke(2.dp, KraftColors.AuroraRed)
         else -> null
     }
 

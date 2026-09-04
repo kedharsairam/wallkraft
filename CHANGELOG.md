@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.2] - 2026-09-04
+
+### Fixed
+- **API key validation** — rewrote `validateApiKey` to use `X-API-Key` header (consistent with search requests), wrapped in `withContext(Dispatchers.IO)` to prevent main thread blocking, and added `.trim()` to handle pasted keys with whitespace. Validation now works reliably.
+- **NSFW locked chip color mismatch** — all filter chips now use explicit `containerColor = surfaceVariant` and `labelColor = onSurfaceVariant` for the inactive state. Chips look identical across the filter panel and Settings screen regardless of parent background.
+- **NSFW locked chip locked appearance** — removed red tint from disabled state. Locked chip uses neutral `surfaceVariant` background, only shows red when unlocked and selected.
+- **Set as Wallpaper back button z-order** — back button now renders after the dim overlay so it stays fully visible and tappable when the position picker popup is open.
+
+### Changed
+- **Set as Wallpaper screen** — bottom panel removed entirely. Back button (top-left) + checkmark button (top-right) in glass circles. Checkmark opens position picker popup (Home, Lock, Both) with dim overlay. Removed crop hint text and top gradient scrim. Window background set to black to prevent flash.
+
 ## [1.16.1] - 2026-09-04
 
 ### Changed
 - **Filter chip label contrast** — all selected filter chip labels (categories, sorting, orientation, purity) now use white text for maximum readability on colored containers.
-- **Purity borders on wallpaper cards** — Sketchy images show a 2dp orange border, NSFW images show a 2dp red border (at 60% alpha for subtlety). Matches Wallhaven's visual language.
+- **Purity borders on wallpaper cards** — Sketchy images show a 2dp orange border, NSFW images show a 2dp red border. Matches Wallhaven's visual language.
 - **Purity border timing** — border is applied to the AsyncImage (shared element) so it stays visible during the detail-to-grid return transition.
 
 ### Fixed
@@ -26,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **NSFW purity filter** — new purity tier behind API key wall. Locked pill with lock icon shown when no valid API key. Unlocks automatically when valid key is entered. Uses `AuroraRed` accent.
-- **API key validation** — validates against Wallhaven API using `apikey` query parameter. Shows green "Valid key — NSFW unlocked" or red "Invalid key — check and try again" status in Settings.
+- **API key validation** — validates against Wallhaven API using `X-API-Key` header. Shows green "Valid key — NSFW unlocked" or red "Invalid key — check and try again" status in Settings.
 - **API key verifying state** — shows "Verifying..." loading indicator while the validation API call is in flight, instead of briefly flashing invalid.
 - **API key validation state** — `apiKeyValid` persisted in settings, re-validated on key change and on app clear.
 - **NSFW filter support in API** — `toPurityParam()` emits `1` for NSFW, repository adds `"nsfw"` to allowed purity set when selected.

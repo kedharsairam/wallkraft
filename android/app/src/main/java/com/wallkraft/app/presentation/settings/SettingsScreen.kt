@@ -99,6 +99,8 @@ import kotlin.math.roundToInt
 /** Chip colors — dark theme only. */
 @Composable
 private fun chipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedContainerColor = KraftColors.ChipSelectedContainer,
     selectedLabelColor = KraftColors.ChipSelectedLabel,
 )
@@ -106,6 +108,8 @@ private fun chipColors() = FilterChipDefaults.filterChipColors(
 /** Purity SFW chip colors — dark theme only. */
 @Composable
 private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedContainerColor = KraftColors.PuritySfwContainer,
     selectedLabelColor = KraftColors.PuritySfwLabel,
 )
@@ -113,6 +117,8 @@ private fun puritySfwChipColors() = FilterChipDefaults.filterChipColors(
 /** Purity sketchy chip colors — dark theme only. */
 @Composable
 private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedContainerColor = KraftColors.PuritySketchyContainer,
     selectedLabelColor = KraftColors.PuritySketchyLabel,
 )
@@ -120,6 +126,8 @@ private fun puritySketchyChipColors() = FilterChipDefaults.filterChipColors(
 /** Purity NSFW chip colors — dark theme only. */
 @Composable
 private fun purityNsfwChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
     selectedContainerColor = KraftColors.PurityNsfwContainer,
     selectedLabelColor = KraftColors.PurityNsfwLabel,
 )
@@ -327,10 +335,10 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
                                     purity == Purity.SFW -> puritySfwChipColors()
                                     purity == Purity.Sketchy -> puritySketchyChipColors()
                                     isNsfwLocked -> FilterChipDefaults.filterChipColors(
-                                        containerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
-                                        labelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
-                                        disabledContainerColor = KraftColors.PurityNsfwContainer.copy(alpha = 0.15f),
-                                        disabledLabelColor = KraftColors.PurityNsfwLabel.copy(alpha = 0.4f),
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                     else -> purityNsfwChipColors()
                                 }

@@ -81,24 +81,25 @@ class SettingsViewModel(
             _apiKeyText
                 .debounce(500)
                 .collect { key ->
-                    android.util.Log.d("SettingsViewModel", "Debounced key: '${key.take(4)}...${key.takeLast(4)}' (length=${key.length})")
-                    if (seedComplete && key != lastPersisted) {
+                    val trimmed = key.trim()
+                    android.util.Log.d("SettingsViewModel", "Debounced key: '${trimmed.take(4)}...${trimmed.takeLast(4)}' (length=${trimmed.length})")
+                    if (seedComplete && trimmed != lastPersisted) {
                         // Show verifying state while the API call is in flight.
                         _isValidating.value = true
                         try {
                             // Validate the key against the API
-                            val isValid = api.validateApiKey(key)
+                            val isValid = api.validateApiKey(trimmed)
                             android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
                             settingsRepository.update { current ->
-                                val updated = current.copy(apiKey = key, apiKeyValid = isValid)
-                                if (key.isBlank() || !isValid) {
+                                val updated = current.copy(apiKey = trimmed, apiKeyValid = isValid)
+                                if (trimmed.isBlank() || !isValid) {
                                     // No API key or invalid — strip NSFW from purity.
                                     updated.copy(purity = updated.purity - Purity.NSFW)
                                 } else {
                                     updated
                                 }
                             }
-                            lastPersisted = key
+                            lastPersisted = trimmed
                         } finally {
                             _isValidating.value = false
                         }
