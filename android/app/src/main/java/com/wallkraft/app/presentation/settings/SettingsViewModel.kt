@@ -43,6 +43,10 @@ class SettingsViewModel(
     private val _apiKeyText = MutableStateFlow("")
     val apiKeyText: StateFlow<String> = _apiKeyText.asStateFlow()
 
+    /** True while an API key validation request is in flight. */
+    private val _isValidating = MutableStateFlow(false)
+    val isValidating: StateFlow<Boolean> = _isValidating.asStateFlow()
+
     private var hasUserInput = false
 
     /** Last value written to DataStore; null until the seed read completes. */
@@ -79,19 +83,25 @@ class SettingsViewModel(
                 .collect { key ->
                     android.util.Log.d("SettingsViewModel", "Debounced key: '${key.take(4)}...${key.takeLast(4)}' (length=${key.length})")
                     if (seedComplete && key != lastPersisted) {
-                        // Validate the key against the API
-                        val isValid = api.validateApiKey(key)
-                        android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
-                        settingsRepository.update { current ->
-                            val updated = current.copy(apiKey = key, apiKeyValid = isValid)
-                            if (key.isBlank() || !isValid) {
-                                // No API key or invalid — strip NSFW from purity.
-                                updated.copy(purity = updated.purity - Purity.NSFW)
-                            } else {
-                                updated
+                        // Show verifying state while the API call is in flight.
+                        _isValidating.value = true
+                        try {
+                            // Validate the key against the API
+                            val isValid = api.validateApiKey(key)
+                            android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
+                            settingsRepository.update { current ->
+                                val updated = current.copy(apiKey = key, apiKeyValid = isValid)
+                                if (key.isBlank() || !isValid) {
+                                    // No API key or invalid — strip NSFW from purity.
+                                    updated.copy(purity = updated.purity - Purity.NSFW)
+                                } else {
+                                    updated
+                                }
                             }
+                            lastPersisted = key
+                        } finally {
+                            _isValidating.value = false
                         }
-                        lastPersisted = key
                     }
                 }
         }
@@ -133,17 +143,22 @@ class SettingsViewModel(
         val latest = _apiKeyText.value
         if (hasUserInput && latest != lastPersisted) {
             appScope.launch {
-                val isValid = api.validateApiKey(latest)
-                settingsRepository.update { current ->
-                    val updated = current.copy(apiKey = latest, apiKeyValid = isValid)
-                    if (latest.isBlank() || !isValid) {
-                        updated.copy(purity = updated.purity - Purity.NSFW)
-                    } else {
-                        updated
+                _isValidating.value = true
+                try {
+                    val isValid = api.validateApiKey(latest)
+                    settingsRepository.update { current ->
+                        val updated = current.copy(apiKey = latest, apiKeyValid = isValid)
+                        if (latest.isBlank() || !isValid) {
+                            updated.copy(purity = updated.purity - Purity.NSFW)
+                        } else {
+                            updated
+                        }
                     }
+                } finally {
+                    _isValidating.value = false
+                    // Cancel the scope after the flush completes so it doesn't leak.
+                    appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
                 }
-                // Cancel the scope after the flush completes so it doesn't leak.
-                appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
             }
         } else {
             appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
