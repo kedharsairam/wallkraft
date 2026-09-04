@@ -110,6 +110,8 @@ class SettingsViewModel(
     fun setApiKey(key: String) {
         hasUserInput = true
         _apiKeyText.value = key
+        // Show verifying state immediately — don't wait for the 500ms debounce.
+        _isValidating.value = key.isNotBlank()
     }
 
     fun setSorting(sorting: Sorting) {
