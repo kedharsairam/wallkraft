@@ -3,22 +3,17 @@ package com.wallkraft.app.presentation.favorites
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import com.wallkraft.app.core.design.KraftTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -43,13 +38,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.domain.model.Wallpaper
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.DownloadedFile
@@ -64,6 +53,7 @@ fun FavoritesScreen(
     navBarPadding: Dp = 0.dp,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    topBarState: FavoritesTopBarState = FavoritesTopBarState(),
 ) {
     val viewModel: FavoritesViewModel = viewModel(
         factory = viewModelFactory {
@@ -100,86 +90,32 @@ fun FavoritesScreen(
     var pendingRemove by remember { mutableStateOf<List<Wallpaper>?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Sync shared top bar state (lives outside SharedTransitionLayout).
+    val allSelected = favorites.isNotEmpty() && selectedIds.size == favorites.size
+    topBarState.selectionMode = selectionMode
+    topBarState.selectedCount = selectedIds.size
+    topBarState.totalFavorites = favorites.size
+    topBarState.onCancelSelection = { selectedIds = emptySet() }
+    topBarState.onToggleSelectAll = {
+        selectedIds = if (allSelected) {
+            emptySet()
+        } else {
+            favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
+        }
+    }
+    topBarState.onDeleteSelected = {
+        pendingRemove = favorites
+            .filter { it.wallpaper.id in selectedIds }
+            .map { it.wallpaper }
+    }
+    topBarState.onEnterSelectionMode = {
+        selectedIds = favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            val title = if (selectionMode) {
-                pluralStringResource(R.plurals.selected_count, selectedIds.size, selectedIds.size)
-            } else {
-                stringResource(R.string.favorites_title)
-            }
-            KraftTopBar(
-                title = title,
-                navigationIcon = if (selectionMode) {
-                    {
-                        IconButton(onClick = {
-                            selectedIds = emptySet()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.Close,
-                                contentDescription = stringResource(R.string.cancel),
-                            )
-                        }
-                    }
-                } else null,
-                actions = {
-                    AnimatedVisibility(
-                        visible = selectionMode,
-                        enter = fadeIn(tween(220)) + scaleIn(tween(220), initialScale = 0.8f),
-                        exit = fadeOut(tween(180)) + scaleOut(tween(180), targetScale = 0.8f),
-                    ) {
-                        Row {
-                            val allSelected = favorites.isNotEmpty() &&
-                                selectedIds.size == favorites.size
-                            val haptic = LocalHapticFeedback.current
-                            TextButton(
-                                onClick = {
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    selectedIds = if (allSelected) {
-                                        emptySet()
-                                    } else {
-                                        favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
-                                    }
-                                },
-                            ) {
-                                Text(
-                                    stringResource(
-                                        if (allSelected) R.string.deselect_all else R.string.select_all,
-                                    ),
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                    pendingRemove = favorites
-                                        .filter { it.wallpaper.id in selectedIds }
-                                        .map { it.wallpaper }
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Delete,
-                                    contentDescription = stringResource(R.string.delete),
-                                    tint = MaterialTheme.colorScheme.error,
-                                )
-                            }
-                        }
-                    }
-                    AnimatedVisibility(
-                        visible = !selectionMode && favorites.isNotEmpty(),
-                        enter = fadeIn(tween(220)),
-                        exit = fadeOut(tween(180)),
-                    ) {
-                        TextButton(onClick = {
-                            selectedIds = favorites.mapTo(mutableSetOf()) { it.wallpaper.id }
-                        }) {
-                            Text(stringResource(R.string.select))
-                        }
-                    }
-                },
-            )
-        },
     ) { innerPadding ->
         if (favorites.isEmpty()) {
             EmptyState(
