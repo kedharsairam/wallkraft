@@ -50,7 +50,6 @@ import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.GridAppendFooter
 import com.wallkraft.app.presentation.components.RateLimitBanner
-import com.wallkraft.app.presentation.components.SearchFilterBar
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Wallpaper
@@ -70,6 +69,7 @@ fun BrowseScreen(
     title: String = "",
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    searchState: BrowseSearchState = BrowseSearchState(),
 ) {
     val viewModel: BrowseViewModel = viewModel(
         factory = viewModelFactory {
@@ -88,18 +88,20 @@ fun BrowseScreen(
     // tag-as-browse entry passes null and gets its own state, so scrolling a
     // tag list never moves the original Browse position.
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
-    // [title] is a display-only label (e.g. an uploader's username) shown in
-    // the search bar instead of the raw query (e.g. "@username"). Any edit to
-    // the field abandons it — from then on the box is a normal search. This is
-    // initialized once per screen entry, so re-searching doesn't reapply it.
-    var titleActive by remember { mutableStateOf(title.isNotBlank()) }
-    var searchText by remember { mutableStateOf(title.ifBlank { uiState.filters.query }) }
-    val keyboard = LocalSoftwareKeyboardController.current
-    var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
-    // API key validity — gates NSFW purity option in the filter bar.
-    // Observed reactively so it updates when the key is validated in Settings.
+    // Sync shared search state (lives outside SharedTransitionLayout).
+    // Initial query from nav args seeds the field once per entry.
+    LaunchedEffect(initialQuery, title) {
+        searchState.query = title.ifBlank { uiState.filters.query }
+        searchState.titleActive = title.isNotBlank()
+    }
+    searchState.filters = uiState.filters
     val settings by container.settings.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
-    val hasApiKey = settings.apiKeyValid
+    searchState.hasApiKey = settings.apiKeyValid
+    searchState.onSearch = { text ->
+        viewModel.search(if (searchState.titleActive) uiState.filters.query else text)
+    }
+    searchState.onFiltersChange = viewModel::setFilters
+    var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
     // Data saver: skip the full-res prefetch on tap so opening a wallpaper
     // doesn't download it until the user actually zooms.
     var prefetchFullRes by remember { mutableStateOf(true) }
@@ -145,6 +147,7 @@ fun BrowseScreen(
     }
 
     val focusManager = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
 
     // Dismiss the keyboard + clear cursor when the user starts scrolling the grid.
     LaunchedEffect(effectiveGridState) {
@@ -160,26 +163,6 @@ fun BrowseScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            SearchFilterBar(
-                query = searchText,
-                onQueryChange = { text ->
-                    titleActive = false
-                    searchText = text
-                },
-                onSearch = { text ->
-                    // While the title is active the field shows the friendly
-                    // name, but the real search is the raw query the entry was
-                    // opened with (e.g. "@username"). Pressing search without
-                    // editing just re-runs it.
-                    viewModel.search(if (titleActive) uiState.filters.query else text)
-                },
-                filters = uiState.filters,
-                onFiltersChange = viewModel::setFilters,
-                onDismiss = { focusManager.clearFocus() },
-                hasApiKey = hasApiKey,
-            )
-        },
     ) { innerPadding ->
         Box(
             modifier = Modifier

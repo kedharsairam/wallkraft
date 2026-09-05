@@ -84,7 +84,6 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.presentation.components.chipColors
@@ -153,7 +152,6 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { KraftTopBar(title = stringResource(R.string.settings_title)) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(

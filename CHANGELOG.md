@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-09-05
+
+### Fixed
+- **Shared element z-ordering** — Images from the detail screen now render behind the top bar (SearchFilterBar / KraftTopBar) on the return transition to Browse and Favorites screens. Root cause: Compose's `SharedTransitionLayout` renders shared elements in an overlay layer that is always above content inside the layout. Moved all top bars to the outer Scaffold's `topBar` slot (outside the `SharedTransitionLayout`), matching the existing bottom bar pattern.
+- **Tab switching layout jump** — All three screens (Browse, Favorites, Settings) now share the same top bar architecture at the outer Scaffold level, eliminating inconsistent padding when switching tabs.
+
+### Changed
+- **Architecture** — Extracted `BrowseSearchState` and `FavoritesTopBarState` as shared state holders between the outer Scaffold top bar and each screen's content. Inner Scaffolds no longer render their own top bars.
+
 ## [1.17.0] - 2026-09-04
 
 ### Fixed
