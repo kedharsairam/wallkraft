@@ -2,7 +2,9 @@ package com.wallkraft.app.presentation.favorites
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
@@ -51,6 +53,9 @@ fun FavoritesScreen(
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,
+    // Height of the outer top bar (KraftTopBar). Reserved here so the grid
+    // starts exactly below the bar. Constant — never shifts.
+    topInset: Dp = 0.dp,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
@@ -115,6 +120,7 @@ fun FavoritesScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = { Spacer(modifier = Modifier.height(topInset)) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         if (favorites.isEmpty()) {

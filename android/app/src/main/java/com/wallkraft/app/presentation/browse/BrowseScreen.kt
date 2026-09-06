@@ -65,6 +65,9 @@ fun BrowseScreen(
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    // Height of the outer top bar (SearchFilterBar). Reserved here so the
+    // grid starts exactly below the bar. Constant — never shifts.
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
     initialQuery: String = "",
     title: String = "",
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
@@ -163,6 +166,7 @@ fun BrowseScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = { Spacer(modifier = Modifier.height(topInset)) },
     ) { innerPadding ->
         Box(
             modifier = Modifier

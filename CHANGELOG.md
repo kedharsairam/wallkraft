@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.2] - 2026-09-06
+
+### Fixed
+- **Detail screen full-bleed** — the detail screen no longer shows wasted space at the top or bottom. The image now extends edge-to-edge behind the status bar, the back button sits below the status bar, and the bottom panel anchors at the screen bottom.
+- **Browse/Favorites grids behind top bar** — grids now start exactly below the top bar again (regression from the first Detail full-bleed attempt, which removed the shared top padding that Scaffold content relies on).
+
+### Changed
+- **Top inset architecture** — the outer top bar is always rendered at a constant height (stable layout, no transition jumps). `SharedTransitionLayout` is full-screen and unpadded. Each tab screen (Browse, Favorites, Settings) reserves the shared `topInset` inside its own inner Scaffold via a placeholder top bar; Detail reserves nothing and draws full-bleed behind the empty transparent top bar slot.
+
 ## [1.17.1] - 2026-09-05
 
 ### Fixed

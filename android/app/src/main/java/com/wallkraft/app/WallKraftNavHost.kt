@@ -131,21 +131,25 @@ fun WallKraftNavHost(container: AppContainer) {
     val browseSearchState = remember { BrowseSearchState() }
     val favoritesTopBarState = remember { FavoritesTopBarState() }
 
+    // The outer top bar height. Computed once and shared with the tab
+    // screens so their content starts exactly below the bar. Constant
+    // across routes, so no layout ever shifts during transitions.
+    val density = LocalDensity.current
+    val topInset = WindowInsets.statusBars
+        .asPaddingValues(density)
+        .calculateTopPadding() + KraftSpacing.Spacing8 +
+        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + 1.dp
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             // ── Top bar (outside SharedTransitionLayout) ──────────────
-            // Always rendered at the same height so innerPadding.top is
-            // stable — no layout jumps when navigating to/from Detail.
-            val density = LocalDensity.current
-            val statusBarPadding = WindowInsets.statusBars
-                .asPaddingValues(density)
-                .calculateTopPadding()
-            val topBarHeight = statusBarPadding + KraftSpacing.Spacing8 +
-                KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + 1.dp
-
-            Box(modifier = Modifier.heightIn(min = topBarHeight)) {
+            // ALWAYS rendered at the same height on every screen, so the
+            // Scaffold layout never shifts and transitions never jump.
+            // On Detail no branch matches: the Box is an empty transparent
+            // placeholder and the Detail screen draws full-bleed behind it.
+            Box(modifier = Modifier.heightIn(min = topInset)) {
                 when {
                     isBrowse -> SearchFilterBar(
                         query = browseSearchState.query,
@@ -282,10 +286,11 @@ fun WallKraftNavHost(container: AppContainer) {
             }
         },
     ) { innerPadding ->
+        // Full-screen on every screen — never padded here, so this layout
+        // never shifts. Each tab screen reserves the topInset space inside
+        // its own inner Scaffold; Detail reserves nothing (full-bleed).
         SharedTransitionLayout(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding()),
+            modifier = Modifier.fillMaxSize(),
         ) {
             NavHost(
                 navController = navController,
@@ -308,6 +313,7 @@ fun WallKraftNavHost(container: AppContainer) {
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                         gridState = if (query.isBlank()) browseGridState else null,
                         navBarPadding = innerPadding.calculateBottomPadding(),
+                        topInset = topInset,
                         initialQuery = query,
                         title = title,
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -325,6 +331,7 @@ fun WallKraftNavHost(container: AppContainer) {
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                         gridState = favoritesGridState,
                         navBarPadding = innerPadding.calculateBottomPadding(),
+                        topInset = topInset,
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedVisibilityScope = this@composable,
                         topBarState = favoritesTopBarState,
@@ -338,6 +345,7 @@ fun WallKraftNavHost(container: AppContainer) {
                     SettingsScreen(
                         container = container,
                         navBarPadding = innerPadding.calculateBottomPadding(),
+                        topInset = topInset,
                     )
                 }
                 composable(

@@ -101,7 +101,13 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
+fun SettingsScreen(
+    container: AppContainer,
+    navBarPadding: Dp = 0.dp,
+    // Height of the outer top bar (KraftTopBar). Reserved here so the content
+    // starts exactly below the bar. Constant — never shifts.
+    topInset: Dp = 0.dp,
+) {
     val viewModel: SettingsViewModel = viewModel(
         factory = viewModelFactory { initializer { SettingsViewModel(container.settings, container.api) } },
     )
@@ -152,6 +158,7 @@ fun SettingsScreen(container: AppContainer, navBarPadding: Dp = 0.dp) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = { Spacer(modifier = Modifier.height(topInset)) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Column(
