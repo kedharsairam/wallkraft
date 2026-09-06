@@ -25,4 +25,6 @@ class FavoritesTopBarState {
     var onDeleteSelected by mutableStateOf<() -> Unit>({})
     /** Enters selection mode with all items selected. */
     var onEnterSelectionMode by mutableStateOf<() -> Unit>({})
+    /** Opens the add-to-collection picker for the current selection. */
+    var onAddToCollection by mutableStateOf<() -> Unit>({})
 }

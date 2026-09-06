@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="tab_browse">探す</string>
+    <string name="tab_favorites">お気に入り</string>
+    <string name="tab_settings">設定</string>
+
+    <!-- Browse -->
+    <string name="search_hint">検索</string>
+    <string name="search_action">検索</string>
+    <string name="search_clear">検索をクリア</string>
+    <string name="search_recent">最近</string>
+    <string name="search_trending">人気</string>
+    <string name="search_from_browsing">閲覧履歴から</string>
+    <string name="search_clear_history">履歴をクリア</string>
+    <string name="no_results_title">壁紙が見つかりません</string>
+    <string name="no_results_hint_filters">フィルターを調整してください。</string>
+    <string name="no_results_hint_query">\"%1$s\"に一致しません。他の検索をお試しください。</string>
+
+    <!-- Filters -->
+    <string name="filters">フィルター</string>
+    <string name="filter_categories">カテゴリー</string>
+    <string name="filter_purity">区分</string>
+    <string name="filter_sorting">並び替え</string>
+    <string name="filter_orientation">向き</string>
+    <string name="filter_colors">色</string>
+    <string name="filter_reset">リセット</string>
+    <string name="filter_apply">適用</string>
+    <string name="filter_all">すべて</string>
+    <string name="sorting_date_added">新着順</string>
+    <string name="sorting_hot">人気急上昇</string>
+    <string name="sorting_random">ランダム</string>
+    <string name="sorting_views">閲覧数</string>
+    <string name="sorting_favorites">お気に入り数</string>
+    <string name="category_general">一般</string>
+    <string name="category_anime">アニメ</string>
+    <string name="category_people">人物</string>
+    <string name="purity_sfw">SFW</string>
+    <string name="purity_sketchy">グレー</string>
+    <string name="purity_nsfw">NSFW</string>
+    <string name="purity_nsfw_locked">APIキーが必要</string>
+    <string name="orientation_both">両方</string>
+    <string name="orientation_portrait">縦</string>
+    <string name="orientation_landscape">横</string>
+    <string name="color_red">赤</string>
+    <string name="color_orange">オレンジ</string>
+    <string name="color_yellow">黄</string>
+    <string name="color_green">緑</string>
+    <string name="color_teal">ティール</string>
+    <string name="color_blue">青</string>
+    <string name="color_purple">紫</string>
+    <string name="color_pink">ピンク</string>
+    <string name="color_brown">茶</string>
+    <string name="color_black">黒</string>
+    <string name="color_white">白</string>
+    <string name="color_grey">グレー</string>
+
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="api_key_title">Wallhaven APIキー</string>
+    <string name="api_key_description">任意。アカウントキーで制限緩和と限定コンテンツを利用できます。</string>
+    <string name="api_key_hint">APIキーを貼り付け</string>
+    <string name="appearance">外観</string>
+    <string name="browsing_title">デフォルトフィルター</string>
+    <string name="data_title">データ</string>
+    <string name="advanced_title">詳細設定</string>
+    <string name="about_title">このアプリについて</string>
+    <string name="about_developer">Kedhar</string>
+    <string name="about_developer_subtitle">開発者 &amp; デザイナー</string>
+    <string name="about_developer_bio">Jetpack ComposeでWallKraftを作りました。プライバシー第一、トラッキングも広告もなし。</string>
+    <string name="privacy_title">プライバシーポリシー</string>
+    <string name="privacy_content">WallKraftはプライバシー重視の壁紙アプリです。知っておくべきこと:\n\n収集しないもの\n個人データなし。利用分析なし。デバイス識別子なし。位置情報なし。広告IDなし。\n\nデバイスに残るもの\nお気に入りとダウンロードはローカルに保存されます。APIキーはAndroidの安全なKeystoreに保存されます。キャッシュは一時的でいつでも消去できます。\n\nネットワーク利用\nWallKraftは壁紙取得のためWallhaven APIにのみ接続します。他のサーバーには何も送信しません。\n\nサードパーティ\nWallhaven API — 壁紙の閲覧・検索用。Wallhavenの利用規約が適用されます。\n\n変更\nポリシーが変わった場合はAboutで公開します。\n\n連絡先\n質問はGitHubのissueへどうぞ。</string>
+    <string name="data_saver_title">データセーバー</string>
+    <string name="data_saver_description">ズーム・設定・共有時のみフル解像度を読み込みます。モバイルデータを節約。</string>
+    <string name="loading_full_resolution">フル解像度を読み込み中…</string>
+    <string name="default_categories">デフォルトのカテゴリー</string>
+    <string name="default_purity">デフォルトの区分</string>
+    <string name="default_sorting">デフォルトの並び替え</string>
+    <string name="default_orientation">デフォルトの向き</string>
+    <string name="theme_system">システム</string>
+    <string name="theme_light">ライト</string>
+    <string name="theme_dark">ダーク</string>
+    <string name="version_format">WallKraft v%1$s</string>
+    <string name="cache_title">キャッシュ</string>
+    <string name="cache_description">閲覧時の一時ファイル。消去してもお気に入りは残ります。</string>
+    <string name="clear_cache">キャッシュを消去</string>
+    <string name="cache_cleared">キャッシュを消去しました</string>
+    <string name="favorites_storage_format">%1$d枚 • %2$s</string>
+    <string name="api_key_advanced_description">制限緩和用の任意キー。タップで編集。</string>
+    <string name="api_key_valid">有効なキー — NSFW解放済み</string>
+    <string name="api_key_invalid">無効なキー — 確認して再試行</string>
+    <string name="api_key_dialog_title">Wallhaven APIキー</string>
+    <string name="api_key_dialog_save">保存</string>
+    <string name="api_key_saved">APIキーを保存しました</string>
+    <string name="api_key_not_set">未設定</string>
+    <string name="api_key_verifying">確認中…</string>
+    <string name="licenses_title">オープンソースライセンス</string>
+    <string name="github_title">GitHub</string>
+    <string name="share_crash_log">クラッシュログを共有</string>
+    <string name="no_crash_logs">ログはまだありません</string>
+    <string name="settings_categories">カテゴリー</string>
+    <string name="settings_purity">区分</string>
+    <string name="settings_sorting">並び替え</string>
+    <string name="settings_orientation">向き</string>
+    <string name="rate_app_title">WallKraftを評価</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">お気に入り</string>
+    <string name="no_favorites_title">まだお気に入りがありません</string>
+    <string name="no_favorites_message">壁紙のハートをタップして保存しましょう。</string>
+    <string name="favorites_downloaded">ダウンロード済み</string>
+    <string name="open_location">場所を開く</string>
+    <string name="delete">削除</string>
+
+    <!-- Selection (shared by Favorites) -->
+    <string name="select">選択</string>
+    <string name="select_all">すべて選択</string>
+    <string name="deselect_all">選択解除</string>
+    <plurals name="selected_count">
+        <item quantity="other">%d件選択中</item>
+    </plurals>
+
+    <!-- Favorites selection -->
+    <string name="remove_favorites_confirm_title">お気に入りから削除しますか?</string>
+    <string name="remove_favorites_confirm_message">お気に入りから外れます。探すタブから再追加できます。</string>
+    <plurals name="remove_favorites_selected_title">
+        <item quantity="other">%d件のお気に入りを削除しますか?</item>
+    </plurals>
+    <plurals name="remove_favorites_selected_message">
+        <item quantity="other">お気に入りから壁紙%d枚を外します。</item>
+    </plurals>
+    <string name="favorites_download_all">すべて保存</string>
+    <plurals name="favorites_offline_summary">
+        <item quantity="other">%1$d/%2$d件をオフライン保存済み</item>
+    </plurals>
+    <plurals name="favorites_repair_done">
+        <item quantity="other">%1$d枚を保存しました</item>
+    </plurals>
+    <plurals name="favorites_repair_failed">
+        <item quantity="other">%1$d件を復元できませんでした</item>
+    </plurals>
+    <string name="collections_title">コレクション</string>
+    <string name="new_collection">新規コレクション</string>
+    <string name="collection_name_hint">コレクション名</string>
+    <string name="create">作成</string>
+    <string name="rename">名前を変更</string>
+    <string name="done">完了</string>
+    <string name="add_to_collection">コレクションに追加</string>
+    <string name="delete_collection_title">%1$sを削除しますか?</string>
+    <string name="delete_collection_message">壁紙はお気に入りに残ります。</string>
+    <plurals name="collection_item_count">
+        <item quantity="other">%d件</item>
+    </plurals>
+
+    <!-- Detail -->
+    <string name="back">戻る</string>
+    <string name="downloading">%1$sをダウンロード中…</string>
+    <string name="wallpaper_set">壁紙を設定しました</string>
+    <string name="wallpaper_set_failed">壁紙を設定できませんでした</string>
+    <string name="wallpaper_load_failed">この壁紙を読み込めませんでした</string>
+    <string name="add_to_favorites">お気に入りに追加</string>
+    <string name="remove_from_favorites">お気に入りから外す</string>
+    <string name="favorite_save_failed">オフライン保存に失敗。接続を確認してください。</string>
+    <string name="selected">選択中</string>
+    <string name="not_selected">未選択</string>
+    <string name="download">ダウンロード</string>
+    <string name="share">共有</string>
+    <string name="set_as_wallpaper">壁紙に設定</string>
+    <string name="wallpaper_position_title">壁紙の設定先</string>
+    <string name="wallpaper_position_home">ホーム画面</string>
+    <string name="wallpaper_position_lock">ロック画面</string>
+    <string name="wallpaper_position_both">両方の画面</string>
+    <string name="rotation_title">壁紙ローテーション</string>
+    <string name="rotation_schedule">頻度</string>
+    <string name="rotation_off">オフ</string>
+    <string name="rotation_daily">毎日</string>
+    <string name="rotation_weekly">毎週</string>
+    <string name="rotation_style">スタイル</string>
+    <string name="rotation_showcase">ショーケース</string>
+    <string name="rotation_atmosphere">アトモスフィア</string>
+    <string name="rotation_fill">フィル</string>
+    <string name="rotation_screen">変更先</string>
+    <string name="rotation_source">取得元</string>
+    <string name="rotation_all_favorites">すべてのお気に入り</string>
+    <string name="rotation_now">今すぐ変更</string>
+    <string name="rotation_started">次の壁紙を適用中…</string>
+    <string name="wallpaper_applying">壁紙を設定中…</string>
+    <string name="download_notification_title">WallKraft — %1$s</string>
+    <string name="cancel">キャンセル</string>
+    <string name="crop_hint">ピンチで拡大、ドラッグで位置調整</string>
+    <string name="crop_load_failed">画像を読み込めませんでした</string>
+
+    <!-- Detail panel -->
+    <string name="more_details">詳細を見る</string>
+    <string name="tags_heading">タグ</string>
+    <string name="account_deleted">削除されたアカウント</string>
+    <string name="view_by_uploader">%1$sの壁紙を見る</string>
+    <string name="stat_views">%1$s views</string>
+    <string name="stat_favorites">お気に入り%1$s件</string>
+    <!-- Error / empty states -->
+    <string name="error_title">問題が発生しました</string>
+    <string name="error_retry">再試行</string>
+    <string name="error_rate_limited">制限に達しました。少し待って再試行してください。</string>
+    <string name="error_network">問題が発生しました。接続を確認してください。</string>
+    <string name="error_generic">問題が発生しました。</string>
+    <string name="error_invalid_query">検索を完了できませんでした。調整してください。</string>
+    <string name="error_invalid_key">APIキーが拒否されました。設定で確認してください。</string>
+    <string name="error_not_found">この壁紙は存在しません。</string>
+    <string name="rate_limit_banner">制限に達しました。少し待ってから続けてください。</string>
+    <string name="rate_limit_hint">Wallhaven APIの制限に達しました。1分待って再試行してください。</string>
+    <string name="buy_me_a_coffee_title">応援</string>
+    <string name="buy_me_a_coffee_description">WallKraftが気に入ったら、コーヒーをおごってください。開発の支えになります。</string>
+</resources>

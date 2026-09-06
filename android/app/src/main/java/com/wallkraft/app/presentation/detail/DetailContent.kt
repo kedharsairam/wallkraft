@@ -76,7 +76,7 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ZoomableImage
-import com.wallkraft.app.util.WallpaperActions
+import com.wallkraft.app.util.WallpaperSharing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -435,7 +435,7 @@ internal fun DetailContent(
                             isSharing = true
                             contentScope.launch {
                                 try {
-                                    WallpaperActions.share(
+                                    WallpaperSharing.share(
                                         context,
                                         wallpaper,
                                         container.favoriteImageStore.fileFor(wallpaper.id),

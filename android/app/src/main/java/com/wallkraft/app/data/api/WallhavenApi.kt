@@ -45,6 +45,7 @@ class WallhavenApi(
     /** Max automatic retries for transient failures (network / 5xx). */
     private companion object {
         const val MAX_RETRIES = KraftConstants.RetryMax
+        const val TAG = "WallKraftPerf"
     }
 
     private fun checkRateLimit() {
@@ -61,6 +62,8 @@ class WallhavenApi(
                 addQueryParameter("sorting", filters.sorting.value)
                 addQueryParameter("page", page.toString())
                 if (filters.query.isNotBlank()) addQueryParameter("q", filters.query)
+                // Hex color filter (e.g. "0000ff"); blank omits it.
+                if (filters.colors.isNotBlank()) addQueryParameter("colors", filters.colors)
                 // Orientation maps to the `ratios` param; Both omits it.
                 if (filters.orientation != Orientation.Both) {
                     addQueryParameter("ratios", filters.orientation.value)
@@ -117,6 +120,9 @@ class WallhavenApi(
     private suspend inline fun <reified T> execute(url: String): T =
         withContext(Dispatchers.IO) {
             val apiKey = settings.current().apiKey
+            // Debug-only API timing. The key travels in a header, never the
+            // URL, so logging the URL leaks nothing sensitive.
+            val startMs = android.os.SystemClock.elapsedRealtime()
             var attempt = 0
             while (true) {
                 val request = Request.Builder()
@@ -133,7 +139,12 @@ class WallhavenApi(
                             response.isSuccessful -> {
                                 val body = response.body?.string()
                                     ?: throw WallpaperError.Api("Empty response")
-                                return@withContext json.decodeFromString<T>(body)
+                                val result = json.decodeFromString<T>(body)
+                                if (com.wallkraft.app.BuildConfig.DEBUG) {
+                                    val took = android.os.SystemClock.elapsedRealtime() - startMs
+                                    android.util.Log.d(TAG, "api ${took}ms (attempts=${attempt + 1}) $url")
+                                }
+                                return@withContext result
                             }
                             response.code == 429 -> throw WallpaperError.RateLimited
                             // Transient server error — retry with backoff.

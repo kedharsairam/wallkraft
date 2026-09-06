@@ -41,4 +41,23 @@ class WallhavenFiltersColorTest {
         val f = WallhavenFilters(categories = c)
         assertEquals("100", f.categories.toCategoryParam())
     }
+
+    @Test
+    fun colors_default_is_blank() {
+        assertEquals("", WallhavenFilters().colors)
+    }
+
+    @Test
+    fun copy_preservesColors() {
+        val base = WallhavenFilters(colors = "0000ff")
+        val q = base.copy(query = "ocean")
+        assertEquals("0000ff", q.colors)
+        assertEquals("ocean", q.query)
+    }
+
+    @Test
+    fun colors_cleared_by_default_copy() {
+        val f = WallhavenFilters(colors = "ff0000").copy(colors = "")
+        assertEquals("", f.colors)
+    }
 }

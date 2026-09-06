@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="tab_browse">Explorar</string>
+    <string name="tab_favorites">Favoritos</string>
+    <string name="tab_settings">Configurações</string>
+
+    <!-- Browse -->
+    <string name="search_hint">Pesquisar</string>
+    <string name="search_action">Pesquisar</string>
+    <string name="search_clear">Limpar pesquisa</string>
+    <string name="search_recent">Recentes</string>
+    <string name="search_trending">Em alta</string>
+    <string name="search_from_browsing">Da sua navegação</string>
+    <string name="search_clear_history">Limpar histórico</string>
+    <string name="no_results_title">Nenhum papel de parede encontrado</string>
+    <string name="no_results_hint_filters">Tente ajustar os filtros.</string>
+    <string name="no_results_hint_query">Nada para \"%1$s\". Tente outra pesquisa.</string>
+
+    <!-- Filters -->
+    <string name="filters">Filtros</string>
+    <string name="filter_categories">Categorias</string>
+    <string name="filter_purity">Pureza</string>
+    <string name="filter_sorting">Ordem</string>
+    <string name="filter_orientation">Orientação</string>
+    <string name="filter_colors">Cores</string>
+    <string name="filter_reset">Redefinir</string>
+    <string name="filter_apply">Aplicar</string>
+    <string name="filter_all">Tudo</string>
+    <string name="sorting_date_added">Adicionados recentemente</string>
+    <string name="sorting_hot">Em alta</string>
+    <string name="sorting_random">Aleatório</string>
+    <string name="sorting_views">Visualizações</string>
+    <string name="sorting_favorites">Favoritos</string>
+    <string name="category_general">Geral</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_people">Pessoas</string>
+    <string name="purity_sfw">SFW</string>
+    <string name="purity_sketchy">Sugestivo</string>
+    <string name="purity_nsfw">NSFW</string>
+    <string name="purity_nsfw_locked">Requer chave API</string>
+    <string name="orientation_both">Ambas</string>
+    <string name="orientation_portrait">Vertical</string>
+    <string name="orientation_landscape">Horizontal</string>
+    <string name="color_red">Vermelho</string>
+    <string name="color_orange">Laranja</string>
+    <string name="color_yellow">Amarelo</string>
+    <string name="color_green">Verde</string>
+    <string name="color_teal">Turquesa</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_purple">Roxo</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_brown">Marrom</string>
+    <string name="color_black">Preto</string>
+    <string name="color_white">Branco</string>
+    <string name="color_grey">Cinza</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Configurações</string>
+    <string name="api_key_title">Chave API do Wallhaven</string>
+    <string name="api_key_description">Opcional. Desbloqueia limites maiores e conteúdo exclusivo com sua chave.</string>
+    <string name="api_key_hint">Cole sua chave API</string>
+    <string name="appearance">Aparência</string>
+    <string name="browsing_title">Filtros padrão</string>
+    <string name="data_title">Dados</string>
+    <string name="advanced_title">Avançado</string>
+    <string name="about_title">Sobre</string>
+    <string name="about_developer">Kedhar</string>
+    <string name="about_developer_subtitle">Desenvolvedor e designer</string>
+    <string name="about_developer_bio">Criei o WallKraft com Jetpack Compose. Privacidade em primeiro lugar, sem rastreamento nem anúncios.</string>
+    <string name="privacy_title">Política de privacidade</string>
+    <string name="privacy_content">O WallKraft é um app de papéis de parede que respeita sua privacidade. O que você precisa saber:\n\nO que NÃO coletamos\nNenhum dado pessoal. Nenhuma análise de uso. Nenhum identificador de dispositivo. Sem localização. Sem IDs de publicidade.\n\nO que fica no seu aparelho\nSeus favoritos e downloads ficam salvos localmente. Chaves API ficam no Keystore seguro do Android. Arquivos de cache são temporários e podem ser apagados quando quiser.\n\nUso de rede\nO WallKraft só se conecta à API do Wallhaven para buscar papéis de parede. Nada é enviado a nenhum outro servidor.\n\nServiços de terceiros\nAPI do Wallhaven — Para explorar e pesquisar papéis de parede. Sujeita aos Termos do Wallhaven.\n\nMudanças\nSe esta política mudar, a atualização será publicada na seção Sobre.\n\nContato\nDúvidas sobre esta política? Abra um issue no GitHub.</string>
+    <string name="data_saver_title">Economia de dados</string>
+    <string name="data_saver_description">Carrega imagens em alta resolução só ao ampliar, definir ou compartilhar. Economiza dados móveis.</string>
+    <string name="loading_full_resolution">Carregando alta resolução…</string>
+    <string name="default_categories">Categorias padrão</string>
+    <string name="default_purity">Pureza padrão</string>
+    <string name="default_sorting">Ordem padrão</string>
+    <string name="default_orientation">Orientação padrão</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Escuro</string>
+    <string name="version_format">WallKraft v%1$s</string>
+    <string name="cache_title">Cache</string>
+    <string name="cache_description">Arquivos temporários da navegação. Limpar não remove favoritos.</string>
+    <string name="clear_cache">Limpar cache</string>
+    <string name="cache_cleared">Cache limpo</string>
+    <string name="favorites_storage_format">%1$d papéis de parede • %2$s</string>
+    <string name="api_key_advanced_description">Chave opcional para limites maiores. Toque para editar.</string>
+    <string name="api_key_valid">Chave válida — NSFW desbloqueado</string>
+    <string name="api_key_invalid">Chave inválida — confira e tente de novo</string>
+    <string name="api_key_dialog_title">Chave API do Wallhaven</string>
+    <string name="api_key_dialog_save">Salvar</string>
+    <string name="api_key_saved">Chave API salva</string>
+    <string name="api_key_not_set">Não configurada</string>
+    <string name="api_key_verifying">Verificando…</string>
+    <string name="licenses_title">Licenças de código aberto</string>
+    <string name="github_title">GitHub</string>
+    <string name="share_crash_log">Compartilhar log de falha</string>
+    <string name="no_crash_logs">Sem logs ainda</string>
+    <string name="settings_categories">Categorias</string>
+    <string name="settings_purity">Pureza</string>
+    <string name="settings_sorting">Ordem</string>
+    <string name="settings_orientation">Orientação</string>
+    <string name="rate_app_title">Avalie o WallKraft</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favoritos</string>
+    <string name="no_favorites_title">Sem favoritos ainda</string>
+    <string name="no_favorites_message">Toque no coração de um papel de parede para salvá-lo aqui.</string>
+    <string name="favorites_downloaded">Baixados</string>
+    <string name="open_location">Abrir local</string>
+    <string name="delete">Excluir</string>
+
+    <!-- Selection (shared by Favorites) -->
+    <string name="select">Selecionar</string>
+    <string name="select_all">Selecionar tudo</string>
+    <string name="deselect_all">Desselecionar tudo</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d selecionado</item>
+        <item quantity="other">%d selecionados</item>
+    </plurals>
+
+    <!-- Favorites selection -->
+    <string name="remove_favorites_confirm_title">Remover dos favoritos?</string>
+    <string name="remove_favorites_confirm_message">Isso o remove dos seus favoritos. Você pode adicioná-lo de novo em Explorar.</string>
+    <plurals name="remove_favorites_selected_title">
+        <item quantity="one">Remover %d favorito?</item>
+        <item quantity="other">Remover %d favoritos?</item>
+    </plurals>
+    <plurals name="remove_favorites_selected_message">
+        <item quantity="one">Isso remove %d papel de parede dos seus favoritos.</item>
+        <item quantity="other">Isso remove %d papéis de parede dos seus favoritos.</item>
+    </plurals>
+    <string name="favorites_download_all">Baixar tudo</string>
+    <plurals name="favorites_offline_summary">
+        <item quantity="one">%1$d de %2$d offline</item>
+        <item quantity="other">%1$d de %2$d offline</item>
+    </plurals>
+    <plurals name="favorites_repair_done">
+        <item quantity="one">%1$d papel de parede salvo</item>
+        <item quantity="other">%1$d papéis de parede salvos</item>
+    </plurals>
+    <plurals name="favorites_repair_failed">
+        <item quantity="one">%1$d não pôde ser restaurado</item>
+        <item quantity="other">%1$d não puderam ser restaurados</item>
+    </plurals>
+    <string name="collections_title">Coleções</string>
+    <string name="new_collection">Nova coleção</string>
+    <string name="collection_name_hint">Nome da coleção</string>
+    <string name="create">Criar</string>
+    <string name="rename">Renomear</string>
+    <string name="done">Pronto</string>
+    <string name="add_to_collection">Adicionar à coleção</string>
+    <string name="delete_collection_title">Excluir %1$s?</string>
+    <string name="delete_collection_message">Os papéis de parede continuam nos favoritos.</string>
+    <plurals name="collection_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d itens</item>
+    </plurals>
+
+    <!-- Detail -->
+    <string name="back">Voltar</string>
+    <string name="downloading">Baixando %1$s…</string>
+    <string name="wallpaper_set">Papel de parede aplicado</string>
+    <string name="wallpaper_set_failed">Não foi possível aplicar o papel de parede</string>
+    <string name="wallpaper_load_failed">Não foi possível carregar este papel de parede</string>
+    <string name="add_to_favorites">Adicionar aos favoritos</string>
+    <string name="remove_from_favorites">Remover dos favoritos</string>
+    <string name="favorite_save_failed">Falha ao salvar offline. Verifique sua conexão.</string>
+    <string name="selected">Selecionado</string>
+    <string name="not_selected">Não selecionado</string>
+    <string name="download">Baixar</string>
+    <string name="share">Compartilhar</string>
+    <string name="set_as_wallpaper">Definir como papel de parede</string>
+    <string name="wallpaper_position_title">Definir papel de parede em</string>
+    <string name="wallpaper_position_home">Tela inicial</string>
+    <string name="wallpaper_position_lock">Tela de bloqueio</string>
+    <string name="wallpaper_position_both">Ambas as telas</string>
+    <string name="rotation_title">Rotação de papéis de parede</string>
+    <string name="rotation_schedule">Frequência</string>
+    <string name="rotation_off">Desativada</string>
+    <string name="rotation_daily">Diária</string>
+    <string name="rotation_weekly">Semanal</string>
+    <string name="rotation_style">Estilo</string>
+    <string name="rotation_showcase">Vitrine</string>
+    <string name="rotation_atmosphere">Ambiente</string>
+    <string name="rotation_fill">Preenchimento</string>
+    <string name="rotation_screen">Trocar em</string>
+    <string name="rotation_source">Rotacionar de</string>
+    <string name="rotation_all_favorites">Todos os favoritos</string>
+    <string name="rotation_now">Rotacionar agora</string>
+    <string name="rotation_started">Aplicando o próximo papel de parede…</string>
+    <string name="wallpaper_applying">Aplicando papel de parede…</string>
+    <string name="download_notification_title">WallKraft — %1$s</string>
+    <string name="cancel">Cancelar</string>
+    <string name="crop_hint">Aproxime para ampliar, arraste para posicionar</string>
+    <string name="crop_load_failed">Não foi possível carregar a imagem</string>
+
+    <!-- Detail panel -->
+    <string name="more_details">Mais detalhes</string>
+    <string name="tags_heading">Tags</string>
+    <string name="account_deleted">Conta excluída</string>
+    <string name="view_by_uploader">Ver papéis de parede de %1$s</string>
+    <string name="stat_views">%1$s visualizações</string>
+    <string name="stat_favorites">%1$s favoritos</string>
+
+    <!-- Error / empty states -->
+    <string name="error_title">Algo deu errado</string>
+    <string name="error_retry">Tentar de novo</string>
+    <string name="error_rate_limited">Limite atingido. Aguarde um momento e tente de novo.</string>
+    <string name="error_network">Algo deu errado. Verifique sua conexão.</string>
+    <string name="error_generic">Algo deu errado.</string>
+    <string name="error_invalid_query">Essa pesquisa não pôde ser concluída. Ajuste-a.</string>
+    <string name="error_invalid_key">Sua chave API foi rejeitada. Confira em Configurações.</string>
+    <string name="error_not_found">Este papel de parede não existe mais.</string>
+    <string name="rate_limit_banner">Limite atingido. Aguarde um momento antes de explorar mais.</string>
+    <string name="rate_limit_hint">O limite da API do Wallhaven foi atingido. Aguarde um minuto e tente de novo.</string>
+    <string name="buy_me_a_coffee_title">Apoio</string>
+    <string name="buy_me_a_coffee_description">Se você gosta do WallKraft, me pague um café. Isso mantém o projeto vivo.</string>
+</resources>

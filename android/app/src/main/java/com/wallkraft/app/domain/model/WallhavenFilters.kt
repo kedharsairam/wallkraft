@@ -54,6 +54,8 @@ fun Set<Purity>.toPurityParam(): String = buildString {
  * Defaults: All categories (111), SFW only (100), newest first. Matches wallhaven.cc.
  * NSFW requires a valid API key — it's gated at the UI level and stripped if no key is set.
  * Purity is multi-select like categories: SFW, Sketchy, or NSFW.
+ * [colors] is a 6-digit hex (e.g. "0000ff") sent as the API `colors` parameter;
+ * blank means no color filtering.
  */
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
@@ -61,4 +63,5 @@ data class WallhavenFilters(
     val orientation: Orientation = Orientation.Both,
     val query: String = "",
     val purity: Set<Purity> = setOf(Purity.SFW),
+    val colors: String = "",
 )
