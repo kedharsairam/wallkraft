@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation -->
+    <string name="tab_browse">Explorar</string>
+    <string name="tab_favorites">Favoritos</string>
+    <string name="tab_settings">Ajustes</string>
+
+    <!-- Browse -->
+    <string name="search_hint">Buscar</string>
+    <string name="search_action">Buscar</string>
+    <string name="search_clear">Borrar búsqueda</string>
+    <string name="search_recent">Recientes</string>
+    <string name="search_trending">Tendencia</string>
+    <string name="search_from_browsing">De tu exploración</string>
+    <string name="search_clear_history">Borrar historial</string>
+    <string name="no_results_title">No se encontraron fondos</string>
+    <string name="no_results_hint_filters">Prueba a ajustar los filtros.</string>
+    <string name="no_results_hint_query">Sin resultados para \"%1$s\". Prueba otra búsqueda.</string>
+
+    <!-- Filters -->
+    <string name="filters">Filtros</string>
+    <string name="filter_categories">Categorías</string>
+    <string name="filter_purity">Pureza</string>
+    <string name="filter_sorting">Orden</string>
+    <string name="filter_orientation">Orientación</string>
+    <string name="filter_colors">Colores</string>
+    <string name="filter_reset">Restablecer</string>
+    <string name="filter_apply">Aplicar</string>
+    <string name="filter_all">Todo</string>
+    <string name="sorting_date_added">Fecha de subida</string>
+    <string name="sorting_hot">Destacados</string>
+    <string name="sorting_random">Aleatorio</string>
+    <string name="sorting_views">Visitas</string>
+    <string name="sorting_favorites">Favoritos</string>
+    <string name="category_general">General</string>
+    <string name="category_anime">Anime</string>
+    <string name="category_people">Personas</string>
+    <string name="purity_sfw">SFW</string>
+    <string name="purity_sketchy">Sugerente</string>
+    <string name="purity_nsfw">NSFW</string>
+    <string name="purity_nsfw_locked">Requiere clave API</string>
+    <string name="orientation_both">Ambas</string>
+    <string name="orientation_portrait">Vertical</string>
+    <string name="orientation_landscape">Horizontal</string>
+    <string name="color_red">Rojo</string>
+    <string name="color_orange">Naranja</string>
+    <string name="color_yellow">Amarillo</string>
+    <string name="color_green">Verde</string>
+    <string name="color_teal">Turquesa</string>
+    <string name="color_blue">Azul</string>
+    <string name="color_purple">Morado</string>
+    <string name="color_pink">Rosa</string>
+    <string name="color_brown">Marrón</string>
+    <string name="color_black">Negro</string>
+    <string name="color_white">Blanco</string>
+    <string name="color_grey">Gris</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="api_key_title">Clave API de Wallhaven</string>
+    <string name="api_key_description">Opcional. Desbloquea límites mayores y contenido exclusivo con tu clave.</string>
+    <string name="api_key_hint">Pega tu clave API</string>
+    <string name="appearance">Apariencia</string>
+    <string name="browsing_title">Filtros predeterminados</string>
+    <string name="data_title">Datos</string>
+    <string name="advanced_title">Avanzado</string>
+    <string name="about_title">Acerca de</string>
+    <string name="about_developer">Kedhar</string>
+    <string name="about_developer_subtitle">Desarrollador y diseñador</string>
+    <string name="about_developer_bio">Creé WallKraft con Jetpack Compose. Privacidad ante todo, sin rastreo ni anuncios.</string>
+    <string name="privacy_title">Política de privacidad</string>
+    <string name="privacy_content">WallKraft es una app de fondos privada. Esto es lo que debes saber:\n\nLo que NO recopilamos\nSin datos personales. Sin analíticas de uso. Sin identificadores de dispositivo. Sin ubicación. Sin IDs de publicidad.\n\nLo que permanece en tu dispositivo\nTus favoritos y descargas se guardan localmente. Las claves API se guardan en el Keystore seguro de Android. Los archivos de caché son temporales y se pueden borrar cuando quieras.\n\nUso de red\nWallKraft solo se conecta a la API de Wallhaven para obtener fondos. No se envía nada a ningún otro servidor.\n\nServicios de terceros\nAPI de Wallhaven — Para explorar y buscar fondos. Sujeta a sus Términos.\n\nCambios\nSi esta política cambia, se publicará en la sección Acerca de.\n\nContacto\nSi tienes preguntas, abre un issue en GitHub.</string>
+    <string name="data_saver_title">Ahorro de datos</string>
+    <string name="data_saver_description">Carga imágenes en alta resolución solo al ampliar, fijar o compartir. Ahorra datos móviles.</string>
+    <string name="loading_full_resolution">Cargando alta resolución…</string>
+    <string name="default_categories">Categorías predeterminadas</string>
+    <string name="default_purity">Pureza predeterminada</string>
+    <string name="default_sorting">Orden predeterminado</string>
+    <string name="default_orientation">Orientación predeterminada</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="version_format">WallKraft v%1$s</string>
+    <string name="cache_title">Caché</string>
+    <string name="cache_description">Archivos temporales de exploración. Borrar no elimina favoritos.</string>
+    <string name="clear_cache">Borrar caché</string>
+    <string name="cache_cleared">Caché borrada</string>
+    <string name="favorites_storage_format">%1$d fondos • %2$s</string>
+    <string name="api_key_advanced_description">Clave opcional para límites mayores. Toca para editar.</string>
+    <string name="api_key_valid">Clave válida — NSFW desbloqueado</string>
+    <string name="api_key_invalid">Clave no válida — revísala e inténtalo de nuevo</string>
+    <string name="api_key_dialog_title">Clave API de Wallhaven</string>
+    <string name="api_key_dialog_save">Guardar</string>
+    <string name="api_key_saved">Clave API guardada</string>
+    <string name="api_key_not_set">No configurada</string>
+    <string name="api_key_verifying">Verificando…</string>
+    <string name="licenses_title">Licencias de código abierto</string>
+    <string name="github_title">GitHub</string>
+    <string name="share_crash_log">Compartir registro de fallos</string>
+    <string name="no_crash_logs">Aún no hay registros</string>
+    <string name="settings_categories">Categorías</string>
+    <string name="settings_purity">Pureza</string>
+    <string name="settings_sorting">Orden</string>
+    <string name="settings_orientation">Orientación</string>
+    <string name="rate_app_title">Valora WallKraft</string>
+
+    <!-- Favorites -->
+    <string name="favorites_title">Favoritos</string>
+    <string name="no_favorites_title">Sin favoritos aún</string>
+    <string name="no_favorites_message">Toca el corazón de un fondo para guardarlo aquí.</string>
+    <string name="favorites_downloaded">Descargados</string>
+    <string name="open_location">Abrir ubicación</string>
+    <string name="delete">Eliminar</string>
+
+    <!-- Selection (shared by Favorites) -->
+    <string name="select">Seleccionar</string>
+    <string name="select_all">Seleccionar todo</string>
+    <string name="deselect_all">Deseleccionar todo</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d seleccionado</item>
+        <item quantity="other">%d seleccionados</item>
+    </plurals>
+
+    <!-- Favorites selection -->
+    <string name="remove_favorites_confirm_title">¿Quitar de favoritos?</string>
+    <string name="remove_favorites_confirm_message">Esto lo quita de tus favoritos. Puedes volver a añadirlo desde Explorar.</string>
+    <plurals name="remove_favorites_selected_title">
+        <item quantity="one">¿Quitar %d favorito?</item>
+        <item quantity="other">¿Quitar %d favoritos?</item>
+    </plurals>
+    <plurals name="remove_favorites_selected_message">
+        <item quantity="one">Esto quita %d fondo de tus favoritos.</item>
+        <item quantity="other">Esto quita %d fondos de tus favoritos.</item>
+    </plurals>
+    <string name="favorites_download_all">Descargar todo</string>
+    <plurals name="favorites_offline_summary">
+        <item quantity="one">%1$d de %2$d sin conexión</item>
+        <item quantity="other">%1$d de %2$d sin conexión</item>
+    </plurals>
+    <plurals name="favorites_repair_done">
+        <item quantity="one">Se guardó %1$d fondo</item>
+        <item quantity="other">Se guardaron %1$d fondos</item>
+    </plurals>
+    <plurals name="favorites_repair_failed">
+        <item quantity="one">No se pudo restaurar %1$d</item>
+        <item quantity="other">No se pudieron restaurar %1$d</item>
+    </plurals>
+    <string name="collections_title">Colecciones</string>
+    <string name="new_collection">Nueva colección</string>
+    <string name="collection_name_hint">Nombre de la colección</string>
+    <string name="create">Crear</string>
+    <string name="rename">Renombrar</string>
+    <string name="done">Listo</string>
+    <string name="add_to_collection">Añadir a colección</string>
+    <string name="delete_collection_title">¿Eliminar %1$s?</string>
+    <string name="delete_collection_message">Los fondos permanecen en tus favoritos.</string>
+    <plurals name="collection_item_count">
+        <item quantity="one">%d elemento</item>
+        <item quantity="other">%d elementos</item>
+    </plurals>
+
+    <!-- Detail -->
+    <string name="back">Atrás</string>
+    <string name="downloading">Descargando %1$s…</string>
+    <string name="wallpaper_set">Fondo aplicado</string>
+    <string name="wallpaper_set_failed">No se pudo aplicar el fondo</string>
+    <string name="wallpaper_load_failed">No se pudo cargar este fondo</string>
+    <string name="add_to_favorites">Añadir a favoritos</string>
+    <string name="remove_from_favorites">Quitar de favoritos</string>
+    <string name="favorite_save_failed">No se pudo guardar sin conexión. Revisa tu conexión.</string>
+    <string name="selected">Seleccionado</string>
+    <string name="not_selected">No seleccionado</string>
+    <string name="download">Descargar</string>
+    <string name="share">Compartir</string>
+    <string name="set_as_wallpaper">Fijar como fondo</string>
+    <string name="wallpaper_position_title">Fijar fondo en</string>
+    <string name="wallpaper_position_home">Pantalla principal</string>
+    <string name="wallpaper_position_lock">Pantalla de bloqueo</string>
+    <string name="wallpaper_position_both">Ambas pantallas</string>
+    <string name="rotation_title">Rotación de fondos</string>
+    <string name="rotation_schedule">Frecuencia</string>
+    <string name="rotation_off">Desactivada</string>
+    <string name="rotation_daily">Diaria</string>
+    <string name="rotation_weekly">Semanal</string>
+    <string name="rotation_style">Estilo</string>
+    <string name="rotation_showcase">Galería</string>
+    <string name="rotation_atmosphere">Ambiente</string>
+    <string name="rotation_fill">Relleno</string>
+    <string name="rotation_screen">Cambiar en</string>
+    <string name="rotation_source">Rotar desde</string>
+    <string name="rotation_all_favorites">Todos los favoritos</string>
+    <string name="rotation_now">Rotar ahora</string>
+    <string name="rotation_started">Aplicando el siguiente fondo…</string>
+    <string name="wallpaper_applying">Aplicando fondo…</string>
+    <string name="download_notification_title">WallKraft — %1$s</string>
+    <string name="cancel">Cancelar</string>
+    <string name="crop_hint">Pellizca para ampliar, arrastra para posicionar</string>
+    <string name="crop_load_failed">No se pudo cargar la imagen</string>
+
+    <!-- Detail panel -->
+    <string name="more_details">Más detalles</string>
+    <string name="tags_heading">Etiquetas</string>
+    <string name="account_deleted">Cuenta eliminada</string>
+    <string name="view_by_uploader">Ver fondos de %1$s</string>
+    <string name="stat_views">%1$s visitas</string>
+    <string name="stat_favorites">%1$s favoritos</string>
+
+    <!-- Error / empty states -->
+    <string name="error_title">Algo salió mal</string>
+    <string name="error_retry">Reintentar</string>
+    <string name="error_rate_limited">Límite alcanzado. Espera un momento e inténtalo de nuevo.</string>
+    <string name="error_network">Algo salió mal. Revisa tu conexión.</string>
+    <string name="error_generic">Algo salió mal.</string>
+    <string name="error_invalid_query">Esa búsqueda no se pudo completar. Ajústala.</string>
+    <string name="error_invalid_key">Tu clave API fue rechazada. Revísala en Ajustes.</string>
+    <string name="error_not_found">Este fondo ya no existe.</string>
+    <string name="rate_limit_banner">Límite alcanzado. Espera un momento antes de seguir explorando.</string>
+    <string name="rate_limit_hint">Se alcanzó el límite de la API de Wallhaven. Espera un minuto e inténtalo de nuevo.</string>
+    <string name="buy_me_a_coffee_title">Apoyo</string>
+    <string name="buy_me_a_coffee_description">Si te gusta WallKraft, invítame a un café. Así el proyecto sigue adelante.</string>
+</resources>

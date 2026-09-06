@@ -3,6 +3,8 @@ package com.wallkraft.app.core.cache
 import android.content.Context
 import coil3.ImageLoader
 import coil3.request.crossfade
+import coil3.util.DebugLogger
+import com.wallkraft.app.BuildConfig
 
 /**
  * Shared ImageLoader for grid thumbnails, configured WITHOUT crossfade.
@@ -29,6 +31,8 @@ object GridImageLoader {
                     .crossfade(false)
                     .memoryCache { ImageCache.memoryCache(context) }
                     .diskCache { ImageCache.diskCache(context) }
+                    // Debug-only: verbose cache hit/miss/decode logging.
+                    .apply { if (BuildConfig.DEBUG) logger(DebugLogger()) }
                     .build()
             }
         }

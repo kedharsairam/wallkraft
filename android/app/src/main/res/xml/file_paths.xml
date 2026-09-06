@@ -4,4 +4,7 @@
     <files-path name="favorites" path="favorites/" />
     <!-- Temp files for sharing / wallpaper set, in the evictable cache. -->
     <cache-path name="shared" path="shared/" />
+    <!-- Crash logs written by the uncaught-exception handler. Shared only
+         when the user explicitly taps "Share crash log". -->
+    <cache-path name="crash" path="crash/" />
 </paths>

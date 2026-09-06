@@ -6,12 +6,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FavoriteEntity::class],
-    version = 3,
+    entities = [FavoriteEntity::class, CollectionEntity::class, CollectionItemEntity::class],
+    version = 4,
     exportSchema = true,
 )
 abstract class WallKraftDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
+    abstract fun collectionDao(): CollectionDao
 
     companion object {
         /** v1 → v2: add the nullable `collection` column for favorites folders. */
@@ -51,6 +52,37 @@ abstract class WallKraftDatabase : RoomDatabase() {
                 )
                 db.execSQL("DROP TABLE favorites")
                 db.execSQL("ALTER TABLE favorites_new RENAME TO favorites")
+            }
+        }
+        /**
+         * v3 → v4: collections for organizing favorites (many-to-many via
+         * collection_items, cascading on both sides). Fresh tables — no data
+         * moves, existing favorites are untouched.
+         */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `collections` " +
+                        "(`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_collections_name` " +
+                        "ON `collections` (`name`)",
+                )
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `collection_items` " +
+                        "(`collectionId` INTEGER NOT NULL, `wallpaperId` TEXT NOT NULL, " +
+                        "PRIMARY KEY(`collectionId`, `wallpaperId`), " +
+                        "FOREIGN KEY(`collectionId`) REFERENCES `collections`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE , " +
+                        "FOREIGN KEY(`wallpaperId`) REFERENCES `favorites`(`id`) " +
+                        "ON UPDATE NO ACTION ON DELETE CASCADE )",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_collection_items_wallpaperId` " +
+                        "ON `collection_items` (`wallpaperId`)",
+                )
             }
         }
     }

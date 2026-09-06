@@ -9,9 +9,14 @@ import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.data.db.WallKraftDatabase
 import com.wallkraft.app.data.prefs.SettingsStore
+import com.wallkraft.app.data.prefs.SearchHistoryStore
+import com.wallkraft.app.data.prefs.RotationStore
+import com.wallkraft.app.data.prefs.RotationCropStore
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
+import com.wallkraft.app.data.repository.CollectionsRepositoryImpl
 import com.wallkraft.app.data.repository.WallpaperRepositoryImpl
 import com.wallkraft.app.domain.repository.FavoritesRepository
+import com.wallkraft.app.domain.repository.CollectionsRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import kotlinx.serialization.json.Json
@@ -37,6 +42,16 @@ class AppContainer(context: Context) {
     }
 
     val settings: SettingsRepository by lazy { SettingsStore(appContext) }
+
+    /** Wallpaper rotation schedule + cursor. */
+    val rotation: RotationStore by lazy { RotationStore(appContext) }
+
+    /** Per-wallpaper crop rects framed by the user. */
+    val rotationCrops: RotationCropStore by lazy { RotationCropStore(appContext) }
+
+    /** Recent search queries for suggestions. Separate store: history writes
+        never re-emit the settings flow. */
+    val searchHistory: SearchHistoryStore by lazy { SearchHistoryStore(appContext) }
 
     val okHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
@@ -68,13 +83,21 @@ class AppContainer(context: Context) {
 
     private val database: WallKraftDatabase by lazy {
         Room.databaseBuilder(appContext, WallKraftDatabase::class.java, "wallkraft.db")
-            .addMigrations(WallKraftDatabase.MIGRATION_1_2, WallKraftDatabase.MIGRATION_2_3)
+            .addMigrations(
+                WallKraftDatabase.MIGRATION_1_2,
+                WallKraftDatabase.MIGRATION_2_3,
+                WallKraftDatabase.MIGRATION_3_4,
+            )
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
     }
 
     val favoritesRepository: FavoritesRepository by lazy {
         FavoritesRepositoryImpl(database.favoriteDao(), json)
+    }
+
+    val collectionsRepository: CollectionsRepository by lazy {
+        CollectionsRepositoryImpl(database.collectionDao())
     }
 
     /** Non-evictable offline storage for favorite full-res images. */

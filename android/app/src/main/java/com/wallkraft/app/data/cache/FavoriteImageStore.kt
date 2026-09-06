@@ -24,7 +24,7 @@ import java.io.File
 class FavoriteImageStore(
     private val directory: File,
     private val client: OkHttpClient,
-) {
+) : OfflineImageStore {
     companion object {
         const val MAX_BYTES: Long = KraftConstants.FavoriteImageMaxBytes
 
@@ -38,7 +38,7 @@ class FavoriteImageStore(
     }
 
     /** The local file for [id], or null if it hasn't been downloaded. */
-    fun fileFor(id: String): File? {
+    override fun fileFor(id: String): File? {
         val file = File(directory, sanitizeId(id))
         return if (file.exists() && file.length() > 0) {
             // Touch for LRU ordering.
@@ -48,7 +48,7 @@ class FavoriteImageStore(
     }
 
     /** Downloads the full-res image for [wallpaper] into the store. Returns true on success. */
-    suspend fun save(wallpaper: Wallpaper): Boolean {
+    override suspend fun save(wallpaper: Wallpaper): Boolean {
         if (wallpaper.path.isBlank()) return false
         val file = File(directory, sanitizeId(wallpaper.id))
         if (file.exists() && file.length() > 0) return true

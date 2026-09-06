@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-09-07
+
+### Added
+- **Favorites collections** — organize favorites into custom collections (many-to-many, covers, counts). Strip with tap-to-filter, long-press rename/delete, selection-mode picker with inline create. Room v3 → v4 migration; existing data preserved.
+- **Smart wallpaper rotation** — daily/weekly auto-rotate through favorites or one collection, home/lock/both targets. Saved-crop reuse, center-crop fallback, Showcase blur-fill and Muzei-style Atmosphere modes. Fully offline, battery-friendly WorkManager schedule, plus a manual Rotate-now button.
+- **Color filter** — 12-dot palette (Wallhaven's official color set) in the filter panel.
+- **Search suggestions** — recent searches, trending tags, and autocomplete from browsing, in a focus dropdown under the search bar.
+- **Offline favorites** — silent re-validation on resume (skipped on data saver) plus Download-all with progress for missing offline copies.
+- **Crash-log sharing** — Share-crash-log row in Settings → About (user-initiated share sheet; nothing ever leaves the phone automatically).
+- **Localization** — Spanish, Hindi, Japanese, Portuguese (per-app language supported).
+- **Debug performance monitors** — API timings, slow-frame warnings, Coil cache logging (debug builds only; absent from release).
+
+### Changed
+- **God objects split** — `WallpaperActions` into 4 focused objects (download, setter, downloaded-files, sharing); `SettingsScreen` into section files. No behavior changes.
+- **UI test pipeline repaired** — missing test runner fixed, Espresso upgraded for Android 16/17. 50 on-device tests + 140 unit tests green.
+- **Search cache keys now include the color filter** — color searches no longer return stale unfiltered results.
+
 ## [1.17.2] - 2026-09-06
 
 ### Fixed

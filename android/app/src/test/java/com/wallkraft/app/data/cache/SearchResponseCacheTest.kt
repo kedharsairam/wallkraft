@@ -98,6 +98,17 @@ class SearchResponseCacheTest {
     }
 
     @Test
+    fun colors_isPartOfKey() = runTest {
+        val base = filters(query = "q")
+        val blue = filters(query = "q").copy(colors = "0066cc")
+        cache.put(base, 1, response(listOf("base")))
+        assertNull(cache.get(blue, 1))
+        cache.put(blue, 1, response(listOf("blue")))
+        assertEquals("blue", cache.get(blue, 1)!!.data[0].id)
+        assertEquals("base", cache.get(base, 1)!!.data[0].id)
+    }
+
+    @Test
     fun eviction_keepsAtMost100() = runTest {
         // Insert 101 entries, should evict oldest.
         for (i in 0 until 101) {

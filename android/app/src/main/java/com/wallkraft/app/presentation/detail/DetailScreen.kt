@@ -36,7 +36,9 @@ import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.WallpaperCropDialog
-import com.wallkraft.app.util.WallpaperActions
+import com.wallkraft.app.util.WallpaperDownload
+import com.wallkraft.app.util.WallpaperSetter
+import com.wallkraft.app.util.WallpaperSharing
 import com.wallkraft.app.util.toUserMessage
 import kotlinx.coroutines.launch
 import java.io.File
@@ -166,7 +168,7 @@ fun DetailScreen(
                         },
                         onDownload = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            WallpaperActions.download(context, wallpaper)
+                            WallpaperDownload.download(context, wallpaper)
                             scope.launch {
                                 snackbarHostState.showSnackbar(
                                     context.getString(R.string.downloading, wallpaper.resolution),
@@ -202,7 +204,7 @@ fun DetailScreen(
         var resolving by remember(setTarget) { mutableStateOf(true) }
         LaunchedEffect(setTarget) {
             resolving = true
-            resolvedFile = WallpaperActions.imageFile(
+            resolvedFile = WallpaperSharing.imageFile(
                 context,
                 setTarget,
                 container.favoriteImageStore.fileFor(setTarget.id),
@@ -219,9 +221,15 @@ fun DetailScreen(
                 // dismisses itself), or a snackbar on failure (and stays open).
                 // We just apply the wallpaper and report whether it worked.
                 onConfirm = { cropped, position ->
-                    val ok = WallpaperActions.setAsWallpaper(context, cropped, position)
+                    val ok = WallpaperSetter.setAsWallpaper(context, cropped, position)
                     if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     ok
+                },
+                // Remember the user's framing so rotation can reuse it.
+                onCropRect = { rect ->
+                    scope.launch {
+                        container.rotationCrops.save(wallpaperId, rect)
+                    }
                 },
             )
             resolving -> {

@@ -37,6 +37,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Lock
@@ -62,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
@@ -94,6 +96,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.util.PopularTags
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.util.displayName
 
@@ -120,6 +123,12 @@ fun SearchFilterBar(
     modifier: Modifier = Modifier,
     onDismiss: (() -> Unit)? = null,
     hasApiKey: Boolean = false,
+    // Suggestion sources. History + session tags are synced from BrowseScreen;
+    // trending defaults to the bundled popular-tag list.
+    history: List<String> = emptyList(),
+    sessionTags: List<String> = emptyList(),
+    trending: List<String> = PopularTags,
+    onClearHistory: () -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val density = LocalDensity.current
@@ -477,6 +486,16 @@ fun SearchFilterBar(
                         )
                     }
                 }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                Spacer(Modifier.height(KraftSpacing.Spacing16))
+
+                // ── Colors ───────────────────────────────────────────────
+                ColorFilterRow(
+                    selectedHex = draftFilters.colors,
+                    onSelect = { hex ->
+                        draftFilters = draftFilters.copy(colors = hex)
+                    },
+                )
                 Spacer(Modifier.height(KraftSpacing.Spacing24))
 
                 // ── Actions ────────────────────────────────────────────
@@ -507,14 +526,141 @@ fun SearchFilterBar(
                 }
             }
         }
+
+        // ── Suggestions dropdown (history + trending + session tags) ────
+        // Same overlay pattern as the filter panel: zero reported height so
+        // the bar never shifts, positioned below the measured bar. Shown only
+        // while the field is focused and the filter panel is closed — focus
+        // loss hides it automatically, so no dismiss handling is needed.
+        val trimmedQuery = query.trim()
+        val typedMatches = remember(trimmedQuery, history, trending, sessionTags) {
+            if (trimmedQuery.isEmpty()) emptyList()
+            else (history + trending + sessionTags)
+                .filter { it.contains(trimmedQuery, ignoreCase = true) }
+                .distinctBy { it.lowercase() }
+                .take(8)
+        }
+        fun selectSuggestion(text: String) {
+            onQueryChange(text)
+            onSearch(text)
+            keyboard?.hide()
+            focusManager.clearFocus()
+        }
+        AnimatedVisibility(
+            visible = isFocused && !showFilters &&
+                (trimmedQuery.isNotEmpty() && typedMatches.isNotEmpty() ||
+                    trimmedQuery.isEmpty()),
+            enter = expandVertically(tween(250)) + fadeIn(tween(250)),
+            exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = panelMaxHeight)
+                .zIndex(1f)
+                .offset { IntOffset(0, barHeight) }
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints)
+                    layout(placeable.width, 0) {
+                        placeable.place(0, 0)
+                    }
+                },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(16.dp, PanelShape)
+                    .clip(PanelShape)
+                    .background(KraftColors.SurfaceSecondary)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
+            ) {
+                if (trimmedQuery.isEmpty()) {
+                    if (history.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            FilterSectionLabel(stringResource(R.string.search_recent))
+                            TextButton(onClick = onClearHistory) {
+                                Text(
+                                    text = stringResource(R.string.search_clear_history),
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                            }
+                        }
+                        history.take(10).forEach { item ->
+                            SuggestionRow(
+                                text = item,
+                                icon = Icons.Filled.History,
+                                onClick = { selectSuggestion(item) },
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                        Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    }
+                    FilterSectionLabel(stringResource(R.string.search_trending))
+                    Spacer(Modifier.height(KraftSpacing.Spacing4))
+                    trending.take(10).forEach { tag ->
+                        SuggestionRow(text = tag, icon = null, onClick = { selectSuggestion(tag) })
+                    }
+                    if (sessionTags.isNotEmpty()) {
+                        Spacer(Modifier.height(KraftSpacing.Spacing8))
+                        FilterSectionLabel(stringResource(R.string.search_from_browsing))
+                        Spacer(Modifier.height(KraftSpacing.Spacing4))
+                        sessionTags.take(8).forEach { tag ->
+                            SuggestionRow(text = tag, icon = null, onClick = { selectSuggestion(tag) })
+                        }
+                    }
+                } else {
+                    typedMatches.forEach { match ->
+                        SuggestionRow(text = match, icon = null, onClick = { selectSuggestion(match) })
+                    }
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun FilterSectionLabel(text: String) {
+fun FilterSectionLabel(text: String) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
+}
+
+/** Single suggestion row: optional leading icon + text, 44dp touch target. */
+@Composable
+private fun SuggestionRow(
+    text: String,
+    icon: ImageVector?,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = KraftSpacing.TouchTarget)
+            .clip(RoundedCornerShape(KraftRadius.Standard))
+            .clickable(onClick = onClick)
+            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing8),
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(KraftIconSize.Small),
+            )
+            Spacer(Modifier.width(KraftSpacing.Spacing12))
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
 }

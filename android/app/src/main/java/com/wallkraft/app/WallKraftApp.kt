@@ -8,6 +8,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
+import coil3.util.DebugLogger
+import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.core.cache.ImageCache
 
@@ -18,6 +20,9 @@ fun WallKraftApp(container: AppContainer) {
             .crossfade(true)
             .memoryCache { ImageCache.memoryCache(context) }
             .diskCache { ImageCache.diskCache(context) }
+            // Debug-only: verbose cache hit/miss/decode logging to logcat.
+            // Compiled out of release behavior via the DEBUG gate.
+            .apply { if (BuildConfig.DEBUG) logger(DebugLogger()) }
             .build()
     }
 

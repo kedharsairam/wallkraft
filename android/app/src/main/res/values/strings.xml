@@ -11,6 +11,10 @@
     <string name="search_hint">Search</string>
     <string name="search_action">Search</string>
     <string name="search_clear">Clear search</string>
+    <string name="search_recent">Recent</string>
+    <string name="search_trending">Trending</string>
+    <string name="search_from_browsing">From your browsing</string>
+    <string name="search_clear_history">Clear history</string>
     <string name="no_results_title">No wallpapers found</string>
     <string name="no_results_hint_filters">Try adjusting your filters.</string>
     <string name="no_results_hint_query">Nothing matched \"%1$s\". Try a different search.</string>
@@ -21,6 +25,7 @@
     <string name="filter_purity">Purity</string>
     <string name="filter_sorting">Sorting</string>
     <string name="filter_orientation">Orientation</string>
+    <string name="filter_colors">Colors</string>
     <string name="filter_reset">Reset</string>
     <string name="filter_apply">Apply</string>
     <string name="filter_all">All</string>
@@ -39,6 +44,18 @@
     <string name="orientation_both">Both</string>
     <string name="orientation_portrait">Portrait</string>
     <string name="orientation_landscape">Landscape</string>
+    <string name="color_red">Red</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_green">Green</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_pink">Pink</string>
+    <string name="color_brown">Brown</string>
+    <string name="color_black">Black</string>
+    <string name="color_white">White</string>
+    <string name="color_grey">Grey</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -83,6 +100,8 @@
     <string name="api_key_verifying">Verifying…</string>
     <string name="licenses_title">Open-source licenses</string>
     <string name="github_title">GitHub</string>
+    <string name="share_crash_log">Share crash log</string>
+    <string name="no_crash_logs">No crash logs yet</string>
     <string name="github_url">https://github.com/kedharsairam/wallkraft</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_purity">Purity</string>
@@ -118,6 +137,32 @@
         <item quantity="one">This removes %d wallpaper from your favorites.</item>
         <item quantity="other">This removes %d wallpapers from your favorites.</item>
     </plurals>
+    <string name="favorites_download_all">Download all</string>
+    <plurals name="favorites_offline_summary">
+        <item quantity="one">%1$d of %2$d saved offline</item>
+        <item quantity="other">%1$d of %2$d saved offline</item>
+    </plurals>
+    <plurals name="favorites_repair_done">
+        <item quantity="one">Saved %1$d wallpaper</item>
+        <item quantity="other">Saved %1$d wallpapers</item>
+    </plurals>
+    <plurals name="favorites_repair_failed">
+        <item quantity="one">%1$d couldn\'t be restored</item>
+        <item quantity="other">%1$d couldn\'t be restored</item>
+    </plurals>
+    <string name="collections_title">Collections</string>
+    <string name="new_collection">New collection</string>
+    <string name="collection_name_hint">Collection name</string>
+    <string name="create">Create</string>
+    <string name="rename">Rename</string>
+    <string name="done">Done</string>
+    <string name="add_to_collection">Add to collection</string>
+    <string name="delete_collection_title">Delete %1$s?</string>
+    <string name="delete_collection_message">Wallpapers stay in your favorites.</string>
+    <plurals name="collection_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
 
     <!-- Detail -->
     <string name="back">Back</string>
@@ -137,6 +182,20 @@
     <string name="wallpaper_position_home">Home screen</string>
     <string name="wallpaper_position_lock">Lock screen</string>
     <string name="wallpaper_position_both">Both screens</string>
+    <string name="rotation_title">Wallpaper rotation</string>
+    <string name="rotation_schedule">Schedule</string>
+    <string name="rotation_off">Off</string>
+    <string name="rotation_daily">Daily</string>
+    <string name="rotation_weekly">Weekly</string>
+    <string name="rotation_style">Style</string>
+    <string name="rotation_showcase">Showcase</string>
+    <string name="rotation_atmosphere">Atmosphere</string>
+    <string name="rotation_fill">Fill</string>
+    <string name="rotation_screen">Change on</string>
+    <string name="rotation_source">Rotate from</string>
+    <string name="rotation_all_favorites">All favorites</string>
+    <string name="rotation_now">Rotate now</string>
+    <string name="rotation_started">Applying next wallpaper…</string>
     <string name="wallpaper_applying">Setting wallpaper…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>
     <string name="cancel">Cancel</string>

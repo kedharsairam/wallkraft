@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -53,7 +54,7 @@ import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Wallpaper
-import com.wallkraft.app.util.WallpaperActions
+import com.wallkraft.app.util.DownloadedFiles
 import com.wallkraft.app.util.toUserMessage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Warning
@@ -93,14 +94,31 @@ fun BrowseScreen(
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
     // Sync shared search state (lives outside SharedTransitionLayout).
     // Initial query from nav args seeds the field once per entry.
+    val scope = rememberCoroutineScope()
     LaunchedEffect(initialQuery, title) {
         searchState.query = title.ifBlank { uiState.filters.query }
         searchState.titleActive = title.isNotBlank()
+        // Tag/uploader entries are searches too — record them on entry.
+        if (initialQuery.isNotBlank()) {
+            scope.launch { container.searchHistory.add(initialQuery) }
+        }
     }
     searchState.filters = uiState.filters
     val settings by container.settings.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
     searchState.hasApiKey = settings.apiKeyValid
+    // Suggestion sources for the outer bar: recent history plus tag names
+    // seen in loaded wallpapers this session.
+    val history by container.searchHistory.history.collectAsState(initial = emptyList())
+    searchState.history = history
+    searchState.sessionTags = remember(uiState.wallpapers) {
+        uiState.wallpapers.flatMap { it.tags }.map { it.name }
+            .filter { it.isNotBlank() }.distinct().take(30)
+    }
+    searchState.onClearHistory = {
+        scope.launch { container.searchHistory.clear() }
+    }
     searchState.onSearch = { text ->
+        scope.launch { container.searchHistory.add(text) }
         viewModel.search(if (searchState.titleActive) uiState.filters.query else text)
     }
     searchState.onFiltersChange = viewModel::setFilters
@@ -125,7 +143,7 @@ fun BrowseScreen(
             if (event == Lifecycle.Event.ON_START) {
                 // Fire-and-forget off main thread to avoid jank when resuming.
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val ids = WallpaperActions.downloadedIds(context)
+                    val ids = DownloadedFiles.downloadedIds(context)
                     withContext(Dispatchers.Main) {
                         downloadedIds = ids
                     }

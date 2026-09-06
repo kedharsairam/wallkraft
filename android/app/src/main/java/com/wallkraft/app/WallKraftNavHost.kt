@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Dashboard
@@ -161,6 +162,9 @@ fun WallKraftNavHost(container: AppContainer) {
                         filters = browseSearchState.filters,
                         onFiltersChange = { browseSearchState.onFiltersChange?.invoke(it) },
                         hasApiKey = browseSearchState.hasApiKey,
+                        history = browseSearchState.history,
+                        sessionTags = browseSearchState.sessionTags,
+                        onClearHistory = { browseSearchState.onClearHistory?.invoke() },
                     )
                     isFavorites -> {
                         val title = if (favoritesTopBarState.selectionMode) {
@@ -205,6 +209,17 @@ fun WallKraftNavHost(container: AppContainer) {
                                                 stringResource(
                                                     if (allSelected) R.string.deselect_all else R.string.select_all,
                                                 ),
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                favoritesTopBarState.onAddToCollection()
+                                            },
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.CreateNewFolder,
+                                                contentDescription = stringResource(R.string.add_to_collection),
                                             )
                                         }
                                         IconButton(

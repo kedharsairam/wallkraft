@@ -90,6 +90,7 @@ import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.WallpaperPosition
+import com.wallkraft.app.domain.model.CropRect
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -111,6 +112,11 @@ fun WallpaperCropDialog(
     imageFile: File,
     onDismiss: () -> Unit,
     onConfirm: suspend (Bitmap, WallpaperPosition) -> Boolean,
+    /**
+     * Called with the user's framing (normalized source-image rect) when the
+     * wallpaper applies successfully. Rotation reuses it. Null = don't track.
+     */
+    onCropRect: ((CropRect) -> Unit)? = null,
 ) {
     val haptic = LocalHapticFeedback.current
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -401,6 +407,18 @@ fun WallpaperCropDialog(
                             val ok = onConfirm(crop, pos)
                             if (!ok) runCatching { crop.recycle() }
                             if (ok) {
+                                // Report the framing in normalized source coordinates
+                                // (resolution-independent: valid for the full-res
+                                // file too). Clamped defensively; pan clamping
+                                // already guarantees full-frame coverage.
+                                onCropRect?.invoke(
+                                    CropRect(
+                                        left = (0f - left) / scaledW,
+                                        top = (0f - top) / scaledH,
+                                        right = (frameWpx - left) / scaledW,
+                                        bottom = (frameHpx - top) / scaledH,
+                                    ).coerced(),
+                                )
                                 setResult = true
                                 delay(1200)
                                 onDismiss()

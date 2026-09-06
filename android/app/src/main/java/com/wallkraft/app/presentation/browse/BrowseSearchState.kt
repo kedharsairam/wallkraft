@@ -15,8 +15,14 @@ class BrowseSearchState {
     var titleActive by mutableStateOf(false)
     var filters by mutableStateOf(WallhavenFilters())
     var hasApiKey by mutableStateOf(false)
+    /** Recent queries, most-recent-first. Synced from SearchHistoryStore. */
+    var history by mutableStateOf<List<String>>(emptyList())
+    /** Tag names seen in loaded wallpapers this session. Synced from content. */
+    var sessionTags by mutableStateOf<List<String>>(emptyList())
     /** Set by BrowseScreen so the outer bar can trigger a search. */
     var onSearch: ((String) -> Unit)? = null
     /** Set by BrowseScreen so filter changes flow to the ViewModel. */
     var onFiltersChange: ((WallhavenFilters) -> Unit)? = null
+    /** Set by BrowseScreen so the outer bar can clear history. */
+    var onClearHistory: (() -> Unit)? = null
 }

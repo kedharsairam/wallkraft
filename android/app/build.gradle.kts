@@ -25,9 +25,12 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 26
-        versionName = "1.17.2"
-        resourceConfigurations += setOf("en")
+        versionCode = 27
+        versionName = "1.18.0"
+        resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
+        // Required so on-device tests run under AndroidJUnitRunner (without
+        // this the legacy InstrumentationTestRunner crashes the test process).
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -83,6 +86,11 @@ android {
         compose = true
         buildConfig = true
     }
+
+    // Room schema exports, so migration tests can validate upgrades.
+    sourceSets {
+        getByName("androidTest").assets.srcDirs(files("$projectDir/schemas"))
+    }
 }
 
 // Fail CI builds that try to produce a release APK without a signing key.
@@ -130,6 +138,9 @@ dependencies {
 
     // Coroutines
     implementation(libs.coroutines.android)
+
+    // Background work (wallpaper rotation schedule)
+    implementation(libs.work.runtime.ktx)
 
     // Tests
     testImplementation(libs.junit)
