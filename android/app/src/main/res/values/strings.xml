@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">WallKraft</string>
+    <string name="app_name" translatable="false">WallKraft</string>
 
     <!-- Navigation -->
     <string name="tab_browse">Browse</string>
@@ -67,13 +67,13 @@
     <string name="data_title">Data</string>
     <string name="advanced_title">Advanced</string>
     <string name="about_title">About</string>
-    <string name="about_developer">Kedhar</string>
+    <string name="about_developer" translatable="false">Kedhar</string>
     <string name="about_developer_subtitle">Developer &amp; Designer</string>
     <string name="about_developer_bio">Built WallKraft with Jetpack Compose. Privacy-first, no tracking, no ads.</string>
     <string name="privacy_title">Privacy policy</string>
     <string name="privacy_content">WallKraft is a privacy-first wallpaper browsing app. Here\'s what you need to know:\n\nWhat we DON\'T collect\nNo personal data. No usage analytics. No device identifiers. No location data. No advertising IDs.\n\nWhat stays on your device\nYour favorites and downloads are stored locally. API keys are stored in Android\'s secure Keystore. Cache files are temporary and can be cleared anytime.\n\nNetwork usage\nWallKraft connects only to the Wallhaven API to fetch wallpapers. No data is sent to any other server.\n\nThird-party services\nWallhaven API — Used to browse and search wallpapers. Subject to Wallhaven\'s Terms.\n\nChanges\nIf this policy changes, the update will be published in the app\'s About section.\n\nContact\nFor questions about this policy, open an issue on GitHub.</string>
-    <string name="licenses_url">https://github.com/kedharsairam/wallkraft/blob/master/LICENSE</string>
-    <string name="github_avatar_url">https://avatars.githubusercontent.com/u/180870058?v=4</string>
+    <string name="licenses_url" translatable="false">https://github.com/kedharsairam/wallkraft/blob/master/LICENSE</string>
+    <string name="github_avatar_url" translatable="false">https://avatars.githubusercontent.com/u/180870058?v=4</string>
     <string name="data_saver_title">Data saver</string>
     <string name="data_saver_description">Load full-resolution images only when you zoom, set, or share. Saves mobile data.</string>
     <string name="loading_full_resolution">Loading full resolution…</string>
@@ -102,7 +102,7 @@
     <string name="github_title">GitHub</string>
     <string name="share_crash_log">Share crash log</string>
     <string name="no_crash_logs">No crash logs yet</string>
-    <string name="github_url">https://github.com/kedharsairam/wallkraft</string>
+    <string name="github_url" translatable="false">https://github.com/kedharsairam/wallkraft</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_purity">Purity</string>
     <string name="settings_sorting">Sorting</string>
