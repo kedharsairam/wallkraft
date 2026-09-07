@@ -47,7 +47,11 @@ class WallpaperRepositoryImpl(
                 .distinctBy { it.id }
             val processed = WallpaperResponse(
                 data = filtered,
-                meta = response.meta.copy(total = filtered.size),
+                // Preserve the server total (e.g. 104,367). filtered.size is
+                // just the page size (24) — the API already filters purity
+                // server-side, this client filter is defense-in-depth only.
+                // Overwriting total with page size is what showed "24".
+                meta = response.meta,
             )
             searchCache.put(filters, page, processed)
             Result.success(processed)

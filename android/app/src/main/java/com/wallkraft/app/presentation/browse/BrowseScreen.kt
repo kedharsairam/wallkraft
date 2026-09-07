@@ -98,22 +98,18 @@ fun BrowseScreen(
     LaunchedEffect(initialQuery, title) {
         searchState.query = title.ifBlank { uiState.filters.query }
         searchState.titleActive = title.isNotBlank()
-        // Tag/uploader entries are searches too — record them on entry.
-        if (initialQuery.isNotBlank()) {
-            scope.launch { container.searchHistory.add(initialQuery) }
-        }
+        // Tag/uploader entries are NOT recorded — history holds only what
+        // Kedhar explicitly searched (typed + submitted via onSearch below).
     }
     searchState.filters = uiState.filters
+    searchState.totalResults = uiState.totalResults
     val settings by container.settings.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
     searchState.hasApiKey = settings.apiKeyValid
-    // Suggestion sources for the outer bar: recent history plus tag names
-    // seen in loaded wallpapers this session.
+    // Suggestion source for the outer bar: explicit search history only.
+    // (Session tags from loaded wallpapers are intentionally NOT suggested —
+    // the dropdown shows only what Kedhar typed and searched.)
     val history by container.searchHistory.history.collectAsState(initial = emptyList())
     searchState.history = history
-    searchState.sessionTags = remember(uiState.wallpapers) {
-        uiState.wallpapers.flatMap { it.tags }.map { it.name }
-            .filter { it.isNotBlank() }.distinct().take(30)
-    }
     searchState.onClearHistory = {
         scope.launch { container.searchHistory.clear() }
     }

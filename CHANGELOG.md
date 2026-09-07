@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.1] - 2026-09-08
+
+### Added
+- **Search-bar result count** — the Browse bar shows the total for the current listing (compact `5.1k` / `1.2m`) at its right edge; the idle magnifier is gone, the count hides while typing.
+- **Color shade picker** — 8 family dots in one line; long-press a dot for its exact shades (all 29 Wallhaven colors reachable). Selected dots get a blue halo that stays visible on every color including white.
+
+### Changed
+- **Search suggestions are yours only** — trending tags removed; tapped tags and browsed tags are no longer recorded or suggested. History holds only what was typed and searched. The dropdown caps at 40% of the screen and scrolls inside.
+- **Transitions** — removed the hero morph; every open is a gentle fade + zoom, every back is the same quick fade at any navigation depth.
+- **Screen edges** — Browse/Favorites grids and Settings cards all use 8dp margins (was 16/20dp); shimmer skeleton matched so loading never jumps.
+- **Filter panel rhythm** — color gaps loosened to breathe like chip sections; tap selects without moving content, long-press discloses shades.
+
+### Fixed
+- **Total showed page size (24)** — the repository overwrote `meta.total` with the filtered page count; the server total is now preserved (stale cache keys invalidated).
+
 ## [1.19.0] - 2026-09-07
 
 ### Added

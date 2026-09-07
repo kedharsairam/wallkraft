@@ -112,8 +112,10 @@ fun WallpaperGrid(
         columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         state = gridState,
         contentPadding = PaddingValues(
-            start = KraftSpacing.ScreenEdge,
-            end = KraftSpacing.ScreenEdge,
+            // 8dp edges = 8dp tile gaps: edge-to-edge rhythm like Photos.
+            // (Was 16dp ScreenEdge — read as wasted frame on dark.)
+            start = KraftSpacing.Spacing8,
+            end = KraftSpacing.Spacing8,
             top = KraftSpacing.Spacing8,
             bottom = KraftSpacing.Spacing8,
         ),

@@ -73,7 +73,10 @@ class SearchResponseCache(
     }
 
     private fun WallhavenFilters.signature(): String =
-        "${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.toPurityParam()}|$colors"
+        // v2: v1 cached responses stored total = page size (24) due to the
+        // repository overwriting meta.total — bump forces a fresh fetch with
+        // the correct server total.
+        "v2|${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.toPurityParam()}|$colors"
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries

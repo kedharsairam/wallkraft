@@ -130,7 +130,8 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = KraftSpacing.Spacing20, vertical = KraftSpacing.Spacing16)
+                // 8dp to match the Browse/Fav grid edges.
+                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing16)
                 .padding(bottom = navBarPadding),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing24),
         ) {

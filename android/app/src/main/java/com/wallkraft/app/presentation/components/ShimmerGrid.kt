@@ -71,8 +71,9 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         contentPadding = PaddingValues(
-            start = KraftSpacing.ScreenEdge,
-            end = KraftSpacing.ScreenEdge,
+            // Must match WallpaperGrid edges or content jumps on load.
+            start = KraftSpacing.Spacing8,
+            end = KraftSpacing.Spacing8,
             top = KraftSpacing.Spacing8,
             bottom = KraftSpacing.Spacing8,
         ),
