@@ -98,6 +98,7 @@ abstract class WallpaperListViewModel(
                         categories = initialCategories,
                         purity = effectivePurity,
                         sorting = settings.sorting,
+                        topRange = settings.topRange,
                         orientation = settings.orientation,
                         query = initialQuery,
                     ),

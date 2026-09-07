@@ -1,5 +1,11 @@
 package com.wallkraft.app.presentation.settings
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +23,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -48,6 +56,7 @@ import com.wallkraft.app.domain.model.RotationMode
 import com.wallkraft.app.domain.model.RotationSchedule
 import com.wallkraft.app.domain.model.RotationTarget
 import com.wallkraft.app.presentation.components.chipColors
+import com.wallkraft.app.presentation.components.FilterSectionLabel
 
 /**
  * Wallpaper rotation section — schedule, style, target screen, source, and
@@ -73,12 +82,52 @@ fun SettingsRotationSection(
         ?.collection?.name ?: stringResource(R.string.rotation_all_favorites)
 
     SettingsGroup(title = stringResource(R.string.rotation_title)) {
+        var expanded by remember { mutableStateOf(false) }
+        val scheduleLabel = rotationScheduleOptions().firstOrNull { it.first == settings.schedule }?.second.orEmpty()
+        val modeLabel = rotationModeOptions().firstOrNull { it.first == settings.mode }?.second.orEmpty()
+        val targetLabel = rotationTargetOptions().firstOrNull { it.first == settings.target }?.second.orEmpty()
+
+        // Summary row — tap to expand/collapse (same pattern as Default Filters).
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(KraftRadius.Standard))
+                .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    expanded = !expanded
+                }
+                .padding(vertical = KraftSpacing.Spacing8),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "$scheduleLabel • $modeLabel • $targetLabel • $sourceName",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+            Icon(
+                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = null,
+                modifier = Modifier.size(KraftIconSize.Small),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
+            exit = shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
+        ) {
+            Column {
         // Schedule
         FilterSectionLabel(stringResource(R.string.rotation_schedule))
-        Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
             rotationScheduleOptions().forEach { (option, label) ->
@@ -94,15 +143,15 @@ fun SettingsRotationSection(
             }
         }
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
             color = MaterialTheme.colorScheme.outline,
         )
         // Style
         FilterSectionLabel(stringResource(R.string.rotation_style))
-        Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
             rotationModeOptions().forEach { (option, label) ->
@@ -118,15 +167,15 @@ fun SettingsRotationSection(
             }
         }
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
             color = MaterialTheme.colorScheme.outline,
         )
         // Target screen
         FilterSectionLabel(stringResource(R.string.rotation_screen))
-        Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
             rotationTargetOptions().forEach { (option, label) ->
@@ -142,7 +191,7 @@ fun SettingsRotationSection(
             }
         }
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
             color = MaterialTheme.colorScheme.outline,
         )
         // Source
@@ -179,9 +228,12 @@ fun SettingsRotationSection(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = KraftSpacing.Spacing12),
+                .height(KraftSpacing.TouchTarget)
+                .padding(top = KraftSpacing.Spacing4),
         ) {
             Text(stringResource(R.string.rotation_now))
+        }
+            }
         }
     }
 

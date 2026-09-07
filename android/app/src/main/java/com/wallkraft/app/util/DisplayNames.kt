@@ -7,6 +7,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.domain.model.TopRange
 
 /** Localized user-facing names. The enums keep their raw wire values for the API. */
 
@@ -14,11 +15,25 @@ import com.wallkraft.app.domain.model.Sorting
 @Composable
 fun Sorting.displayName(): String = stringResource(
     when (this) {
-        Sorting.DateAdded -> R.string.sorting_date_added
-        Sorting.Hot -> R.string.sorting_hot
+        Sorting.Relevance -> R.string.sorting_relevance
         Sorting.Random -> R.string.sorting_random
+        Sorting.DateAdded -> R.string.sorting_date_added
         Sorting.Views -> R.string.sorting_views
         Sorting.Favorites -> R.string.sorting_favorites
+        Sorting.Toplist -> R.string.sorting_toplist
+        Sorting.Hot -> R.string.sorting_hot
+    },
+)
+
+/** Returns the localized display name for this toplist time range. */
+@Composable
+fun TopRange.displayName(): String = stringResource(
+    when (this) {
+        TopRange.Day -> R.string.top_range_day
+        TopRange.Week -> R.string.top_range_week
+        TopRange.Month -> R.string.top_range_month
+        TopRange.SixMonths -> R.string.top_range_six_months
+        TopRange.Year -> R.string.top_range_year
     },
 )
 

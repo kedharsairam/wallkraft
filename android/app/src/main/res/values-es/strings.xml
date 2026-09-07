@@ -22,6 +22,7 @@
     <string name="filter_categories">Categorías</string>
     <string name="filter_purity">Pureza</string>
     <string name="filter_sorting">Orden</string>
+    <string name="filter_top_range">Periodo</string>
     <string name="filter_orientation">Orientación</string>
     <string name="filter_colors">Colores</string>
     <string name="filter_reset">Restablecer</string>
@@ -32,6 +33,13 @@
     <string name="sorting_random">Aleatorio</string>
     <string name="sorting_views">Visitas</string>
     <string name="sorting_favorites">Favoritos</string>
+    <string name="sorting_relevance">Relevancia</string>
+    <string name="sorting_toplist">Toplist</string>
+    <string name="top_range_day">Último día</string>
+    <string name="top_range_week">Última semana</string>
+    <string name="top_range_month">Último mes</string>
+    <string name="top_range_six_months">Últimos 6 meses</string>
+    <string name="top_range_year">Último año</string>
     <string name="category_general">General</string>
     <string name="category_anime">Anime</string>
     <string name="category_people">Personas</string>
@@ -101,6 +109,7 @@
     <string name="settings_categories">Categorías</string>
     <string name="settings_purity">Pureza</string>
     <string name="settings_sorting">Orden</string>
+    <string name="settings_top_range">Periodo</string>
     <string name="settings_orientation">Orientación</string>
     <string name="rate_app_title">Valora WallKraft</string>
 

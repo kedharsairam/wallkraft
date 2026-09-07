@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
 /**
@@ -71,10 +72,10 @@ fun ColorFilterRow(
     val haptic = LocalHapticFeedback.current
     Column {
         FilterSectionLabel(stringResource(R.string.filter_colors))
-        Spacer(Modifier.height(KraftSpacing.Spacing8))
+        Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
             FilterColorPalette.forEach { color ->
@@ -82,13 +83,13 @@ fun ColorFilterRow(
                 val name = stringResource(color.nameRes)
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
+                        .size(width = KraftSpacing.Spacing56, height = KraftSpacing.Spacing32)
+                        .clip(RoundedCornerShape(KraftRadius.Small))
                         .background(Color(("FF" + color.hex).toLong(16)))
                         .border(
                             width = if (selected) 2.dp else 1.dp,
                             color = if (selected) Color.White else MaterialTheme.colorScheme.outline,
-                            shape = CircleShape,
+                            shape = RoundedCornerShape(KraftRadius.Small),
                         )
                         .semantics { contentDescription = name }
                         .clickable {

@@ -8,6 +8,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -117,6 +118,10 @@ class SettingsViewModel(
 
     fun setSorting(sorting: Sorting) {
         viewModelScope.launch { settingsRepository.update { it.copy(sorting = sorting) } }
+    }
+
+    fun setTopRange(topRange: TopRange) {
+        viewModelScope.launch { settingsRepository.update { it.copy(topRange = topRange) } }
     }
 
     fun setOrientation(orientation: Orientation) {

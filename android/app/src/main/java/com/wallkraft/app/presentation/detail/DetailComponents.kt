@@ -49,9 +49,9 @@ internal fun DetailCircleButton(
                     Modifier.size(KraftSpacing.TouchTarget)
                 }
             )
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(KraftRadius.Pill))
             .background(KraftColors.Glass)
-            .border(KraftSpacing.BorderWidth, borderColor, CircleShape)
+            .border(KraftSpacing.BorderWidth, borderColor, RoundedCornerShape(KraftRadius.Pill))
             .clickable(onClick = onClick)
             .padding(horizontal = if (text != null) KraftSpacing.Spacing12 else 0.dp),
     ) {

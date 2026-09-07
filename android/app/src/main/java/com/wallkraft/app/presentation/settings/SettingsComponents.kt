@@ -48,7 +48,7 @@ fun SettingsGroup(title: String, content: @Composable () -> Unit) {
             text = title,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = KraftSpacing.Spacing8, start = KraftSpacing.Spacing4),
+            modifier = Modifier.padding(bottom = KraftSpacing.Spacing4, start = KraftSpacing.Spacing4),
         )
         Surface(
             shape = RoundedCornerShape(KraftRadius.Standard),
@@ -57,7 +57,7 @@ fun SettingsGroup(title: String, content: @Composable () -> Unit) {
             color = MaterialTheme.colorScheme.surfaceBright,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(modifier = Modifier.padding(KraftSpacing.Spacing16)) { content() }
+            Column(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12)) { content() }
         }
     }
 }
@@ -125,15 +125,6 @@ fun BuyMeACoffeeButton(onClick: () -> Unit) {
                 },
         )
     }
-}
-
-@Composable
-fun FilterSectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
 }
 
 fun formatBytes(bytes: Long): String {

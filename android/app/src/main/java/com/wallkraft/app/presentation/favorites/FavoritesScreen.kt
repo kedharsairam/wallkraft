@@ -262,7 +262,10 @@ fun FavoritesScreen(
                     onSelect = { activeCollectionId = it },
                     onNew = { showCreateDialog = true },
                     onLongPress = { menuCollectionId = it },
-                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
+                    modifier = Modifier.padding(
+                        top = KraftSpacing.Spacing12,
+                        bottom = KraftSpacing.Spacing8,
+                    ),
                 )
                 // Offline status header: hidden in selection mode and when
                 // everything is saved. Shows progress while downloading.
@@ -296,7 +299,7 @@ fun FavoritesScreen(
                                 .fillMaxWidth()
                                 .padding(
                                     horizontal = KraftSpacing.Spacing16,
-                                    vertical = KraftSpacing.Spacing4,
+                                    vertical = KraftSpacing.Spacing8,
                                 ),
                         ) {
                             val saved = favorites.size - missingCount

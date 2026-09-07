@@ -24,16 +24,24 @@
     <string name="filter_categories">Categories</string>
     <string name="filter_purity">Purity</string>
     <string name="filter_sorting">Sorting</string>
+    <string name="filter_top_range">Top range</string>
     <string name="filter_orientation">Orientation</string>
     <string name="filter_colors">Colors</string>
     <string name="filter_reset">Reset</string>
     <string name="filter_apply">Apply</string>
     <string name="filter_all">All</string>
-    <string name="sorting_date_added">Date added</string>
-    <string name="sorting_hot">Hot</string>
+    <string name="sorting_relevance">Relevance</string>
     <string name="sorting_random">Random</string>
+    <string name="sorting_date_added">Date added</string>
     <string name="sorting_views">Views</string>
     <string name="sorting_favorites">Favorites</string>
+    <string name="sorting_toplist">Toplist</string>
+    <string name="sorting_hot">Hot</string>
+    <string name="top_range_day">Last day</string>
+    <string name="top_range_week">Last week</string>
+    <string name="top_range_month">Last month</string>
+    <string name="top_range_six_months">Last 6 months</string>
+    <string name="top_range_year">Last year</string>
     <string name="category_general">General</string>
     <string name="category_anime">Anime</string>
     <string name="category_people">People</string>
@@ -106,6 +114,7 @@
     <string name="settings_categories">Categories</string>
     <string name="settings_purity">Purity</string>
     <string name="settings_sorting">Sorting</string>
+    <string name="settings_top_range">Top range</string>
     <string name="settings_orientation">Orientation</string>
     <string name="rate_app_title">Rate WallKraft</string>
 

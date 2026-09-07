@@ -22,6 +22,7 @@
     <string name="filter_categories">श्रेणियाँ</string>
     <string name="filter_purity">शुद्धता</string>
     <string name="filter_sorting">क्रम</string>
+    <string name="filter_top_range">अवधि</string>
     <string name="filter_orientation">अभिविन्यास</string>
     <string name="filter_colors">रंग</string>
     <string name="filter_reset">रीसेट</string>
@@ -32,6 +33,13 @@
     <string name="sorting_random">यादृच्छिक</string>
     <string name="sorting_views">व्यूज़</string>
     <string name="sorting_favorites">पसंदीदा</string>
+    <string name="sorting_relevance">प्रासंगिकता</string>
+    <string name="sorting_toplist">टॉपलिस्ट</string>
+    <string name="top_range_day">पिछला दिन</string>
+    <string name="top_range_week">पिछला सप्ताह</string>
+    <string name="top_range_month">पिछला महीना</string>
+    <string name="top_range_six_months">पिछले 6 महीने</string>
+    <string name="top_range_year">पिछला साल</string>
     <string name="category_general">सामान्य</string>
     <string name="category_anime">एनिमे</string>
     <string name="category_people">लोग</string>
@@ -101,6 +109,7 @@
     <string name="settings_categories">श्रेणियाँ</string>
     <string name="settings_purity">शुद्धता</string>
     <string name="settings_sorting">क्रम</string>
+    <string name="settings_top_range">अवधि</string>
     <string name="settings_orientation">अभिविन्यास</string>
     <string name="rate_app_title">WallKraft को रेट करें</string>
 

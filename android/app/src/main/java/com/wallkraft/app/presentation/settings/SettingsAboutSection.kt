@@ -52,7 +52,7 @@ fun SettingsAboutSection(
                 model = stringResource(R.string.github_avatar_url),
                 contentDescription = stringResource(R.string.about_developer),
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(KraftSpacing.AvatarSize)
                     .clip(RoundedCornerShape(16.dp)),
             )
             Spacer(Modifier.width(KraftSpacing.Spacing12))

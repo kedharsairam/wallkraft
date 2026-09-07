@@ -78,7 +78,7 @@ fun AddToCollectionDialog(
                                 .clickable {
                                     onToggle(entry.collection.id, !allMembers)
                                 }
-                                .padding(vertical = KraftSpacing.Spacing4),
+                                .padding(vertical = KraftSpacing.Spacing8),
                         ) {                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = entry.collection.name,

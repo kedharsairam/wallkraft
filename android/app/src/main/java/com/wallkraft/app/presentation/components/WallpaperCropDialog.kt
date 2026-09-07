@@ -484,7 +484,7 @@ fun WallpaperCropDialog(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(KraftIconSize.XLarge),
-                            strokeWidth = 3.dp,
+                            strokeWidth = KraftSpacing.SpinnerStroke,
                             color = Color.White,
                         )
                         Spacer(Modifier.height(KraftSpacing.Spacing12))
@@ -548,8 +548,8 @@ private fun PositionOption(
             .fillMaxWidth()
             .height(KraftSpacing.TouchTarget)
             .clip(CircleShape)
-            .background(KraftColors.Surface)
-            .border(KraftSpacing.BorderWidth, KraftColors.Separator, CircleShape)
+            .background(KraftColors.Glass)
+            .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
             .clickable(onClick = onClick)
             .padding(horizontal = KraftSpacing.Spacing16),
     ) {

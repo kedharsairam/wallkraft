@@ -17,6 +17,7 @@ data class AppSettings(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
     val purity: Set<Purity> = setOf(Purity.SFW),
     val sorting: Sorting = Sorting.DateAdded,
+    val topRange: TopRange = TopRange.Month,
     val orientation: Orientation = Orientation.Both,
     val dataSaverMode: Boolean = false,
 )
