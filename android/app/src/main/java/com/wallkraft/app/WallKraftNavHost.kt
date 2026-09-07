@@ -2,13 +2,8 @@ package com.wallkraft.app
 
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
@@ -161,9 +156,9 @@ fun WallKraftNavHost(container: AppContainer) {
                         onSearch = { text -> browseSearchState.onSearch?.invoke(text) },
                         filters = browseSearchState.filters,
                         onFiltersChange = { browseSearchState.onFiltersChange?.invoke(it) },
+                        totalResults = browseSearchState.totalResults,
                         hasApiKey = browseSearchState.hasApiKey,
                         history = browseSearchState.history,
-                        sessionTags = browseSearchState.sessionTags,
                         onClearHistory = { browseSearchState.onClearHistory?.invoke() },
                     )
                     isFavorites -> {
@@ -330,8 +325,8 @@ fun WallKraftNavHost(container: AppContainer) {
                         topInset = topInset,
                         initialQuery = query,
                         title = title,
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this@composable,
+                        sharedTransitionScope = null,
+                        animatedVisibilityScope = null,
                         searchState = browseSearchState,
                     )
                 }
@@ -346,8 +341,8 @@ fun WallKraftNavHost(container: AppContainer) {
                         gridState = favoritesGridState,
                         navBarPadding = innerPadding.calculateBottomPadding(),
                         topInset = topInset,
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this@composable,
+                        sharedTransitionScope = null,
+                        animatedVisibilityScope = null,
                         topBarState = favoritesTopBarState,
                     )
                 }
@@ -369,10 +364,15 @@ fun WallKraftNavHost(container: AppContainer) {
                         navArgument("thumb") { type = NavType.StringType; defaultValue = "" },
                         navArgument("path") { type = NavType.StringType; defaultValue = "" },
                     ),
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                    popEnterTransition = { EnterTransition.None },
-                    popExitTransition = { fadeOut(spring(dampingRatio = 0.7f, stiffness = 400f)) },
+                    // Apple-style: no hero morph, same fade+scale at any stack
+                    // depth. Open zooms in gently (delight), every back is the
+                    // same quick fade (predictable) — never a reverse morph.
+                    // Purity borders stay on the tiles (no shared overlay), so
+                    // the full-screen border flight is gone by construction.
+                    enterTransition = { fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.96f) },
+                    exitTransition = { fadeOut(tween(180)) },
+                    popEnterTransition = { fadeIn(tween(220)) },
+                    popExitTransition = { fadeOut(tween(180)) },
                 ) { entry ->
                     DetailScreen(
                         container = container,
@@ -385,8 +385,11 @@ fun WallKraftNavHost(container: AppContainer) {
                             navController.navigate(Routes.browse("@$username", title = username))
                         },
                         navBarPadding = 0.dp,
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedVisibilityScope = this@composable,
+                        // No shared-element scopes: hero morph disabled. The
+                        // grid/detail sharedElement builders no-op on null and
+                        // render plain crossfading content instead.
+                        sharedTransitionScope = null,
+                        animatedVisibilityScope = null,
                     )
                 }
             }

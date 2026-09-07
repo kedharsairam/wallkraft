@@ -33,6 +33,8 @@ data class WallpaperListUiState(
     val currentPage: Int = 1,
     val lastPage: Int = 1,
     val hasMore: Boolean = true,
+    /** Total result count from the API (meta.total). 0 = unknown. */
+    val totalResults: Int = 0,
     val rateLimited: Boolean = false,
 )
 
@@ -146,6 +148,7 @@ abstract class WallpaperListViewModel(
                                 currentPage = response.meta.currentPage,
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
+                                totalResults = response.meta.total,
                                 error = null,
                             )
                         }
@@ -171,7 +174,9 @@ abstract class WallpaperListViewModel(
     fun loadFirstPage() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isInitialLoading = true, error = null) }
+            // Reset the total so the search-bar count hides until the new
+            // query's count arrives (never show a stale total).
+            _uiState.update { it.copy(isInitialLoading = true, error = null, totalResults = 0) }
             val filters = _uiState.value.filters
             try {
                 repository.search(filters, 1)
@@ -184,6 +189,7 @@ abstract class WallpaperListViewModel(
                                 currentPage = response.meta.currentPage,
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
+                                totalResults = response.meta.total,
                                 error = null,
                             )
                         }
@@ -220,6 +226,7 @@ abstract class WallpaperListViewModel(
                                 currentPage = response.meta.currentPage,
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
+                                totalResults = response.meta.total,
                             )
                         }
                     }

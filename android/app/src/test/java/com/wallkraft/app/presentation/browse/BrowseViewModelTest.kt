@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -138,8 +139,7 @@ class BrowseViewModelTest {
     }
 
     @Test
-    fun `loadNextPage failure does not crash`() = runTest(dispatcher) {
-        val repo = FakeWallpaperRepository()
+    fun `loadNextPage failure does not crash`() = runTest(dispatcher) {        val repo = FakeWallpaperRepository()
         var callCount = 0
         repo.onSearch = { filters, page ->
             callCount++
@@ -162,6 +162,62 @@ class BrowseViewModelTest {
 
         // Should not crash, error message should be set
         assertEquals("network", vm.uiState.value.error)
+    }
+
+    @Test
+    fun `totalResults comes from meta total`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.onSearch = { _, page ->
+            Result.success(
+                WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = page, lastPage = 5, total = 5085),
+                ),
+            )
+        }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        advanceUntilIdle()
+
+        assertEquals(5085, vm.uiState.value.totalResults)
+    }
+
+    @Test
+    fun `new search resets totalResults so stale count never shows`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        var calls = 0
+        val repo = FakeWallpaperRepository()
+        repo.onSearch = { _, page ->
+            calls++
+            if (calls == 1) {
+                Result.success(
+                    WallpaperResponse(
+                        data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
+                        meta = WallpaperMeta(currentPage = 1, lastPage = 5, total = 5085),
+                    ),
+                )
+            } else {
+                gate.await()
+                Result.success(
+                    WallpaperResponse(
+                        data = listOf(Wallpaper(id = "wp-2", dimensionX = 1920, dimensionY = 1080)),
+                        meta = WallpaperMeta(currentPage = 1, lastPage = 3, total = 1234),
+                    ),
+                )
+            }
+        }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        advanceUntilIdle()
+        assertEquals(5085, vm.uiState.value.totalResults)
+
+        vm.search("new")
+        // loadFirstPage resets before the network lands — run pending tasks
+        // so the reset executes while the gated request is still suspended.
+        runCurrent()
+        assertEquals(0, vm.uiState.value.totalResults)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+        assertEquals(1234, vm.uiState.value.totalResults)
     }
 
     private fun pageOf(id: String, filters: WallhavenFilters): WallpaperResponse =

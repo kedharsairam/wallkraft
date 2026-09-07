@@ -36,7 +36,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tune
@@ -71,6 +70,7 @@ import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -97,9 +97,9 @@ import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.TopRange
-import com.wallkraft.app.util.PopularTags
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.util.displayName
+import com.wallkraft.app.util.formatCount
 
 private val PillShape = RoundedCornerShape(KraftRadius.Pill)
 private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large)
@@ -107,11 +107,19 @@ private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bot
 /**
  * Clean search + filter bar.
  *
- * **Idle** — pill search bar (magnifying glass on right, "Search" placeholder)
- *           + grey rounded filter button.
- * **Focused** — search bar shrinks, a blue magnifying-glass circle slides in
- *               between the bar and the filter button.
- * **Filter open** — panel drops down from right below the bar.
+ * **Idle** — pill search bar ("Search" placeholder or query text, total count
+ *           on the right like "5.1k") + grey rounded filter button.
+ *           No magnifier icon in the bar — the count owns the right edge.
+ * **Focused** — count hides (typing needs the space), search bar shrinks, a
+ *               blue magnifying-glass circle slides in between the bar and
+ *               the filter button. Suggestions dropdown appears below.
+ * **Loading / unknown** — totalResults = 0, so no count is shown (never a
+ *           stale total — ViewModel resets to 0 on every new search).
+ * **Empty / error** — same: no count, hint or query text only.
+ * **Filter open** — focus is cleared on open, so the count stays visible.
+ * **Long query + count** — query scrolls horizontally (singleLine), count is
+ *           fixed-width short (max ~4 chars via formatCount) with 8dp gap,
+ *           never wraps or pushes the bar taller.
  */
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
@@ -122,13 +130,13 @@ fun SearchFilterBar(
     filters: WallhavenFilters,
     onFiltersChange: (WallhavenFilters) -> Unit,
     modifier: Modifier = Modifier,
+    /** Total result count for the current listing — shown at the bar's right edge (0 = unknown). */
+    totalResults: Int = 0,
     onDismiss: (() -> Unit)? = null,
     hasApiKey: Boolean = false,
-    // Suggestion sources. History + session tags are synced from BrowseScreen;
-    // trending defaults to the bundled popular-tag list.
+    // Suggestion source: explicit search history only (typed + submitted).
+    // Nothing auto-collected — no session tags, no tapped tags.
     history: List<String> = emptyList(),
-    sessionTags: List<String> = emptyList(),
-    trending: List<String> = PopularTags,
     onClearHistory: () -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
@@ -226,13 +234,21 @@ fun SearchFilterBar(
                                 }
                                 innerTextField()
                             }
-                            // Magnifying glass — only when NOT focused
-                            if (!isFocused) {
-                                Icon(
-                                    imageVector = Icons.Filled.Search,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(KraftIconSize.Small),
+                            // Result count — idle only, known total only. Hidden while
+                            // focused (typing context), while loading, and on
+                            // empty/error states. Decorative: the grid itself
+                            // carries the info for screen readers.
+                            // Fixed short width (formatCount max ~4 chars like
+                            // "5.1k" / "1.2m"), 8dp gap so a long query never
+                            // collides — query scrolls, count stays pinned.
+                            if (!isFocused && totalResults > 0) {
+                                Spacer(Modifier.width(KraftSpacing.Spacing8))
+                                Text(
+                                    text = formatCount(totalResults),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    modifier = Modifier.clearAndSetSemantics {},
                                 )
                             }
                         }
@@ -573,15 +589,16 @@ fun SearchFilterBar(
             }
         }
 
-        // ── Suggestions dropdown (history + trending + session tags) ────
+        // ── Suggestions dropdown (explicit history only) ──────────────
         // Same overlay pattern as the filter panel: zero reported height so
         // the bar never shifts, positioned below the measured bar. Shown only
         // while the field is focused and the filter panel is closed — focus
         // loss hides it automatically, so no dismiss handling is needed.
+        // Empty query with no history shows nothing.
         val trimmedQuery = query.trim()
-        val typedMatches = remember(trimmedQuery, history, trending, sessionTags) {
+        val typedMatches = remember(trimmedQuery, history) {
             if (trimmedQuery.isEmpty()) emptyList()
-            else (history + trending + sessionTags)
+            else history
                 .filter { it.contains(trimmedQuery, ignoreCase = true) }
                 .distinctBy { it.lowercase() }
                 .take(8)
@@ -595,12 +612,14 @@ fun SearchFilterBar(
         AnimatedVisibility(
             visible = isFocused && !showFilters &&
                 (trimmedQuery.isNotEmpty() && typedMatches.isNotEmpty() ||
-                    trimmedQuery.isEmpty()),
+                    trimmedQuery.isEmpty() && history.isNotEmpty()),
             enter = expandVertically(tween(250)) + fadeIn(tween(250)),
             exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = panelMaxHeight)
+                // 40%-screen cap: history is a quick pick list, not a page.
+                // Overflow scrolls inside instead of covering the grid.
+                .heightIn(max = screenHeightDp * 0.4f)
                 .zIndex(1f)
                 .offset { IntOffset(0, barHeight) }
                 .layout { measurable, constraints ->
@@ -640,21 +659,6 @@ fun SearchFilterBar(
                                 icon = Icons.Filled.History,
                                 onClick = { selectSuggestion(item) },
                             )
-                        }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                        Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    }
-                    FilterSectionLabel(stringResource(R.string.search_trending))
-                    Spacer(Modifier.height(KraftSpacing.Spacing4))
-                    trending.take(10).forEach { tag ->
-                        SuggestionRow(text = tag, icon = null, onClick = { selectSuggestion(tag) })
-                    }
-                    if (sessionTags.isNotEmpty()) {
-                        Spacer(Modifier.height(KraftSpacing.Spacing8))
-                        FilterSectionLabel(stringResource(R.string.search_from_browsing))
-                        Spacer(Modifier.height(KraftSpacing.Spacing4))
-                        sessionTags.take(8).forEach { tag ->
-                            SuggestionRow(text = tag, icon = null, onClick = { selectSuggestion(tag) })
                         }
                     }
                 } else {
