@@ -139,14 +139,8 @@ fun SettingsScreen(
                 onCategories = viewModel::setCategories,
                 onPurity = viewModel::setPurity,
                 onSorting = viewModel::setSorting,
+                onTopRange = viewModel::setTopRange,
                 onOrientation = viewModel::setOrientation,
-            )
-
-            SettingsDataSection(
-                dataSaverMode = settings.dataSaverMode,
-                onDataSaverChange = viewModel::setDataSaverMode,
-                cacheSizeText = cacheSizeText,
-                onClearCacheClick = { showClearCacheDialog = true },
             )
 
             SettingsRotationSection(
@@ -173,7 +167,12 @@ fun SettingsScreen(
                 },
             )
 
-            SettingsSupportSection()
+            SettingsDataSection(
+                dataSaverMode = settings.dataSaverMode,
+                onDataSaverChange = viewModel::setDataSaverMode,
+                cacheSizeText = cacheSizeText,
+                onClearCacheClick = { showClearCacheDialog = true },
+            )
 
             SettingsAdvancedSection(
                 apiKeyText = apiKeyText,
@@ -181,6 +180,8 @@ fun SettingsScreen(
                 apiKeyValid = settings.apiKeyValid,
                 onApiClick = { showApiDialog = true },
             )
+
+            SettingsSupportSection()
 
             SettingsAboutSection(
                 githubUrl = githubUrl,

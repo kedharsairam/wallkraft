@@ -22,6 +22,7 @@
     <string name="filter_categories">Categorias</string>
     <string name="filter_purity">Pureza</string>
     <string name="filter_sorting">Ordem</string>
+    <string name="filter_top_range">Período</string>
     <string name="filter_orientation">Orientação</string>
     <string name="filter_colors">Cores</string>
     <string name="filter_reset">Redefinir</string>
@@ -32,6 +33,13 @@
     <string name="sorting_random">Aleatório</string>
     <string name="sorting_views">Visualizações</string>
     <string name="sorting_favorites">Favoritos</string>
+    <string name="sorting_relevance">Relevância</string>
+    <string name="sorting_toplist">Toplist</string>
+    <string name="top_range_day">Último dia</string>
+    <string name="top_range_week">Última semana</string>
+    <string name="top_range_month">Último mês</string>
+    <string name="top_range_six_months">Últimos 6 meses</string>
+    <string name="top_range_year">Último ano</string>
     <string name="category_general">Geral</string>
     <string name="category_anime">Anime</string>
     <string name="category_people">Pessoas</string>
@@ -101,6 +109,7 @@
     <string name="settings_categories">Categorias</string>
     <string name="settings_purity">Pureza</string>
     <string name="settings_sorting">Ordem</string>
+    <string name="settings_top_range">Período</string>
     <string name="settings_orientation">Orientação</string>
     <string name="rate_app_title">Avalie o WallKraft</string>
 

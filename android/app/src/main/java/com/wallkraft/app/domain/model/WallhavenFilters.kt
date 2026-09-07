@@ -8,11 +8,26 @@ enum class Category(val value: String) {
 }
 
 enum class Sorting(val value: String) {
-    DateAdded("date_added"),
-    Hot("toplist"),
+    Relevance("relevance"),
     Random("random"),
+    DateAdded("date_added"),
     Views("views"),
     Favorites("favorites"),
+    Toplist("toplist"),
+    Hot("hot"),
+}
+
+/**
+ * Toplist time range. Maps to the Wallhaven `topRange` query parameter, which
+ * is only sent when [Sorting] is [Sorting.Toplist] (values follow the API:
+ * 1d, 1w, 1M, 6M, 1y — the ranges wallhaven.cc offers).
+ */
+enum class TopRange(val value: String) {
+    Day("1d"),
+    Week("1w"),
+    Month("1M"),
+    SixMonths("6M"),
+    Year("1y"),
 }
 
 /**
@@ -60,6 +75,7 @@ fun Set<Purity>.toPurityParam(): String = buildString {
 data class WallhavenFilters(
     val categories: Set<Category> = setOf(Category.General, Category.Anime, Category.People),
     val sorting: Sorting = Sorting.DateAdded,
+    val topRange: TopRange = TopRange.Month,
     val orientation: Orientation = Orientation.Both,
     val query: String = "",
     val purity: Set<Purity> = setOf(Purity.SFW),

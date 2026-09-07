@@ -48,7 +48,9 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.presentation.components.chipColors
+import com.wallkraft.app.presentation.components.FilterSectionLabel
 import com.wallkraft.app.presentation.components.purityNsfwChipColors
 import com.wallkraft.app.presentation.components.puritySfwChipColors
 import com.wallkraft.app.presentation.components.puritySketchyChipColors
@@ -68,6 +70,7 @@ fun SettingsBrowsingSection(
     onCategories: (Set<Category>) -> Unit,
     onPurity: (Set<Purity>) -> Unit,
     onSorting: (Sorting) -> Unit,
+    onTopRange: (TopRange) -> Unit,
     onOrientation: (Orientation) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -84,6 +87,13 @@ fun SettingsBrowsingSection(
         val sortRandom = stringResource(R.string.sorting_random)
         val sortViews = stringResource(R.string.sorting_views)
         val sortFavorites = stringResource(R.string.sorting_favorites)
+        val sortRelevance = stringResource(R.string.sorting_relevance)
+        val sortToplist = stringResource(R.string.sorting_toplist)
+        val rangeDay = stringResource(R.string.top_range_day)
+        val rangeWeek = stringResource(R.string.top_range_week)
+        val rangeMonth = stringResource(R.string.top_range_month)
+        val rangeSixMonths = stringResource(R.string.top_range_six_months)
+        val rangeYear = stringResource(R.string.top_range_year)
         val orientBoth = stringResource(R.string.orientation_both)
         val orientPortrait = stringResource(R.string.orientation_portrait)
         val orientLandscape = stringResource(R.string.orientation_landscape)
@@ -128,13 +138,22 @@ fun SettingsBrowsingSection(
                         }
                     }
                 }
-                // Sorting + Orientation
+                // Sorting + Orientation (range appended for Toplist)
                 val sortSummary = when (settings.sorting) {
-                    Sorting.DateAdded -> sortDateAdded
-                    Sorting.Hot -> sortHot
+                    Sorting.Relevance -> sortRelevance
                     Sorting.Random -> sortRandom
+                    Sorting.DateAdded -> sortDateAdded
                     Sorting.Views -> sortViews
                     Sorting.Favorites -> sortFavorites
+                    Sorting.Toplist -> sortToplist
+                    Sorting.Hot -> sortHot
+                }
+                val rangeSummary = when (settings.topRange) {
+                    TopRange.Day -> rangeDay
+                    TopRange.Week -> rangeWeek
+                    TopRange.Month -> rangeMonth
+                    TopRange.SixMonths -> rangeSixMonths
+                    TopRange.Year -> rangeYear
                 }
                 val orientSummary = when (settings.orientation) {
                     Orientation.Both -> orientBoth
@@ -142,7 +161,11 @@ fun SettingsBrowsingSection(
                     Orientation.Landscape -> orientLandscape
                 }
                 Text(
-                    text = "$catSummary • $purSummary • $sortSummary • $orientSummary",
+                    text = if (settings.sorting == Sorting.Toplist) {
+                        "$catSummary • $purSummary • $sortSummary • $rangeSummary • $orientSummary"
+                    } else {
+                        "$catSummary • $purSummary • $sortSummary • $orientSummary"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -166,10 +189,10 @@ fun SettingsBrowsingSection(
             Column {
                 // Categories
                 FilterSectionLabel(stringResource(R.string.settings_categories))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { category ->
@@ -187,15 +210,15 @@ fun SettingsBrowsingSection(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
                     color = MaterialTheme.colorScheme.outline,
                 )
                 // Purity
                 FilterSectionLabel(stringResource(R.string.settings_purity))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     // NSFW shown always — locked when no valid API key.
@@ -232,15 +255,39 @@ fun SettingsBrowsingSection(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
                     color = MaterialTheme.colorScheme.outline,
                 )
-                // Sorting
-                FilterSectionLabel(stringResource(R.string.settings_sorting))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                // Orientation
+                FilterSectionLabel(stringResource(R.string.settings_orientation))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Orientation.entries.forEach { orientation ->
+                        FilterChip(
+                            selected = settings.orientation == orientation,
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onOrientation(orientation)
+                            },
+                            label = { Text(orientation.displayName()) },
+                            colors = chipColors(),
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
+                )
+                // Sorting (wallhaven.cc order)
+                FilterSectionLabel(stringResource(R.string.settings_sorting))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { sorting ->
@@ -255,28 +302,36 @@ fun SettingsBrowsingSection(
                         )
                     }
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
-                    color = MaterialTheme.colorScheme.outline,
-                )
-                // Orientation
-                FilterSectionLabel(stringResource(R.string.settings_orientation))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    modifier = Modifier.fillMaxWidth(),
+                // Top range — only for Toplist (like wallhaven.cc)
+                AnimatedVisibility(
+                    visible = settings.sorting == Sorting.Toplist,
+                    enter = expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
+                    exit = shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
                 ) {
-                    Orientation.entries.forEach { orientation ->
-                        FilterChip(
-                            selected = settings.orientation == orientation,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onOrientation(orientation)
-                            },
-                            label = { Text(orientation.displayName()) },
-                            colors = chipColors(),
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                            color = MaterialTheme.colorScheme.outline,
                         )
+                        FilterSectionLabel(stringResource(R.string.settings_top_range))
+                        Spacer(Modifier.height(KraftSpacing.Spacing4))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            TopRange.entries.forEach { range ->
+                                FilterChip(
+                                    selected = settings.topRange == range,
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onTopRange(range)
+                                    },
+                                    label = { Text(range.displayName()) },
+                                    colors = chipColors(),
+                                )
+                            }
+                        }
                     }
                 }
             }

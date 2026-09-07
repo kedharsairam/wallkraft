@@ -6,16 +6,15 @@ No ads. No analytics. No trackers. Your data never leaves your device.
 
 ## Features
 
-- **Browse** — infinite-scroll masonry grid of wallpapers from Wallhaven
-- **Search & Filter** — text search with category, purity, sort, and orientation filters. All filters persist across sessions.
-- **Detail View** — full-resolution viewing with pinch-to-zoom, pan, and 3-level double-tap cycle (fit → fill → native)
-- **Set as Wallpaper** — crop, position, and apply to home, lock, or both screens
-- **Favorites** — save wallpapers locally with long-press multi-select and batch delete. Full-res copies stored for offline viewing.
-- **Downloads** — track downloaded files with multi-select and batch delete. Open file location directly.
-- **Share** — share the actual image file with any app
-- **Data Saver** — defers full-resolution downloads until you zoom
-- **Offline-first** — search results and favorites cached for offline use
-- **Dark Mode** — follows system theme (light, dark, or system default)
+- **Browse** — infinite-scroll masonry grid, pull-to-refresh, skeleton loading
+- **Search & Filter** — text search with suggestions; categories, purity, orientation, Wallhaven-style color pills, and full Wallhaven sorting (relevance to hot, toplist with time ranges). Filters persist across sessions.
+- **Detail View** — full-bleed viewer with pinch-to-zoom and 3-step double-tap (fit → fill → native), tags, uploader info
+- **Set as Wallpaper** — frame with crop/zoom, apply to home, lock, or both. Framing is remembered for rotation.
+- **Favorites** — full-res offline copies, custom collections, multi-select batch actions
+- **Rotation** — auto-rotate favorites or one collection on a schedule, or trigger manually
+- **Share & Downloads** — share image files to any app; downloads tracked with on-grid badges
+- **Data Saver** — full-resolution only on zoom, set, or share; offline-first caching throughout
+- **OLED dark theme** — true-black, wallpaper-first design
 
 ## Download
 
@@ -69,12 +68,11 @@ android/app/src/main/java/com/wallkraft/app/
 ├── presentation/
 │   ├── browse/           Browse screen + ViewModel
 │   ├── detail/           Detail screen + fullscreen viewer
-│   ├── downloads/        Downloads library + batch delete
-│   ├── favorites/        Favorites screen + ViewModel
-│   ├── settings/         Settings screen + ViewModel
+│   ├── favorites/        Favorites, collections + ViewModels
+│   ├── settings/         Settings screen + section components
 │   ├── common/           Shared ViewModel logic
 │   └── components/       Reusable UI components
-└── util/                 Helpers (WallpaperActions, formatting)
+└── util/                 Helpers (download, setter, sharing, formatting)
 ```
 
 ## Requirements

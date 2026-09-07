@@ -73,13 +73,13 @@ fun CollectionStrip(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .width(88.dp)
+                        .width(KraftSpacing.CollectionCardSize)
                         .combinedClickable(onClick = onNew),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(88.dp)
+                            .size(KraftSpacing.CollectionCardSize)
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                     ) {
@@ -106,7 +106,7 @@ fun CollectionStrip(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .width(88.dp)
+                        .width(KraftSpacing.CollectionCardSize)
                         .combinedClickable(
                             onClick = { onSelect(if (active) null else entry.collection.id) },
                             onLongClick = { onLongPress(entry.collection.id) },
@@ -114,7 +114,7 @@ fun CollectionStrip(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(88.dp)
+                            .size(KraftSpacing.CollectionCardSize)
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .border(
                                 width = if (active) 2.dp else 0.dp,

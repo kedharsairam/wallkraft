@@ -265,12 +265,11 @@ fun WallKraftNavHost(container: AppContainer) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline,
-                        thickness = 0.5.dp,
                     )
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surface)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                             .navigationBarsPadding(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically,

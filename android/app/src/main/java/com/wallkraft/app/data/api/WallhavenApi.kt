@@ -2,6 +2,7 @@ package com.wallkraft.app.data.api
 
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.domain.model.Orientation
+import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
@@ -60,6 +61,11 @@ class WallhavenApi(
                 addQueryParameter("categories", filters.categories.toCategoryParam())
                 addQueryParameter("purity", filters.purity.toPurityParam())
                 addQueryParameter("sorting", filters.sorting.value)
+                // Toplist requires a time range — the API defaults to 1M, but we
+                // always send the user's explicit choice. Other sortings omit it.
+                if (filters.sorting == Sorting.Toplist) {
+                    addQueryParameter("topRange", filters.topRange.value)
+                }
                 addQueryParameter("page", page.toString())
                 if (filters.query.isNotBlank()) addQueryParameter("q", filters.query)
                 // Hex color filter (e.g. "0000ff"); blank omits it.

@@ -13,6 +13,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -32,6 +33,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
         val CATEGORIES = stringPreferencesKey("categories")
         val PURITY = stringPreferencesKey("purity")
         val SORTING = stringPreferencesKey("sorting")
+        val TOP_RANGE = stringPreferencesKey("top_range")
         val ORIENTATION = stringPreferencesKey("orientation")
         val DATA_SAVER_MODE = booleanPreferencesKey("data_saver_mode")
         val API_KEY_VALID = booleanPreferencesKey("api_key_valid")
@@ -60,6 +62,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             prefs[Keys.CATEGORIES] = updated.categories.joinToString(",") { it.name }
             prefs[Keys.PURITY] = updated.purity.joinToString(",") { it.name }
             prefs[Keys.SORTING] = updated.sorting.name
+            prefs[Keys.TOP_RANGE] = updated.topRange.name
             prefs[Keys.ORIENTATION] = updated.orientation.name
             prefs[Keys.DATA_SAVER_MODE] = updated.dataSaverMode
         }
@@ -84,6 +87,7 @@ class SettingsStore(private val context: Context) : SettingsRepository {
             categories = categories.ifEmpty { defaults.categories },
             purity = purity.ifEmpty { defaults.purity },
             sorting = enumOr(Keys.SORTING, Sorting.DateAdded),
+            topRange = enumOr(Keys.TOP_RANGE, TopRange.Month),
             orientation = enumOr(Keys.ORIENTATION, Orientation.Both),
             dataSaverMode = this[Keys.DATA_SAVER_MODE] ?: defaults.dataSaverMode,
         )

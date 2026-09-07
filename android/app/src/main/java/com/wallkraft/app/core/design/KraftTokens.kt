@@ -58,7 +58,7 @@ object KraftColors {
     // ─── Glass (frosted overlays on images) ────────────────────────────
     // Dark translucent fill ensures pills are visible on ANY wallpaper.
     val Glass = Color.Black.copy(alpha = 0.55f)
-    val GlassBorder = Color.White.copy(alpha = 0.25f)
+    val GlassBorder = Color.White.copy(alpha = 0.35f)
 
     // ─── Tab Bar ────────────────────────────────────────────────────────
     val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab — ~4.2:1 on #000000
@@ -82,6 +82,7 @@ object KraftSpacing {
     /** 8px rhythm — standard spacing scale. */
     val Spacing2 = 2.dp
     val Spacing4 = 4.dp
+    val Spacing6 = 6.dp
     val Spacing8 = 8.dp
     val Spacing12 = 12.dp
     val Spacing16 = 16.dp
@@ -119,6 +120,9 @@ object KraftSpacing {
 
     /** Avatar size — 32dp circular. */
     val AvatarSize = 32.dp
+
+    /** Collection card — 88dp square + label. */
+    val CollectionCardSize = 88.dp
 }
 
 object KraftRadius {

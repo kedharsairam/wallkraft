@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-09-07
+
+### Added
+- **Wallhaven sorting parity** — relevance and toplist join the filter panel and Settings defaults in Wallhaven's exact order; toplist unlocks a time-range row (last day → last year) that is sent as the API `topRange` and persists as a default.
+- **Collapsible rotation section** — Wallpaper rotation collapses like Default Filters, with a live summary.
+
+### Changed
+- **Filter panel order** — categories, purity, orientation, colors, sorting; color dots are now Wallhaven-style rectangular pills.
+- **Panel uniformity** — one tight spacing rhythm across filter panel, Default Filters, and rotation; filter panel uses the Settings card background; bottom bar matches the top bar.
+- **Settings order** — Default Filters, Rotation, Data, Advanced, Support, About.
+
+### Fixed
+- **Hot sorting** sent `toplist` to the API — now sends `hot` (real Hot results, verified against the API).
+- Favorites collections header had no top spacing; shimmer grid padding mismatched the content grid (visible jump on load); detail drag handle invisible on dark panels.
+
 ## [1.18.0] - 2026-09-07
 
 ### Added

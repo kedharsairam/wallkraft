@@ -41,7 +41,7 @@ fun SettingsDataSection(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.data_saver_title),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
                     text = stringResource(R.string.data_saver_description),
@@ -66,7 +66,7 @@ fun SettingsDataSection(
             )
         }
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
             color = MaterialTheme.colorScheme.outline,
         )
         Row(

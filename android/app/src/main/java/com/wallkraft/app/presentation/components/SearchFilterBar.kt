@@ -96,6 +96,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Sorting
+import com.wallkraft.app.domain.model.TopRange
 import com.wallkraft.app.util.PopularTags
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.util.displayName
@@ -231,7 +232,7 @@ fun SearchFilterBar(
                                     imageVector = Icons.Filled.Search,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(18.dp),
+                                    modifier = Modifier.size(KraftIconSize.Small),
                                 )
                             }
                         }
@@ -336,8 +337,8 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    // Elevated surface for visual separation from content.
-                    .background(KraftColors.SurfaceSecondary)
+                    // Same card background as Settings groups (surfaceBright #1C1C1E).
+                    .background(MaterialTheme.colorScheme.surfaceBright)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -368,14 +369,14 @@ fun SearchFilterBar(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Spacer(Modifier.height(KraftSpacing.Spacing20))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
 
                 // ── Categories ─────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_categories))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { cat ->
@@ -395,15 +396,17 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
+                )
 
                 // ── Purity ─────────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_purity))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Purity.entries.forEach { p ->
@@ -440,14 +443,53 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
+                )
 
-                // ── Sorting ────────────────────────────────────────────
-                FilterSectionLabel(stringResource(R.string.filter_sorting))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
+                // ── Orientation ────────────────────────────────────────
+                FilterSectionLabel(stringResource(R.string.filter_orientation))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Orientation.entries.forEach { o ->
+                        FilterChip(
+                            selected = draftFilters.orientation == o,
+                            onClick = {
+                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                draftFilters = draftFilters.copy(orientation = o)
+                            },
+                            label = { Text(o.displayName()) },
+                            colors = chipColors(),
+                        )
+                    }
+                }
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
+                )
+
+                // ── Colors ───────────────────────────────────────────────
+                ColorFilterRow(
+                    selectedHex = draftFilters.colors,
+                    onSelect = { hex ->
+                        draftFilters = draftFilters.copy(colors = hex)
+                    },
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
+                )
+
+                // ── Sorting (wallhaven.cc order) ─────────────────────────
+                FilterSectionLabel(stringResource(R.string.filter_sorting))
+                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -463,45 +505,49 @@ fun SearchFilterBar(
                         )
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
 
-                // ── Orientation ────────────────────────────────────────
-                FilterSectionLabel(stringResource(R.string.filter_orientation))
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                    modifier = Modifier.fillMaxWidth(),
+                // ── Top range — only for Toplist (like wallhaven.cc) ─────
+                AnimatedVisibility(
+                    visible = draftFilters.sorting == Sorting.Toplist,
+                    enter = expandVertically(tween(250)) + fadeIn(tween(250)),
+                    exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
                 ) {
-                    Orientation.entries.forEach { o ->
-                        FilterChip(
-                            selected = draftFilters.orientation == o,
-                            onClick = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                draftFilters = draftFilters.copy(orientation = o)
-                            },
-                            label = { Text(o.displayName()) },
-                            colors = chipColors(),
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                            color = MaterialTheme.colorScheme.outline,
                         )
+                        FilterSectionLabel(stringResource(R.string.filter_top_range))
+                        Spacer(Modifier.height(KraftSpacing.Spacing4))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            TopRange.entries.forEach { t ->
+                                FilterChip(
+                                    selected = draftFilters.topRange == t,
+                                    onClick = {
+                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                        draftFilters = draftFilters.copy(topRange = t)
+                                    },
+                                    label = { Text(t.displayName()) },
+                                    colors = chipColors(),
+                                )
+                            }
+                        }
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                Spacer(Modifier.height(KraftSpacing.Spacing16))
-
-                // ── Colors ───────────────────────────────────────────────
-                ColorFilterRow(
-                    selectedHex = draftFilters.colors,
-                    onSelect = { hex ->
-                        draftFilters = draftFilters.copy(colors = hex)
-                    },
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    color = MaterialTheme.colorScheme.outline,
                 )
-                Spacer(Modifier.height(KraftSpacing.Spacing24))
+                Spacer(Modifier.height(KraftSpacing.Spacing8))
 
                 // ── Actions ────────────────────────────────────────────
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 ) {
                     OutlinedButton(
                         onClick = {
@@ -569,7 +615,7 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    .background(KraftColors.SurfaceSecondary)
+                    .background(MaterialTheme.colorScheme.surfaceBright)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
             ) {

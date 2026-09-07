@@ -22,6 +22,7 @@
     <string name="filter_categories">カテゴリー</string>
     <string name="filter_purity">区分</string>
     <string name="filter_sorting">並び替え</string>
+    <string name="filter_top_range">期間</string>
     <string name="filter_orientation">向き</string>
     <string name="filter_colors">色</string>
     <string name="filter_reset">リセット</string>
@@ -32,6 +33,13 @@
     <string name="sorting_random">ランダム</string>
     <string name="sorting_views">閲覧数</string>
     <string name="sorting_favorites">お気に入り数</string>
+    <string name="sorting_relevance">関連度</string>
+    <string name="sorting_toplist">トップリスト</string>
+    <string name="top_range_day">過去1日</string>
+    <string name="top_range_week">過去1週間</string>
+    <string name="top_range_month">過去1か月</string>
+    <string name="top_range_six_months">過去6か月</string>
+    <string name="top_range_year">過去1年</string>
     <string name="category_general">一般</string>
     <string name="category_anime">アニメ</string>
     <string name="category_people">人物</string>
@@ -101,6 +109,7 @@
     <string name="settings_categories">カテゴリー</string>
     <string name="settings_purity">区分</string>
     <string name="settings_sorting">並び替え</string>
+    <string name="settings_top_range">期間</string>
     <string name="settings_orientation">向き</string>
     <string name="rate_app_title">WallKraftを評価</string>
 
