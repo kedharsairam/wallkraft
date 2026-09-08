@@ -161,11 +161,20 @@
     <string name="rename">नाम बदलें</string>
     <string name="done">हो गया</string>
     <string name="add_to_collection">संग्रह में जोड़ें</string>
+    <string name="collection_options">संग्रह विकल्प</string>
     <string name="delete_collection_title">%1$s हटाएँ?</string>
     <string name="delete_collection_message">वॉलपेपर पसंदीदा में रहेंगे।</string>
+    <string name="clear_filter">फ़िल्टर साफ़ करें</string>
+    <string name="collection_name_exists">इस नाम का संग्रह पहले से मौजूद है</string>
+    <string name="undo">पूर्ववत करें</string>
+    <string name="collection_deleted">संग्रह हटा दिया गया</string>
     <plurals name="collection_item_count">
         <item quantity="one">%d आइटम</item>
         <item quantity="other">%d आइटम</item>
+    </plurals>
+    <plurals name="favorites_removed_from_collections">
+        <item quantity="one">इसे %d संग्रह से भी हटाया गया।</item>
+        <item quantity="other">इन्हें %d संग्रहों से भी हटाया गया।</item>
     </plurals>
 
     <!-- Detail -->
@@ -190,6 +199,12 @@
     <string name="rotation_schedule">अनुसूची</string>
     <string name="rotation_off">बंद</string>
     <string name="rotation_daily">रोज़</string>
+    <string name="rotation_hourly">हर घंटे</string>
+    <string name="rotation_timing_hourly">हर घंटे की शुरुआत में</string>
+    <string name="rotation_timing_daily">लगभग आधी रात को</string>
+    <string name="rotation_timing_weekly">सोमवार सुबह</string>
+    <string name="welcome_rotation_title">शेड्यूल पर ताज़ा वॉलपेपर</string>
+    <string name="welcome_rotation_body">रोज़ाना आधी रात के आसपास बदलेगा — हर घंटे की शुरुआत में। पहला बदलाव अगली सीमा पर होगा, और बैटरी बचाने के लिए समय कुछ मिनट आगे-पीछे हो सकता है।</string>
     <string name="rotation_weekly">साप्ताहिक</string>
     <string name="rotation_style">शैली</string>
     <string name="rotation_showcase">शोकेस</string>
@@ -199,6 +214,8 @@
     <string name="rotation_source">कहाँ से घुमाएँ</string>
     <string name="rotation_all_favorites">सभी पसंदीदा</string>
     <string name="rotation_now">अभी घुमाएँ</string>
+    <string name="rotation_applied">लागू</string>
+    <string name="rotation_failed">वॉलपेपर बदला नहीं जा सका</string>
     <string name="rotation_started">अगला वॉलपेपर लग रहा…</string>
     <string name="wallpaper_applying">वॉलपेपर लग रहा…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>

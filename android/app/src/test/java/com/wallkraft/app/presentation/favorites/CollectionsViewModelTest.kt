@@ -87,6 +87,51 @@ class CollectionsViewModelTest {
         job.cancel()
     }
 
+    @Test
+    fun `rename duplicate reports false and keeps old name`() = runTest(dispatcher) {
+        val vm = CollectionsViewModel(FakeCollectionsRepository())
+        val job = backgroundScope.launch { vm.collections.collect {} }
+        advanceUntilIdle()
+
+        var a = -1L
+        var b = -1L
+        vm.create("Beach") { a = it }
+        vm.create("Dunes") { b = it }
+        advanceUntilIdle()
+        assertEquals(1L, a)
+        assertEquals(2L, b)
+
+        var ok = true
+        vm.rename(b, "beach") { ok = it }
+        advanceUntilIdle()
+
+        assertEquals(false, ok)
+        assertEquals(
+            listOf("Beach", "Dunes"),
+            vm.collections.value.map { it.collection.name }.sorted(),
+        )
+        job.cancel()
+    }
+
+    @Test
+    fun `rename success reports true`() = runTest(dispatcher) {
+        val vm = CollectionsViewModel(FakeCollectionsRepository())
+        val job = backgroundScope.launch { vm.collections.collect {} }
+        advanceUntilIdle()
+
+        var id = -1L
+        vm.create("Beach") { id = it }
+        advanceUntilIdle()
+
+        var ok = false
+        vm.rename(id, "Coast") { ok = it }
+        advanceUntilIdle()
+
+        assertEquals(true, ok)
+        assertEquals(listOf("Coast"), vm.collections.value.map { it.collection.name })
+        job.cancel()
+    }
+
     private class FakeCollectionsRepository : CollectionsRepository {
         private val collections = mutableMapOf<Long, String>()
         private val items = mutableSetOf<CollectionItemEntity>()
@@ -107,18 +152,22 @@ class CollectionsViewModelTest {
         override suspend fun create(name: String): Long {
             val cleaned = name.trim()
             if (cleaned.isEmpty()) return -1
-            collections.entries.firstOrNull { it.value == cleaned }?.let { return it.key }
+            collections.entries.firstOrNull { it.value.equals(cleaned, ignoreCase = true) }?.let { return it.key }
             val id = nextId++
             collections[id] = cleaned
             emit()
             return id
         }
 
-        override suspend fun rename(id: Long, name: String) {
-            if (name.trim().isNotEmpty()) {
-                collections[id] = name.trim()
-                emit()
+        override suspend fun rename(id: Long, name: String): Boolean {
+            val cleaned = name.trim()
+            if (cleaned.isEmpty()) return true
+            if (collections.any { (otherId, otherName) -> otherId != id && otherName.equals(cleaned, ignoreCase = true) }) {
+                return false
             }
+            collections[id] = cleaned
+            emit()
+            return true
         }
 
         override suspend fun delete(id: Long) {

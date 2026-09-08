@@ -155,10 +155,18 @@
     <string name="rename">名前を変更</string>
     <string name="done">完了</string>
     <string name="add_to_collection">コレクションに追加</string>
+    <string name="collection_options">コレクションのオプション</string>
     <string name="delete_collection_title">%1$sを削除しますか?</string>
     <string name="delete_collection_message">壁紙はお気に入りに残ります。</string>
+    <string name="clear_filter">フィルターをクリア</string>
+    <string name="collection_name_exists">その名前のコレクションは既に存在します</string>
+    <string name="undo">元に戻す</string>
+    <string name="collection_deleted">コレクションを削除しました</string>
     <plurals name="collection_item_count">
         <item quantity="other">%d件</item>
+    </plurals>
+    <plurals name="favorites_removed_from_collections">
+        <item quantity="other">%d個のコレクションからも削除しました。</item>
     </plurals>
 
     <!-- Detail -->
@@ -183,6 +191,12 @@
     <string name="rotation_schedule">頻度</string>
     <string name="rotation_off">オフ</string>
     <string name="rotation_daily">毎日</string>
+    <string name="rotation_hourly">毎時</string>
+    <string name="rotation_timing_hourly">毎時ちょうどに</string>
+    <string name="rotation_timing_daily">深夜0時ごろ</string>
+    <string name="rotation_timing_weekly">月曜の朝</string>
+    <string name="welcome_rotation_title">スケジュール通りに新しい壁紙を</string>
+    <string name="welcome_rotation_body">デイリーは深夜0時ごろ、毎時はちょうどに切り替わります。最初の切り替えは次の区切りで、バッテリー節約のため数分ずれることがあります。</string>
     <string name="rotation_weekly">毎週</string>
     <string name="rotation_style">スタイル</string>
     <string name="rotation_showcase">ショーケース</string>
@@ -192,6 +206,8 @@
     <string name="rotation_source">取得元</string>
     <string name="rotation_all_favorites">すべてのお気に入り</string>
     <string name="rotation_now">今すぐ変更</string>
+    <string name="rotation_applied">適用しました</string>
+    <string name="rotation_failed">壁紙を切り替えられませんでした</string>
     <string name="rotation_started">次の壁紙を適用中…</string>
     <string name="wallpaper_applying">壁紙を設定中…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>

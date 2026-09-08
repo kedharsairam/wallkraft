@@ -109,6 +109,14 @@ object KraftSpacing {
     /** Top bar height. */
     val TopBarHeight = TouchTarget
 
+    /**
+     * End clearance above the floating glass tab capsule: pill (~66dp) +
+     * vertical margins (16dp) + gesture nav area (~38dp budget). Grids and
+     * the settings column reserve this at their END so the last items scroll
+     * clear of the pill — content still flows full-bleed behind it mid-scroll.
+     */
+    val GlassBarReserve = 120.dp
+
     /** Standard border width — 1dp hairline. */
     val BorderWidth = 1.dp
 

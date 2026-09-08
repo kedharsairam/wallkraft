@@ -28,11 +28,19 @@ class RotateWallpaperWorker(
 
     override suspend fun doWork(): Result {
         val container = (applicationContext as WallKraftApplication).container
-        // NOTE: no schedule-OFF early return. Periodic work only exists while
-        // a schedule is active (apply() cancels it when OFF), so reaching here
-        // means either a live schedule or an explicit Rotate-now tap — both
-        // must run.
+        // NOTE: no schedule-OFF early return for manual runs. Periodic work
+        // only exists while a schedule is active (apply() cancels it when
+        // OFF), so a manual run means an explicit Rotate-now tap — it must run.
+        // Chain links are different: the schedule may have been turned OFF
+        // while a link was pending, in which case terminate quietly. A live
+        // chain perpetuates FIRST so a crash mid-rotation never kills it.
         val settings = container.rotation.current()
+        if (inputData.getBoolean(RotationScheduler.KEY_CHAIN, false)) {
+            if (settings.schedule == com.wallkraft.app.domain.model.RotationSchedule.OFF) {
+                return Result.success()
+            }
+            RotationScheduler.chainNext(applicationContext, settings.schedule)
+        }
 
         val favorites = container.favoritesRepository.observeAll().first()
             .map { it.wallpaper }

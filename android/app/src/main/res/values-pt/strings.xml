@@ -161,11 +161,20 @@
     <string name="rename">Renomear</string>
     <string name="done">Pronto</string>
     <string name="add_to_collection">Adicionar à coleção</string>
+    <string name="collection_options">Opções da coleção</string>
     <string name="delete_collection_title">Excluir %1$s?</string>
     <string name="delete_collection_message">Os papéis de parede continuam nos favoritos.</string>
+    <string name="clear_filter">Limpar filtro</string>
+    <string name="collection_name_exists">Já existe uma coleção com esse nome</string>
+    <string name="undo">Desfazer</string>
+    <string name="collection_deleted">Coleção excluída</string>
     <plurals name="collection_item_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d itens</item>
+    </plurals>
+    <plurals name="favorites_removed_from_collections">
+        <item quantity="one">Também removido de %d coleção.</item>
+        <item quantity="other">Também removido de %d coleções.</item>
     </plurals>
 
     <!-- Detail -->
@@ -190,6 +199,12 @@
     <string name="rotation_schedule">Frequência</string>
     <string name="rotation_off">Desativada</string>
     <string name="rotation_daily">Diária</string>
+    <string name="rotation_hourly">De hora em hora</string>
+    <string name="rotation_timing_hourly">No início de cada hora</string>
+    <string name="rotation_timing_daily">Por volta da meia-noite</string>
+    <string name="rotation_timing_weekly">Segunda de manhã</string>
+    <string name="welcome_rotation_title">Papel de parede novo, na hora</string>
+    <string name="welcome_rotation_body">O diário atualiza por volta da meia-noite — o de hora em hora, no início de cada hora. A primeira troca acontece no próximo marco, e o horário pode variar alguns minutos para economizar bateria.</string>
     <string name="rotation_weekly">Semanal</string>
     <string name="rotation_style">Estilo</string>
     <string name="rotation_showcase">Vitrine</string>
@@ -199,6 +214,8 @@
     <string name="rotation_source">Rotacionar de</string>
     <string name="rotation_all_favorites">Todos os favoritos</string>
     <string name="rotation_now">Rotacionar agora</string>
+    <string name="rotation_applied">Aplicado</string>
+    <string name="rotation_failed">Não foi possível trocar o papel de parede</string>
     <string name="rotation_started">Aplicando o próximo papel de parede…</string>
     <string name="wallpaper_applying">Aplicando papel de parede…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>

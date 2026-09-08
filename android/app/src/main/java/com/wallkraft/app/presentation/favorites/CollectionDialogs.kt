@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.annotation.StringRes
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -204,6 +205,7 @@ fun RenameCollectionDialog(
     current: String,
     onDismiss: () -> Unit,
     onSave: (String) -> Unit,
+    @StringRes confirmLabel: Int = R.string.rename,
 ) {
     var text by remember(current) { mutableStateOf(current) }
     AlertDialog(
@@ -223,7 +225,7 @@ fun RenameCollectionDialog(
                 onClick = { onSave(text.trim()) },
                 enabled = text.trim().isNotEmpty(),
             ) {
-                Text(stringResource(R.string.rename))
+                Text(stringResource(confirmLabel))
             }
         },
         dismissButton = {

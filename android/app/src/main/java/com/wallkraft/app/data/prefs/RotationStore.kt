@@ -3,6 +3,7 @@ package com.wallkraft.app.data.prefs
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -47,6 +48,7 @@ class RotationStore(private val context: Context) {
         val TARGET = stringPreferencesKey("target")
         val SOURCE_COLLECTION = longPreferencesKey("source_collection")
         val LAST_INDEX = intPreferencesKey("last_index")
+        val TIMING_WELCOME_SEEN = booleanPreferencesKey("timing_welcome_seen")
     }
 
     val settings: Flow<RotationSettings> = context.rotationDataStore.data
@@ -92,5 +94,16 @@ class RotationStore(private val context: Context) {
 
     suspend fun setLastIndex(index: Int) {
         context.rotationDataStore.edit { it[Keys.LAST_INDEX] = index }
+    }
+
+    /** One-shot welcome card for boundary timing. False for fresh installs too. */
+    val timingWelcomeSeen: Flow<Boolean> = context.rotationDataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { prefs -> prefs[Keys.TIMING_WELCOME_SEEN] ?: false }
+
+    suspend fun markTimingWelcomeSeen() {
+        context.rotationDataStore.edit { it[Keys.TIMING_WELCOME_SEEN] = true }
     }
 }

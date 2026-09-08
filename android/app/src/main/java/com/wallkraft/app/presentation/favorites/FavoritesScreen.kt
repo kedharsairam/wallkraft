@@ -11,14 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,7 +94,7 @@ fun FavoritesScreen(
     )
     val collections by collectionsVm.collections.collectAsState()
     // Active collection filter; cleared automatically if deleted.
-    var activeCollectionId by remember { mutableStateOf<Long?>(null) }
+    var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(collections) {
         if (activeCollectionId != null &&
             collections.none { it.collection.id == activeCollectionId }
@@ -107,9 +111,11 @@ fun FavoritesScreen(
     val covers = remember(favorites) {
         favorites.associate { fav ->
             fav.wallpaper.id to (
-                fav.wallpaper.thumbs.large
-                    ?: fav.wallpaper.thumbs.original
+                // Card-sized: original (~300px) first, not large — the strip
+                // cards are small and large thumbs waste payload.
+                fav.wallpaper.thumbs.original
                     ?: fav.wallpaper.thumbs.small
+                    ?: fav.wallpaper.thumbs.large
                     ?: ""
                 )
         }
@@ -148,9 +154,11 @@ fun FavoritesScreen(
     LaunchedEffect(favorites) { refreshOfflineStatus() }
 
     fun startDownloadAll() {
+        // Acts on the visible list: under a collection filter only the
+        // filtered items download (matches the scoped header counts).
         scope.launch {
             val missed = withContext(Dispatchers.IO) {
-                repair.missing(favorites.map { it.wallpaper })
+                repair.missing(displayedFavorites.map { it.wallpaper })
             }
             if (missed.isEmpty()) return@launch
             repairProgress = 0 to missed.size
@@ -201,16 +209,18 @@ fun FavoritesScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Selection mode state — derived from selectedIds to prevent desync
-    var selectedIds by remember { mutableStateOf(emptySet<String>()) }
+    // Selection mode state — derived from selectedIds to prevent desync.
+    // Saveable: a wallpaper change relaunches the activity (dynamic-color
+    // overlay swap), and plain remember would vaporize selection/filter UI.
+    var selectedIds by rememberSaveable { mutableStateOf(emptySet<String>()) }
     val selectionMode = selectedIds.isNotEmpty()
     var pendingRemove by remember { mutableStateOf<List<Wallpaper>?>(null) }
     // Collection dialogs.
-    var showPicker by remember { mutableStateOf(false) }
-    var showCreateDialog by remember { mutableStateOf(false) }
-    var menuCollectionId by remember { mutableStateOf<Long?>(null) }
-    var renameCollectionId by remember { mutableStateOf<Long?>(null) }
-    var deleteCollectionId by remember { mutableStateOf<Long?>(null) }
+    var showPicker by rememberSaveable { mutableStateOf(false) }
+    var showCreateDialog by rememberSaveable { mutableStateOf(false) }
+    var menuCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var renameCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var deleteCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
 
     // Sync shared top bar state (lives outside SharedTransitionLayout).
     // Select-all operates on the visible (possibly collection-filtered) list.
@@ -219,6 +229,7 @@ fun FavoritesScreen(
     topBarState.selectionMode = selectionMode
     topBarState.selectedCount = selectedIds.size
     topBarState.totalFavorites = favorites.size
+    topBarState.allVisibleSelected = allSelected
     topBarState.onCancelSelection = { selectedIds = emptySet() }
     topBarState.onToggleSelectAll = {
         selectedIds = if (allSelected) {
@@ -253,7 +264,10 @@ fun FavoritesScreen(
                     .padding(innerPadding),
             )
         } else {
-            val missingCount = favorites.size - offlineIds.size
+            // Offline/header counts follow the VISIBLE list: under a
+            // collection filter the header and Download-all act on what the
+            // user sees, not the global library.
+            val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
             Column(modifier = Modifier.padding(innerPadding)) {
                 CollectionStrip(
                     collections = collections,
@@ -261,16 +275,34 @@ fun FavoritesScreen(
                     activeId = activeCollectionId,
                     onSelect = { activeCollectionId = it },
                     onNew = { showCreateDialog = true },
-                    onLongPress = { menuCollectionId = it },
+                    onMenu = { menuCollectionId = it },
                     modifier = Modifier.padding(
                         top = KraftSpacing.Spacing12,
                         bottom = KraftSpacing.Spacing8,
                     ),
                 )
+                // Divider between the collections zone and the images below —
+                // same outline style as the search-bar separator, inset 16dp
+                // to line up with the strip title/cards (not edge-to-edge).
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
+                )
                 // Offline status header: hidden in selection mode and when
-                // everything is saved. Shows progress while downloading.
+                // everything visible is saved. Shows progress while downloading.
+                // An active filter with nothing displayable gets an empty state
+                // (with a way out) instead of a dead blank grid.
                 val progress = repairProgress
-                if (!selectionMode && (missingCount > 0 || progress != null)) {
+                if (displayedFavorites.isEmpty()) {
+                    EmptyState(
+                        title = stringResource(R.string.no_results_title),
+                        message = stringResource(R.string.no_results_hint_filters),
+                        icon = Icons.Outlined.FilterAlt,
+                        actionLabel = stringResource(R.string.clear_filter),
+                        onAction = { activeCollectionId = null },
+                        modifier = Modifier.weight(1f),
+                    )
+                } else if (!selectionMode && (visibleMissing > 0 || progress != null)) {
                     if (progress != null) {
                         val (done, total) = progress
                         Row(
@@ -302,13 +334,13 @@ fun FavoritesScreen(
                                     vertical = KraftSpacing.Spacing8,
                                 ),
                         ) {
-                            val saved = favorites.size - missingCount
+                            val visibleSaved = displayedFavorites.size - visibleMissing
                             Text(
                                 text = pluralStringResource(
                                     R.plurals.favorites_offline_summary,
-                                    saved,
-                                    saved,
-                                    favorites.size,
+                                    visibleSaved,
+                                    visibleSaved,
+                                    displayedFavorites.size,
                                 ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -393,10 +425,27 @@ fun FavoritesScreen(
                 TextButton(
                     onClick = {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        wallpapersToRemove.forEach { viewModel.remove(it.id) }
                         val removedIds = wallpapersToRemove.mapTo(mutableSetOf()) { it.id }
+                        // Unfavoriting cascades: membership rows vanish with the
+                        // favorite. Count affected collections BEFORE removal so
+                        // the user is told — never a silent strip.
+                        val stripped = collections.count { entry ->
+                            entry.items.any { it.wallpaperId in removedIds }
+                        }
+                        wallpapersToRemove.forEach { viewModel.remove(it.id) }
                         selectedIds = selectedIds - removedIds
                         pendingRemove = null
+                        if (stripped > 0) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.resources.getQuantityString(
+                                        R.plurals.favorites_removed_from_collections,
+                                        stripped,
+                                        stripped,
+                                    ),
+                                )
+                            }
+                        }
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.error,
@@ -424,7 +473,14 @@ fun FavoritesScreen(
                     collectionsVm.setMember(collectionId, wallpaperId, member)
                 }
             },
-            onCreate = { name -> collectionsVm.create(name) },
+            // Creating from the picker checks the new collection for the
+            // current selection right away — no create-then-hunt.
+            onCreate = { name ->
+                val targets = selectedIds.toList()
+                collectionsVm.create(name) { id ->
+                    if (id > 0) targets.forEach { collectionsVm.setMember(id, it, true) }
+                }
+            },
             onDismiss = { showPicker = false },
         )
     }
@@ -439,6 +495,7 @@ fun FavoritesScreen(
                 collectionsVm.create(name)
                 showCreateDialog = false
             },
+            confirmLabel = R.string.create,
         )
     }
 
@@ -471,8 +528,19 @@ fun FavoritesScreen(
             current = renameEntry.collection.name,
             onDismiss = { renameCollectionId = null },
             onSave = { name ->
-                collectionsVm.rename(renameEntry.collection.id, name)
-                renameCollectionId = null
+                // Duplicate names stay open with a notice instead of
+                // closing silently (or crashing, as before).
+                collectionsVm.rename(renameEntry.collection.id, name) { ok ->
+                    if (ok) {
+                        renameCollectionId = null
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                context.getString(R.string.collection_name_exists),
+                            )
+                        }
+                    }
+                }
             },
         )
     }
@@ -486,8 +554,23 @@ fun FavoritesScreen(
             name = deleteEntry.collection.name,
             onDismiss = { deleteCollectionId = null },
             onConfirm = {
+                // Snapshot members first: delete cascades the rows away.
+                val restoreName = deleteEntry.collection.name
+                val restoreMembers = deleteEntry.items.map { it.wallpaperId }
                 collectionsVm.delete(deleteEntry.collection.id)
+                // Leaving an active filter on a deleted collection shows a
+                // dead empty grid — drop back to All immediately.
+                if (activeCollectionId == deleteEntry.collection.id) activeCollectionId = null
                 deleteCollectionId = null
+                scope.launch {
+                    val result = snackbarHostState.showSnackbar(
+                        message = context.getString(R.string.collection_deleted),
+                        actionLabel = context.getString(R.string.undo),
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        collectionsVm.restore(restoreName, restoreMembers)
+                    }
+                }
             },
         )
     }

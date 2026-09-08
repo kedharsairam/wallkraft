@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.favorites
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,9 +14,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -52,7 +55,7 @@ fun CollectionStrip(
     activeId: Long?,
     onSelect: (Long?) -> Unit,
     onNew: () -> Unit,
-    onLongPress: (Long) -> Unit,
+    onMenu: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -109,7 +112,7 @@ fun CollectionStrip(
                         .width(KraftSpacing.CollectionCardSize)
                         .combinedClickable(
                             onClick = { onSelect(if (active) null else entry.collection.id) },
-                            onLongClick = { onLongPress(entry.collection.id) },
+                            onLongClick = { onMenu(entry.collection.id) },
                         ),
                 ) {
                     Box(
@@ -131,6 +134,25 @@ fun CollectionStrip(
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.matchParentSize(),
                         )
+                        // Overflow affordance: long-press is undiscoverable on
+                        // its own. Inner taps win over the parent card tap.
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(KraftSpacing.Spacing4)
+                                .size(28.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.45f))
+                                .clickable { onMenu(entry.collection.id) },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.collection_options),
+                                tint = Color.White,
+                                modifier = Modifier.size(KraftIconSize.Small),
+                            )
+                        }
                     }
                     Text(
                         text = entry.collection.name,
