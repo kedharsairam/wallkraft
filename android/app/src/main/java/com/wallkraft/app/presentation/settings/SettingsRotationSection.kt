@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,15 +19,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +80,8 @@ fun SettingsRotationSection(
     onTarget: (RotationTarget) -> Unit,
     onSource: (Long?) -> Unit,
     onRotateNow: () -> Unit,
+    rotateWorking: Boolean = false,
+    rotateDone: Boolean = false,
 ) {
     val haptic = LocalHapticFeedback.current
     var showSource by remember { mutableStateOf(false) }
@@ -82,7 +89,11 @@ fun SettingsRotationSection(
         ?.collection?.name ?: stringResource(R.string.rotation_all_favorites)
 
     SettingsGroup(title = stringResource(R.string.rotation_title)) {
-        var expanded by remember { mutableStateOf(false) }
+        // Saveable (not plain remember): setting the wallpaper regenerates
+        // the system's dynamic-color overlays, which relaunches MainActivity
+        // seconds later. Plain remember would reset and the panel would
+        // "collapse on its own" — saveable survives the relaunch.
+        var expanded by rememberSaveable { mutableStateOf(false) }
         val scheduleLabel = rotationScheduleOptions().firstOrNull { it.first == settings.schedule }?.second.orEmpty()
         val modeLabel = rotationModeOptions().firstOrNull { it.first == settings.mode }?.second.orEmpty()
         val targetLabel = rotationTargetOptions().firstOrNull { it.first == settings.target }?.second.orEmpty()
@@ -141,6 +152,22 @@ fun SettingsRotationSection(
                     colors = chipColors(),
                 )
             }
+        }
+        // One-line timing caption: the always-there reminder for skippers of
+        // the welcome card and anyone changing schedules later. No slabs.
+        val timingCaption = when (settings.schedule) {
+            RotationSchedule.HOURLY -> stringResource(R.string.rotation_timing_hourly)
+            RotationSchedule.DAILY -> stringResource(R.string.rotation_timing_daily)
+            RotationSchedule.WEEKLY -> stringResource(R.string.rotation_timing_weekly)
+            RotationSchedule.OFF -> null
+        }
+        if (timingCaption != null) {
+            Text(
+                text = timingCaption,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = KraftSpacing.Spacing4),
+            )
         }
         HorizontalDivider(
             modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
@@ -221,17 +248,42 @@ fun SettingsRotationSection(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Button(
-            onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onRotateNow()
-            },
+        // Compact and centered: a secondary action shouldn't shout full-width.
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(KraftSpacing.TouchTarget)
                 .padding(top = KraftSpacing.Spacing4),
         ) {
-            Text(stringResource(R.string.rotation_now))
+            Button(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onRotateNow()
+                },
+                // Disabled while a run is in flight: one tap, one run, and the
+                // spinner itself is the "working" confirmation.
+                enabled = !rotateWorking,
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(KraftSpacing.TouchTarget),
+            ) {
+                when {
+                    rotateDone -> {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(KraftIconSize.Small),
+                        )
+                        Spacer(Modifier.width(KraftSpacing.Spacing8))
+                        Text(stringResource(R.string.rotation_applied))
+                    }
+                    rotateWorking -> CircularProgressIndicator(
+                        modifier = Modifier.size(KraftIconSize.Small),
+                        strokeWidth = 2.dp,
+                    )
+                    else -> Text(stringResource(R.string.rotation_now))
+                }
+            }
         }
             }
         }
@@ -277,6 +329,7 @@ fun SettingsRotationSection(
 @Composable
 private fun rotationScheduleOptions(): List<Pair<RotationSchedule, String>> = listOf(
     RotationSchedule.OFF to stringResource(R.string.rotation_off),
+    RotationSchedule.HOURLY to stringResource(R.string.rotation_hourly),
     RotationSchedule.DAILY to stringResource(R.string.rotation_daily),
     RotationSchedule.WEEKLY to stringResource(R.string.rotation_weekly),
 )

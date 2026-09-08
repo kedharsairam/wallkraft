@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -39,15 +40,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.work.WorkInfo
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.data.prefs.RotationSettings
 import com.wallkraft.app.data.rotation.RotationScheduler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.UUID
 
 /**
  * Settings screen assembly.
@@ -112,7 +116,43 @@ fun SettingsScreen(
     val cacheClearedMsg = stringResource(R.string.cache_cleared)
     val apiSavedMsg = stringResource(R.string.api_key_saved)
     val noCrashLogsMsg = stringResource(R.string.no_crash_logs)
-    val rotationStartedMsg = stringResource(R.string.rotation_started)
+    val rotationFailedMsg = stringResource(R.string.rotation_failed)
+
+    // Rotate-now result tracking: the tap enqueues one-time work (seconds of
+    // render + set), so the button spins until the run reports back — same
+    // language as set-wallpaper (spinner → check + tick, snackbar only on
+    // failure). Survives the wallpaper-change activity relaunch.
+    var rotateRequestId by rememberSaveable { mutableStateOf<String?>(null) }
+    var rotateSucceeded by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(rotateRequestId) {
+        val idString = rotateRequestId ?: return@LaunchedEffect
+        val id = runCatching { UUID.fromString(idString) }.getOrNull()
+        if (id == null) {
+            rotateRequestId = null
+            return@LaunchedEffect
+        }
+        var handled = false
+        RotationScheduler.observeRotateNow(context).collect { infos ->
+            if (handled) return@collect
+            val state = infos.firstOrNull { it.id == id }?.state ?: return@collect
+            when (state) {
+                WorkInfo.State.SUCCEEDED -> {
+                    handled = true
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    rotateSucceeded = true
+                    delay(1500)
+                    rotateSucceeded = false
+                    rotateRequestId = null
+                }
+                WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
+                    handled = true
+                    snackbarHostState.showSnackbar(rotationFailedMsg)
+                    rotateRequestId = null
+                }
+                else -> Unit // ENQUEUED / RUNNING / BLOCKED: spinner keeps spinning.
+            }
+        }
+    }
 
     // Rotation settings + collections for the source picker.
     val rotation by container.rotation.settings.collectAsState(initial = RotationSettings())
@@ -131,8 +171,7 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 // 8dp to match the Browse/Fav grid edges.
-                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing16)
-                .padding(bottom = navBarPadding),
+                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing16),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing24),
         ) {
             SettingsBrowsingSection(
@@ -147,6 +186,8 @@ fun SettingsScreen(
             SettingsRotationSection(
                 settings = rotation,
                 collections = rotationCollections,
+                rotateWorking = rotateRequestId != null,
+                rotateDone = rotateSucceeded,
                 onSchedule = { schedule ->
                     scope.launch {
                         container.rotation.setSchedule(schedule)
@@ -163,8 +204,9 @@ fun SettingsScreen(
                     scope.launch { container.rotation.setSourceCollection(id) }
                 },
                 onRotateNow = {
-                    RotationScheduler.rotateNow(context)
-                    scope.launch { snackbarHostState.showSnackbar(rotationStartedMsg) }
+                    if (rotateRequestId == null) {
+                        rotateRequestId = RotationScheduler.rotateNow(context).toString()
+                    }
                 },
             )
 
@@ -209,6 +251,11 @@ fun SettingsScreen(
                     }
                 },
             )
+            // End clearance INSIDE the scroll (not column padding, which
+            // would shrink the viewport and strand the pill over void): the
+            // About card scrolls clear of the floating pill, content still
+            // flows behind it mid-scroll.
+            Spacer(Modifier.height(KraftSpacing.GlassBarReserve))
         }
     }
 

@@ -161,11 +161,20 @@
     <string name="rename">Renombrar</string>
     <string name="done">Listo</string>
     <string name="add_to_collection">Añadir a colección</string>
+    <string name="collection_options">Opciones de la colección</string>
     <string name="delete_collection_title">¿Eliminar %1$s?</string>
     <string name="delete_collection_message">Los fondos permanecen en tus favoritos.</string>
+    <string name="clear_filter">Borrar filtro</string>
+    <string name="collection_name_exists">Ya existe una colección con ese nombre</string>
+    <string name="undo">Deshacer</string>
+    <string name="collection_deleted">Colección eliminada</string>
     <plurals name="collection_item_count">
         <item quantity="one">%d elemento</item>
         <item quantity="other">%d elementos</item>
+    </plurals>
+    <plurals name="favorites_removed_from_collections">
+        <item quantity="one">También se quitó de %d colección.</item>
+        <item quantity="other">También se quitó de %d colecciones.</item>
     </plurals>
 
     <!-- Detail -->
@@ -190,6 +199,12 @@
     <string name="rotation_schedule">Frecuencia</string>
     <string name="rotation_off">Desactivada</string>
     <string name="rotation_daily">Diaria</string>
+    <string name="rotation_hourly">Cada hora</string>
+    <string name="rotation_timing_hourly">Al inicio de cada hora</string>
+    <string name="rotation_timing_daily">Alrededor de la medianoche</string>
+    <string name="rotation_timing_weekly">Los lunes por la mañana</string>
+    <string name="welcome_rotation_title">Fondo fresco, a su hora</string>
+    <string name="welcome_rotation_body">El fondo diario se actualiza alrededor de la medianoche; el horario, al inicio de cada hora. El primer cambio llega en el siguiente límite y la hora puede variar unos minutos para ahorrar batería.</string>
     <string name="rotation_weekly">Semanal</string>
     <string name="rotation_style">Estilo</string>
     <string name="rotation_showcase">Galería</string>
@@ -199,6 +214,8 @@
     <string name="rotation_source">Rotar desde</string>
     <string name="rotation_all_favorites">Todos los favoritos</string>
     <string name="rotation_now">Rotar ahora</string>
+    <string name="rotation_applied">Aplicado</string>
+    <string name="rotation_failed">No se pudo rotar el fondo</string>
     <string name="rotation_started">Aplicando el siguiente fondo…</string>
     <string name="wallpaper_applying">Aplicando fondo…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>

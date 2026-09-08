@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CollectionDao {
     @Transaction
-    @Query("SELECT * FROM collections ORDER BY createdAt DESC")
+    @Query("SELECT * FROM collections ORDER BY createdAt DESC, id DESC")
     fun observeAll(): Flow<List<CollectionWithItems>>
 
     /** Inserts, ignoring duplicates by name. Returns row id, or -1 if it exists. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCollection(collection: CollectionEntity): Long
 
-    @Query("SELECT id FROM collections WHERE name = :name LIMIT 1")
+    /** Case-insensitive lookup, so "Beach" and "beach" resolve to one row. */
+    @Query("SELECT id FROM collections WHERE name = :name COLLATE NOCASE LIMIT 1")
     suspend fun findIdByName(name: String): Long?
 
     @Query("UPDATE collections SET name = :name WHERE id = :id")

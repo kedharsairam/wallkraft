@@ -40,7 +40,7 @@ class CollectionsRepositoryTest {
         }
 
         override suspend fun findIdByName(name: String): Long? =
-            collections.entries.firstOrNull { it.value.name == name }?.key
+            collections.entries.firstOrNull { it.value.name.equals(name, ignoreCase = true) }?.key
 
         override suspend fun rename(id: Long, name: String) {
             collections[id]?.let {
@@ -88,10 +88,27 @@ class CollectionsRepositoryTest {
         val dao = FakeDao()
         val repo = CollectionsRepositoryImpl(dao)
         val id = repo.create("Beach")
-        repo.rename(id, "   ")
+        assertTrue(repo.rename(id, "   "))
         assertEquals("Beach", dao.collections[id]!!.name)
-        repo.rename(id, "Coast")
+        assertTrue(repo.rename(id, "Coast"))
         assertEquals("Coast", dao.collections[id]!!.name)
+    }
+
+    @Test
+    fun rename_duplicate_returns_false_and_keeps_name() = runTest {
+        val dao = FakeDao()
+        val repo = CollectionsRepositoryImpl(dao)
+        repo.create("Beach")
+        val other = repo.create("Dunes")
+        assertEquals(false, repo.rename(other, "BEACH"))
+        assertEquals("Dunes", dao.collections[other]!!.name)
+    }
+
+    @Test
+    fun create_case_variant_resolves_existing() = runTest {
+        val repo = CollectionsRepositoryImpl(FakeDao())
+        val first = repo.create("Beach")
+        assertEquals(first, repo.create("beach"))
     }
 
     @Test

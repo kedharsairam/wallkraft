@@ -114,10 +114,14 @@ fun WallpaperGrid(
         contentPadding = PaddingValues(
             // 8dp edges = 8dp tile gaps: edge-to-edge rhythm like Photos.
             // (Was 16dp ScreenEdge — read as wasted frame on dark.)
+            // Bottom reserves the glass pill INSIDE the scrollable area:
+            // content flows behind the pill mid-scroll, and the last row
+            // still clears it at full scroll. (Modifier padding would shrink
+            // the viewport and strand the pill over void.)
             start = KraftSpacing.Spacing8,
             end = KraftSpacing.Spacing8,
             top = KraftSpacing.Spacing8,
-            bottom = KraftSpacing.Spacing8,
+            bottom = KraftSpacing.GlassBarReserve,
         ),
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalItemSpacing = KraftSpacing.Spacing8,

@@ -3,9 +3,10 @@ package com.wallkraft.app.domain.model
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-/** Wallpaper rotation schedule. */
+/** Wallpaper rotation schedule. Hourly/daily/weekly snap to clock boundaries (top of hour, midnight, Monday midnight); OFF cancels. */
 enum class RotationSchedule {
     OFF,
+    HOURLY,
     DAILY,
     WEEKLY,
 }

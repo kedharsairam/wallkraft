@@ -166,11 +166,20 @@
     <string name="rename">Rename</string>
     <string name="done">Done</string>
     <string name="add_to_collection">Add to collection</string>
+    <string name="collection_options">Collection options</string>
     <string name="delete_collection_title">Delete %1$s?</string>
     <string name="delete_collection_message">Wallpapers stay in your favorites.</string>
+    <string name="clear_filter">Clear filter</string>
+    <string name="collection_name_exists">A collection with this name already exists</string>
+    <string name="undo">Undo</string>
+    <string name="collection_deleted">Collection deleted</string>
     <plurals name="collection_item_count">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="favorites_removed_from_collections">
+        <item quantity="one">Also removed from %d collection.</item>
+        <item quantity="other">Also removed from %d collections.</item>
     </plurals>
 
     <!-- Detail -->
@@ -195,6 +204,12 @@
     <string name="rotation_schedule">Schedule</string>
     <string name="rotation_off">Off</string>
     <string name="rotation_daily">Daily</string>
+    <string name="rotation_hourly">Hourly</string>
+    <string name="rotation_timing_hourly">At the top of every hour</string>
+    <string name="rotation_timing_daily">Around midnight</string>
+    <string name="rotation_timing_weekly">Monday mornings</string>
+    <string name="welcome_rotation_title">Fresh wallpaper, on schedule</string>
+    <string name="welcome_rotation_body">Daily refreshes around midnight — hourly, at the top of each hour. Your first change lands on the next boundary, and timing may shift a few minutes to save battery.</string>
     <string name="rotation_weekly">Weekly</string>
     <string name="rotation_style">Style</string>
     <string name="rotation_showcase">Showcase</string>
@@ -204,6 +219,8 @@
     <string name="rotation_source">Rotate from</string>
     <string name="rotation_all_favorites">All favorites</string>
     <string name="rotation_now">Rotate now</string>
+    <string name="rotation_applied">Applied</string>
+    <string name="rotation_failed">Couldn\'t rotate the wallpaper</string>
     <string name="rotation_started">Applying next wallpaper…</string>
     <string name="wallpaper_applying">Setting wallpaper…</string>
     <string name="download_notification_title">WallKraft — %1$s</string>

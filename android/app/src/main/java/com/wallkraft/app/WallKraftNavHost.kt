@@ -6,10 +6,14 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +30,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Favorite
@@ -45,11 +51,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
@@ -58,6 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -68,16 +83,21 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftIconSize
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.browse.BrowseSearchState
+import com.wallkraft.app.presentation.components.RotationTimingWelcome
 import com.wallkraft.app.presentation.components.SearchFilterBar
+import com.wallkraft.app.presentation.components.glass.GlassBox
+import com.wallkraft.app.presentation.components.glass.GlassContainer
 import com.wallkraft.app.presentation.detail.DetailScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
 import com.wallkraft.app.presentation.favorites.FavoritesTopBarState
 import com.wallkraft.app.presentation.settings.SettingsScreen
+import kotlinx.coroutines.launch
 
 object Routes {
     const val BROWSE = "browse?query={query}&title={title}"
@@ -136,6 +156,16 @@ fun WallKraftNavHost(container: AppContainer) {
         .calculateTopPadding() + KraftSpacing.Spacing8 +
         KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + 1.dp
 
+    // One-shot timing welcome: fresh installs and upgraders alike learn the
+    // boundary behavior once. Initial true = never flash before load.
+    val timingSeen by container.rotation.timingWelcomeSeen.collectAsState(initial = true)
+    val hostScope = rememberCoroutineScope()
+    if (!timingSeen) {
+        RotationTimingWelcome(
+            onDone = { hostScope.launch { container.rotation.markTimingWelcomeSeen() } },
+        )
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -191,8 +221,6 @@ fun WallKraftNavHost(container: AppContainer) {
                                     exit = fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
                                 ) {
                                     Row {
-                                        val allSelected = favoritesTopBarState.totalFavorites > 0 &&
-                                            favoritesTopBarState.selectedCount == favoritesTopBarState.totalFavorites
                                         val haptic = LocalHapticFeedback.current
                                         TextButton(
                                             onClick = {
@@ -202,7 +230,9 @@ fun WallKraftNavHost(container: AppContainer) {
                                         ) {
                                             Text(
                                                 stringResource(
-                                                    if (allSelected) R.string.deselect_all else R.string.select_all,
+                                                    // Visible list, not the global total: under a
+                                                    // collection filter these can disagree.
+                                                    if (favoritesTopBarState.allVisibleSelected) R.string.deselect_all else R.string.select_all,
                                                 ),
                                             )
                                         }
@@ -253,55 +283,26 @@ fun WallKraftNavHost(container: AppContainer) {
             }
         },
         bottomBar = {
-            if (!isDetail) {
-                // ── Tab Bar ───────────────────────────────────────────
-                // Solid surface background, thin top separator, no indicator pill.
-                // Icons: 25dp, labels: 10sp, active = primary, inactive = #8E8E93.
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline,
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                            .navigationBarsPadding(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                    tabs.forEach { tab ->
-                        val selected =
-                            currentDestination?.hierarchy?.any {
-                                if (tab.route == Routes.BROWSE) it.route?.startsWith("browse") == true
-                                else it.route == tab.route
-                            } == true
-                        HigTabItem(
-                            tab = tab,
-                            selected = selected,
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                val route = if (tab.route == Routes.BROWSE) Routes.browse() else tab.route
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                }
-                            },
-                        )
-                    }
-                    }
-                }
-            }
+            // Empty: the floating glass capsule below overlays full-bleed
+            // content instead of reserving a slab. innerPadding.bottom drops
+            // to zero, so grids flow behind the pill (blurred through it).
         },
     ) { innerPadding ->
         // Full-screen on every screen — never padded here, so this layout
         // never shifts. Each tab screen reserves the topInset space inside
         // its own inner Scaffold; Detail reserves nothing (full-bleed).
-        SharedTransitionLayout(
+        // NOTE: innerPadding is deliberately NOT applied here. Scaffold lays
+        // content full-area behind the bars; each tab screen already offsets
+        // itself by topInset internally. Applying it here double-offsets and
+        // opens a bar-height black band under the top bar. (navBarPadding
+        // below still reads the bottom inset, now zero with no bottom slot.)
+        GlassContainer(
             modifier = Modifier.fillMaxSize(),
-        ) {
-            NavHost(
+            content = {
+                SharedTransitionLayout(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    NavHost(
                 navController = navController,
                 startDestination = Routes.BROWSE,
                 modifier = Modifier.fillMaxSize(),
@@ -393,16 +394,99 @@ fun WallKraftNavHost(container: AppContainer) {
                     )
                 }
             }
+            }
+            },
+            // Hidden on Detail. The AGSL shader renders strong frost, gentle
+            // lens character, rim light and shadow from the live content —
+            // the dramatic glass look, confined to the pill.
+            glassContent = {
+                if (!isDetail) {
+                    GlassBox(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(vertical = KraftSpacing.Spacing8)
+                            .padding(horizontal = KraftSpacing.Spacing16)
+                            .fillMaxWidth(),
+                        // Strong character, pill-confined: heavy frost plus
+                        // visible lens life — the drama belongs INSIDE the
+                        // capsule (sizing stays wrap, never fullscreen).
+                        blur = 0.9f,
+                        scale = 0.18f,
+                        centerDistortion = 0.15f,
+                        shape = RoundedCornerShape(KraftRadius.Pill),
+                        elevation = 8.dp,
+                        tint = Color.Transparent,
+                        darkness = 0.10f,
+                        warpEdges = 0.4f,
+                    ) {
+                        GlassTabBar(
+                            tabs = tabs,
+                            currentDestination = currentDestination,
+                            onTabClick = { tab ->
+                                val route = if (tab.route == Routes.BROWSE) Routes.browse() else tab.route
+                                navController.navigate(route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                }
+                            },
+                        )
+                    }
+                }
+            },
+        )
+    }
+}
+
+/**
+ * Floating tab capsule: the AGSL shader behind this Row paints strong frost,
+ * gentle lens character, rim light and shadow from the live content (see
+ * components/glass, vendored Apache-2.0 engine). This Row only draws tabs —
+ * no fills, no border, no shadow of its own, or they'd double the shader.
+ * Apple-ported bits that stay: compact ~280dp capsule, semibold-everywhere
+ * type, capsule selection bubble.
+ */
+private val GlassShape = RoundedCornerShape(KraftRadius.Pill)
+
+@Composable
+private fun GlassTabBar(
+    tabs: List<Tab>,
+    currentDestination: NavDestination?,
+    onTabClick: (Tab) -> Unit,
+) {
+    Row(
+        // fillMaxWidth (never fillMaxSize — that measures fullscreen and the
+        // frost would cover the screen). Width comes from the GlassBox.
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        tabs.forEach { tab ->
+            val selected =
+                currentDestination?.hierarchy?.any {
+                    if (tab.route == Routes.BROWSE) it.route?.startsWith("browse") == true
+                    else it.route == tab.route
+                } == true
+            HigTabItem(
+                tab = tab,
+                selected = selected,
+                modifier = Modifier.weight(1f),
+                onClick = { onTabClick(tab) },
+            )
         }
     }
 }
 
 /**
- * Single tab item following standard design conventions:
- * - 25dp icon
- * - 10sp label (SF Pro Text weight)
- * - Active: primary color, Inactive: #8E8E93
- * - No indicator pill — just color change
+ * Single tab item, Apple rules: 10sp labels, SEMIBOLD in both states (their
+ * kit uses ~590 for selected AND unselected — state reads by COLOR, never
+ * weight), 25dp icon. Selected tab sits in a full-capsule bubble with a
+ * white-50 overlay (their Selection + FFFFFF@50% recipe). Light selection
+ * tick + spring press scale.
  */
 @Composable
 private fun HigTabItem(
@@ -413,14 +497,30 @@ private fun HigTabItem(
 ) {
     val tint = if (selected) MaterialTheme.colorScheme.primary else KraftColors.TabBarInactive
     val haptic = LocalHapticFeedback.current
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (pressed) 0.9f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
+        label = "tabPress",
+    )
 
     Column(
         modifier = modifier
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            }
+            .clip(RoundedCornerShape(KraftRadius.Pill))
+            .background(
+                if (selected) Color.White.copy(alpha = 0.50f)
+                else Color.Transparent,
+            )
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interaction,
                 indication = null,
                 onClick = {
-                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     onClick()
                 },
             )
@@ -438,7 +538,7 @@ private fun HigTabItem(
         Text(
             text = stringResource(tab.labelRes),
             fontSize = KraftTypeScale.Caption2,
-            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             color = tint,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

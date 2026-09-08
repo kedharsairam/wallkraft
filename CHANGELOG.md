@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.2] - 2026-09-09
+
+### Added
+- **Liquid-glass tab bar** — floating capsule with live frost, lens character, rim light and shadow rendered from the content behind it (vendored AGSL engine, API 33+ with automatic fallback). Apple-measured geometry: compact pill, full capsule corners, semibold-everywhere labels, capsule selection bubble.
+- **Hourly rotation** — Off / Hourly / Daily / Weekly ladder. Schedules snap to clock boundaries (top of hour, midnight, Monday morning) via self-perpetuating chained work instead of rolling timers; upgrade migration and force-stop recovery built in. One-shot welcome card explains the timing.
+- **Rotate-now feedback** — the button spins while the run works, shows check + Applied on success, snackbar only on failure.
+- **Collection undo** — deleting a collection offers one-tap restore with members. Duplicate names are refused with a notice instead of crashing; picker create auto-checks the new collection; overflow menu affordance on cards.
+- **True blur for rotation backgrounds** — Showcase/Atmosphere use a Gaussian-style blur (no more pixelation), tuned per mode, dim eased to 25%.
+- **Empty collection state** — filtering to an empty collection shows a message with a clear-filter action instead of a dead grid.
+
+### Changed
+- **Settings state survives relaunch** — collapsible sections use saveable state (wallpaper changes relaunch the activity).
+- **End clearance above the glass pill** — grids and Settings reserve space at the end so last items scroll clear while content flows behind mid-scroll.
+
+### Fixed
+- **Rotation panel collapsing on its own** — root-caused to the wallpaper-change activity relaunch.
+- **Favorites last row under the bottom bar** — grid reserves the pill height.
+- **Create dialog said Rename** — correct verb per action.
+
 ## [1.19.1] - 2026-09-08
 
 ### Added

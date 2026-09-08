@@ -72,10 +72,11 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         contentPadding = PaddingValues(
             // Must match WallpaperGrid edges or content jumps on load.
+            // Bottom reserves the glass pill like the grid (same reason).
             start = KraftSpacing.Spacing8,
             end = KraftSpacing.Spacing8,
             top = KraftSpacing.Spacing8,
-            bottom = KraftSpacing.Spacing8,
+            bottom = KraftSpacing.GlassBarReserve,
         ),
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalItemSpacing = KraftSpacing.Spacing8,

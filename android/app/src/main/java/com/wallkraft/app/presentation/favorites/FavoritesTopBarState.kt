@@ -17,6 +17,8 @@ class FavoritesTopBarState {
     var selectionMode by mutableStateOf(false)
     var selectedCount by mutableStateOf(0)
     var totalFavorites by mutableStateOf(0)
+    /** True when every VISIBLE (possibly filtered) item is selected. Drives the Select-all label. */
+    var allVisibleSelected by mutableStateOf(false)
     /** Close button — clears selection. */
     var onCancelSelection by mutableStateOf<() -> Unit>({})
     /** Select All / Deselect All toggle. */
