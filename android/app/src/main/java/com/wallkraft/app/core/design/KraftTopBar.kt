@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -32,8 +32,14 @@ fun KraftTopBar(
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
+    // Exact match to bottom pill — Apple 4-layer stack (identical light/dark, ~82% opaque)
+    // Bottom uses these 4 backgrounds on the Row inside GlassBox; top uses same here.
     Column(
-        modifier = modifier.background(KraftColors.SurfaceSecondary),
+        modifier = modifier
+            .background(Color.Black.copy(alpha = 0.22f))
+            .background(Color.White.copy(alpha = 0.22f))
+            .background(Color(0xFF3A3A3C).copy(alpha = 0.45f))
+            .background(Color(0xFF2C2C2E).copy(alpha = 0.15f)),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -58,9 +64,7 @@ fun KraftTopBar(
                 Row(verticalAlignment = Alignment.CenterVertically) { actions() }
             }
         }
-        HorizontalDivider(
-            // Separator = outline color (already encodes correct alpha)
-            color = MaterialTheme.colorScheme.outline,
-        )
+        // No divider — bottom pill has no divider, only elevation shadow via GlassBox.
+        // Top uses same frost stack, no hairline, so both read as one material.
     }
 }

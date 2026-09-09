@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import kotlin.math.min
 import kotlin.random.Random
 
 internal data class GlassElement(
@@ -182,7 +183,11 @@ private class GlassScopeImpl(private val density: Density) : GlassScope {
                 id = elementId,
                 position = position,
                 size = size,
-                cornerRadius = shape.topStart.toPx(size, density),
+                // True stadium radius: half the MIN dimension. Percent-based
+                // CornerSize can resolve against the width (half of 1048px on
+                // a 200px-tall pill), which turns the SDF capsule into a
+                // pointed football. min() is correct at every size.
+                cornerRadius = min(size.width, size.height) / 2f,
                 scale = scale,
                 blur = blur,
                 centerDistortion = centerDistortion,
@@ -304,6 +309,20 @@ fun GlassContainer(
     }
 }
 
+@Composable
+fun GlassContainerWithHidden(
+    modifier: Modifier = Modifier,
+    hidden: Boolean,
+    content: @Composable () -> Unit,
+    glassContent: @Composable GlassBoxScope.() -> Unit,
+) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        GlassContainerWithShaderHidden(modifier, hidden, content, glassContent)
+    } else {
+        GlassContainerFallback(modifier, content, if (hidden) ({}) else glassContent)
+    }
+}
+
 @SuppressLint("NewApi") // Version check is performed in GlassContainer
 @Composable
 private fun GlassContainerWithShader(
@@ -392,6 +411,119 @@ private fun GlassContainerWithShader(
     }
     Box(modifier = modifier) {
         GlassBoxScopeImpl(this, glassScope).glassContent()
+    }
+}
+
+@SuppressLint("NewApi")
+@Composable
+private fun GlassContainerWithShaderHidden(
+    modifier: Modifier = Modifier,
+    hidden: Boolean,
+    content: @Composable () -> Unit,
+    glassContent: @Composable GlassBoxScope.() -> Unit,
+) {
+    val density = LocalDensity.current
+    val glassScope = remember { GlassScopeImpl(density) }
+
+    val shader = remember(glassScope.updateCounter) {
+        RuntimeShader(GLASS_DISPLACEMENT_SHADER)
+    }
+
+    SideEffect {
+        if (hidden) {
+            if (glassScope.elements.isNotEmpty()) {
+                glassScope.elements.clear()
+                glassScope.updateCounter++
+            }
+            glassScope.cleanupInactiveElements()
+        } else {
+            glassScope.cleanupInactiveElements()
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            glassScope.elements.clear()
+        }
+    }
+
+    // When hidden, immediately clear via LaunchedEffect as well
+    androidx.compose.runtime.LaunchedEffect(hidden) {
+        if (hidden) {
+            glassScope.elements.clear()
+            glassScope.updateCounter++
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .graphicsLayer {
+                shader.setFloatUniform("resolution", size.width, size.height)
+                val a = glassScope.updateCounter
+
+                // Force 0 elements when hidden, even if cleanup is delayed
+                val effectiveCount = if (hidden) 0 else minOf(glassScope.elements.size, 10)
+                val elements = if (hidden) emptyList() else glassScope.elements
+
+                val maxElements = 10
+                val positions = FloatArray(maxElements * 2)
+                val sizes = FloatArray(maxElements * 2)
+                val scales = FloatArray(maxElements)
+                val radii = FloatArray(maxElements)
+                val elevations = FloatArray(maxElements)
+                val centerDistortions = FloatArray(maxElements)
+                val tints = FloatArray(maxElements * 4)
+                val darkness = FloatArray(maxElements)
+                val warpEdges = FloatArray(maxElements)
+                val blurs = FloatArray(maxElements)
+
+                shader.setIntUniform("elementsCount", effectiveCount)
+
+                for (i in 0 until effectiveCount) {
+                    val element = elements[i]
+                    positions[i * 2] = element.position.x
+                    positions[i * 2 + 1] = element.position.y
+                    sizes[i * 2] = element.size.width
+                    sizes[i * 2 + 1] = element.size.height
+                    scales[i] = element.scale
+                    radii[i] = element.cornerRadius
+                    elevations[i] = element.elevation
+                    centerDistortions[i] = element.centerDistortion
+                    tints[i * 4] = element.tint.red
+                    tints[i * 4 + 1] = element.tint.green
+                    tints[i * 4 + 2] = element.tint.blue
+                    tints[i * 4 + 3] = element.tint.alpha
+                    darkness[i] = element.darkness
+                    warpEdges[i] = element.warpEdges
+                    blurs[i] = element.blur
+                }
+
+                shader.setFloatUniform("glassPositions", positions)
+                shader.setFloatUniform("glassSizes", sizes)
+                shader.setFloatUniform("glassScales", scales)
+                shader.setFloatUniform("cornerRadii", radii)
+                shader.setFloatUniform("elevations", elevations)
+                shader.setFloatUniform("centerDistortions", centerDistortions)
+                shader.setFloatUniform("glassTints", tints)
+                shader.setFloatUniform("glassDarkness", darkness)
+                shader.setFloatUniform("glassWarpEdges", warpEdges)
+                shader.setFloatUniform("glassBlurs", blurs)
+
+                if (effectiveCount == 0) {
+                    renderEffect = null
+                } else {
+                    renderEffect = RenderEffect.createRuntimeShaderEffect(
+                        shader, "contents",
+                    ).asComposeRenderEffect()
+                }
+            },
+    ) {
+        content()
+    }
+    Box(modifier = modifier) {
+        if (!hidden) {
+            GlassBoxScopeImpl(this, glassScope).glassContent()
+        }
     }
 }
 

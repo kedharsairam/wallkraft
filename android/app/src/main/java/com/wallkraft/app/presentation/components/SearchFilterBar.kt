@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -170,9 +171,13 @@ fun SearchFilterBar(
 
     Box(modifier = modifier) {
         // ── Main content ────────────────────────────────────────────────
+        // Top frost — exact 4-layer stack as bottom pill (GlassTabBar)
         Column(
             modifier = Modifier
-                .background(KraftColors.SurfaceSecondary)
+                .background(Color.Black.copy(alpha = 0.22f))
+                .background(Color.White.copy(alpha = 0.22f))
+                .background(Color(0xFF3A3A3C).copy(alpha = 0.45f))
+                .background(Color(0xFF2C2C2E).copy(alpha = 0.15f))
                 .onGloballyPositioned { coordinates ->
                     barHeight = coordinates.size.height
                 },
@@ -315,10 +320,7 @@ fun SearchFilterBar(
                 }
             }
 
-            HorizontalDivider(
-                // Separator = outline color (~35% of #545458)
-                color = MaterialTheme.colorScheme.outline,
-            )
+            // No divider — matches bottom pill (no hairline, just frost stack)
         }
 
         // ── Filter panel (drops down from below the bar) ────────────────
