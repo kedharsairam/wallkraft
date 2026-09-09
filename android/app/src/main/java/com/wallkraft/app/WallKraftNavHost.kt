@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
@@ -93,6 +94,7 @@ import com.wallkraft.app.presentation.components.RotationTimingWelcome
 import com.wallkraft.app.presentation.components.SearchFilterBar
 import com.wallkraft.app.presentation.components.glass.GlassBox
 import com.wallkraft.app.presentation.components.glass.GlassContainer
+import com.wallkraft.app.presentation.components.glass.GlassContainerWithHidden
 import com.wallkraft.app.presentation.detail.DetailScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
 import com.wallkraft.app.presentation.favorites.FavoritesTopBarState
@@ -135,7 +137,9 @@ fun WallKraftNavHost(container: AppContainer) {
     val browseGridState = rememberLazyStaggeredGridState()
     val favoritesGridState = rememberLazyStaggeredGridState()
 
-    val isDetail = currentDestination?.route == Routes.DETAIL
+    val isDetail = currentDestination?.route?.contains("detail", ignoreCase = true) == true ||
+        backStackEntry?.destination?.route?.contains("detail", ignoreCase = true) == true ||
+        currentDestination?.hierarchy?.any { it.route?.contains("detail", ignoreCase = true) == true } == true
     val isBrowse = currentDestination?.hierarchy?.any {
         it.route?.startsWith("browse") == true
     } == true
@@ -296,8 +300,9 @@ fun WallKraftNavHost(container: AppContainer) {
         // itself by topInset internally. Applying it here double-offsets and
         // opens a bar-height black band under the top bar. (navBarPadding
         // below still reads the bottom inset, now zero with no bottom slot.)
-        GlassContainer(
+        GlassContainerWithHidden(
             modifier = Modifier.fillMaxSize(),
+            hidden = isDetail,
             content = {
                 SharedTransitionLayout(
                     modifier = Modifier.fillMaxSize(),
@@ -396,9 +401,9 @@ fun WallKraftNavHost(container: AppContainer) {
             }
             }
             },
-            // Hidden on Detail. The AGSL shader renders strong frost, gentle
-            // lens character, rim light and shadow from the live content —
-            // the dramatic glass look, confined to the pill.
+            // Hidden on Detail — uses the same isDetail derived from
+            // currentDestination so the pill and top bar agree and both
+            // recompose together when the destination changes.
             glassContent = {
                 if (!isDetail) {
                     GlassBox(
@@ -406,19 +411,16 @@ fun WallKraftNavHost(container: AppContainer) {
                             .align(Alignment.BottomCenter)
                             .navigationBarsPadding()
                             .padding(vertical = KraftSpacing.Spacing8)
-                            .padding(horizontal = KraftSpacing.Spacing16)
+                            .padding(horizontal = KraftSpacing.Spacing24)
                             .fillMaxWidth(),
-                        // Strong character, pill-confined: heavy frost plus
-                        // visible lens life — the drama belongs INSIDE the
-                        // capsule (sizing stays wrap, never fullscreen).
-                        blur = 0.9f,
-                        scale = 0.18f,
-                        centerDistortion = 0.15f,
+                        blur = 0.95f,
+                        scale = 0.12f,
+                        centerDistortion = 0f,
                         shape = RoundedCornerShape(KraftRadius.Pill),
                         elevation = 8.dp,
-                        tint = Color.Transparent,
+                        tint = Color.White.copy(alpha = 0.08f),
                         darkness = 0.10f,
-                        warpEdges = 0.4f,
+                        warpEdges = 0.22f,
                     ) {
                         GlassTabBar(
                             tabs = tabs,
@@ -448,7 +450,7 @@ fun WallKraftNavHost(container: AppContainer) {
  * Apple-ported bits that stay: compact ~280dp capsule, semibold-everywhere
  * type, capsule selection bubble.
  */
-private val GlassShape = RoundedCornerShape(KraftRadius.Pill)
+private val GlassShape = CircleShape
 
 @Composable
 private fun GlassTabBar(
@@ -459,9 +461,15 @@ private fun GlassTabBar(
     Row(
         // fillMaxWidth (never fillMaxSize — that measures fullscreen and the
         // frost would cover the screen). Width comes from the GlassBox.
+        // Apple 4-layer stack, literal greys — identical light/dark like
+        // their bar, net ~82% opaque.
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing4),
+            .background(Color.Black.copy(alpha = 0.22f), GlassShape)
+            .background(Color.White.copy(alpha = 0.22f), GlassShape)
+            .background(Color(0xFF3A3A3C).copy(alpha = 0.45f), GlassShape)
+            .background(Color(0xFF2C2C2E).copy(alpha = 0.15f), GlassShape)
+            .padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -495,7 +503,7 @@ private fun HigTabItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val tint = if (selected) MaterialTheme.colorScheme.primary else KraftColors.TabBarInactive
+    val tint = if (selected) MaterialTheme.colorScheme.primary else Color(0xFFFFFFFF)
     val haptic = LocalHapticFeedback.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -513,7 +521,7 @@ private fun HigTabItem(
             }
             .clip(RoundedCornerShape(KraftRadius.Pill))
             .background(
-                if (selected) Color.White.copy(alpha = 0.50f)
+                if (selected) Color(0xFF1C1C1E)
                 else Color.Transparent,
             )
             .clickable(

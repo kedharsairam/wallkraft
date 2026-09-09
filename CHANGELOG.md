@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.3] - 2026-09-10
+
+### Fixed
+- **Detail bar bleeding** — the bottom glass pill no longer shows on the detail screen; the route check now correctly hides the bar for true full-bleed detail.
+- **Top bar glass parity** — `KraftTopBar` and `SearchFilterBar` now use the exact Apple 4-layer stack as the bottom pill (`Black 0.22 → White 0.22 → #3A3A3C 0.45 → #2C2C2E 0.15`), no hairline divider, so top and bottom read as one material.
+- **Liquid-glass shader stability** — the bottom pill's AGSL engine now clears stale elements immediately when hidden and disables the render effect at zero elements, preventing the frost ghost that lingered on detail.
+
+### Changed
+- **Bottom pill geometry** — horizontal margins `16dp → 24dp` (~92% → ~88% width) and frost params tuned to the reference frame (blur 0.95, scale 0.12, darkness 0.10, warp 0.22) for the approved glass texture.
+
 ## [1.19.2] - 2026-09-09
 
 ### Added
