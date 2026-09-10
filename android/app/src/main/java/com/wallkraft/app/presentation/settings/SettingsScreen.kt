@@ -116,48 +116,6 @@ fun SettingsScreen(
     val cacheClearedMsg = stringResource(R.string.cache_cleared)
     val apiSavedMsg = stringResource(R.string.api_key_saved)
     val noCrashLogsMsg = stringResource(R.string.no_crash_logs)
-    val rotationFailedMsg = stringResource(R.string.rotation_failed)
-
-    // Rotate-now result tracking: the tap enqueues one-time work (seconds of
-    // render + set), so the button spins until the run reports back — same
-    // language as set-wallpaper (spinner → check + tick, snackbar only on
-    // failure). Survives the wallpaper-change activity relaunch.
-    var rotateRequestId by rememberSaveable { mutableStateOf<String?>(null) }
-    var rotateSucceeded by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(rotateRequestId) {
-        val idString = rotateRequestId ?: return@LaunchedEffect
-        val id = runCatching { UUID.fromString(idString) }.getOrNull()
-        if (id == null) {
-            rotateRequestId = null
-            return@LaunchedEffect
-        }
-        var handled = false
-        RotationScheduler.observeRotateNow(context).collect { infos ->
-            if (handled) return@collect
-            val state = infos.firstOrNull { it.id == id }?.state ?: return@collect
-            when (state) {
-                WorkInfo.State.SUCCEEDED -> {
-                    handled = true
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    rotateSucceeded = true
-                    delay(1500)
-                    rotateSucceeded = false
-                    rotateRequestId = null
-                }
-                WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
-                    handled = true
-                    snackbarHostState.showSnackbar(rotationFailedMsg)
-                    rotateRequestId = null
-                }
-                else -> Unit // ENQUEUED / RUNNING / BLOCKED: spinner keeps spinning.
-            }
-        }
-    }
-
-    // Rotation settings + collections for the source picker.
-    val rotation by container.rotation.settings.collectAsState(initial = RotationSettings())
-    val rotationCollections by container.collectionsRepository.observeAll()
-        .collectAsState(initial = emptyList())
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -181,33 +139,6 @@ fun SettingsScreen(
                 onSorting = viewModel::setSorting,
                 onTopRange = viewModel::setTopRange,
                 onOrientation = viewModel::setOrientation,
-            )
-
-            SettingsRotationSection(
-                settings = rotation,
-                collections = rotationCollections,
-                rotateWorking = rotateRequestId != null,
-                rotateDone = rotateSucceeded,
-                onSchedule = { schedule ->
-                    scope.launch {
-                        container.rotation.setSchedule(schedule)
-                    }
-                    RotationScheduler.apply(context, schedule)
-                },
-                onMode = { mode ->
-                    scope.launch { container.rotation.setMode(mode) }
-                },
-                onTarget = { target ->
-                    scope.launch { container.rotation.setTarget(target) }
-                },
-                onSource = { id ->
-                    scope.launch { container.rotation.setSourceCollection(id) }
-                },
-                onRotateNow = {
-                    if (rotateRequestId == null) {
-                        rotateRequestId = RotationScheduler.rotateNow(context).toString()
-                    }
-                },
             )
 
             SettingsDataSection(
