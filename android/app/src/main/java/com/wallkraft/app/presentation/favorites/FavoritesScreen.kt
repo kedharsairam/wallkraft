@@ -134,6 +134,43 @@ fun FavoritesScreen(
     }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val haptic = LocalHapticFeedback.current
+    // Rotation header state — lives here now (was in Settings).
+    val rotation by container.rotation.settings.collectAsState(initial = com.wallkraft.app.data.prefs.RotationSettings())
+    val rotationCollections by container.collectionsRepository.observeAll()
+        .collectAsState(initial = emptyList())
+    var rotateRequestId by rememberSaveable { mutableStateOf<String?>(null) }
+    var rotateSucceeded by rememberSaveable { mutableStateOf(false) }
+    val rotationFailedMsg = stringResource(R.string.rotation_failed)
+    LaunchedEffect(rotateRequestId) {
+        val idString = rotateRequestId ?: return@LaunchedEffect
+        val id = runCatching { java.util.UUID.fromString(idString) }.getOrNull()
+        if (id == null) {
+            rotateRequestId = null
+            return@LaunchedEffect
+        }
+        var handled = false
+        com.wallkraft.app.data.rotation.RotationScheduler.observeRotateNow(context).collect { infos ->
+            if (handled) return@collect
+            val state = infos.firstOrNull { it.id == id }?.state ?: return@collect
+            when (state) {
+                androidx.work.WorkInfo.State.SUCCEEDED -> {
+                    handled = true
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    rotateSucceeded = true
+                    kotlinx.coroutines.delay(1500)
+                    rotateSucceeded = false
+                    rotateRequestId = null
+                }
+                androidx.work.WorkInfo.State.FAILED, androidx.work.WorkInfo.State.CANCELLED -> {
+                    handled = true
+                    snackbarHostState.showSnackbar(rotationFailedMsg)
+                    rotateRequestId = null
+                }
+                else -> Unit
+            }
+        }
+    }
     val repair = offlineRepair
         ?: remember(container) { FavoriteOfflineRepair(container.favoriteImageStore) }
     // Ids with a valid offline copy — drives the "saved offline" header.
@@ -269,6 +306,26 @@ fun FavoritesScreen(
             // user sees, not the global library.
             val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
             Column(modifier = Modifier.padding(innerPadding)) {
+                // Wallpaper rotation — moved here from Settings. Same store +
+                // scheduler, now surfaced where the source pool lives.
+                com.wallkraft.app.presentation.settings.SettingsRotationSection(
+                    settings = rotation,
+                    collections = rotationCollections,
+                    rotateWorking = rotateRequestId != null,
+                    rotateDone = rotateSucceeded,
+                    onSchedule = { schedule ->
+                        scope.launch { container.rotation.setSchedule(schedule) }
+                        com.wallkraft.app.data.rotation.RotationScheduler.apply(context, schedule)
+                    },
+                    onMode = { mode -> scope.launch { container.rotation.setMode(mode) } },
+                    onTarget = { target -> scope.launch { container.rotation.setTarget(target) } },
+                    onSource = { id -> scope.launch { container.rotation.setSourceCollection(id) } },
+                    onRotateNow = {
+                        if (rotateRequestId == null) {
+                            rotateRequestId = com.wallkraft.app.data.rotation.RotationScheduler.rotateNow(context).toString()
+                        }
+                    },
+                )
                 CollectionStrip(
                     collections = collections,
                     covers = covers,
