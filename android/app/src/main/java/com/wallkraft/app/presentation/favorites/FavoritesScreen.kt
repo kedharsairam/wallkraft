@@ -481,7 +481,13 @@ fun FavoritesScreen(
                     if (id > 0) targets.forEach { collectionsVm.setMember(id, it, true) }
                 }
             },
-            onDismiss = { showPicker = false },
+            onDismiss = {
+                showPicker = false
+                // Done — exit selection so the grid returns to normal.
+                // Previously this only hid the dialog, leaving the
+                // selection active and the top bar stuck in select mode.
+                selectedIds = emptySet()
+            },
         )
     }
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.4] - 2026-09-10
+
+### Fixed
+- **Favorites collection selection** — adding wallpapers to a collection now correctly clears the selection and exits selection mode when the picker is dismissed (Done). Previously the dialog only hid, leaving the grid stuck with selected items.
+
 ## [1.19.3] - 2026-09-10
 
 ### Fixed
