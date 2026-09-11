@@ -288,15 +288,15 @@ fun FavoritesScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { Spacer(modifier = Modifier.height(topInset)) },
         snackbarHost = { com.wallkraft.app.core.design.KraftSnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing20),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
+                .padding(bottom = innerPadding.calculateBottomPadding())
+                .padding(horizontal = KraftSpacing.Spacing8)
+                .padding(top = topInset + KraftSpacing.Spacing20, bottom = KraftSpacing.Spacing20),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing20),
         ) {
             // Wallpaper rotation — moved here from Settings. Always visible,
             // even when empty, so you can set it up before adding anything.
@@ -318,33 +318,29 @@ fun FavoritesScreen(
                         }
                     },
                 )
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-                ) {
-                    CollectionStrip(
-                        collections = collections,
-                        covers = covers,
-                        activeId = activeCollectionId,
-                        onSelect = { activeCollectionId = it },
-                        onNew = { showCreateDialog = true },
-                        onMenu = { menuCollectionId = it },
-                        modifier = Modifier.padding(
-                            top = KraftSpacing.Spacing4,
-                            bottom = KraftSpacing.Spacing4,
-                        ),
-                    )
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing8),
-                    )
-                    // Offline status header: hidden in selection mode and when
-                    // everything visible is saved. Shows progress while downloading.
-                    // An active filter with nothing displayable gets an empty state
-                    // (with a way out) instead of a dead blank grid.
-                    val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
-                    val progress = repairProgress
-                    if (favorites.isEmpty()) {
+                CollectionStrip(
+                    collections = collections,
+                    covers = covers,
+                    activeId = activeCollectionId,
+                    onSelect = { activeCollectionId = it },
+                    onNew = { showCreateDialog = true },
+                    onMenu = { menuCollectionId = it },
+                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
+                )
+                // Divider between the collections zone and the images below —
+                // same outline style as the search-bar separator, inset 16dp
+                // to line up with the strip title/cards (not edge-to-edge).
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
+                )
+                // Offline status header: hidden in selection mode and when
+                // everything visible is saved. Shows progress while downloading.
+                // An active filter with nothing displayable gets an empty state
+                // (with a way out) instead of a dead blank grid.
+                val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
+                val progress = repairProgress
+                if (favorites.isEmpty()) {
                     EmptyState(
                         title = stringResource(R.string.no_favorites_title),
                         message = stringResource(R.string.no_favorites_message),
@@ -363,29 +359,57 @@ fun FavoritesScreen(
                         modifier = Modifier.weight(1f),
                     )
                 } else {
-                    // Apple way: no persistent "X of Y saved • Download all" chrome.
-                    // Offline is silent (ON_RESUME repair) + on-demand (zoom/set).
-                    // Progress still shows if a bulk repair is somehow in flight.
-                    if (progress != null) {
-                        val (done, total) = progress
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = KraftSpacing.Spacing16,
-                                    vertical = KraftSpacing.Spacing8,
-                                ),
-                        ) {
-                            Text(
-                                text = "$done / $total",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(end = KraftSpacing.Spacing12),
-                            )
-                            LinearProgressIndicator(
-                                progress = { done.toFloat() / total.coerceAtLeast(1) },
-                                modifier = Modifier.weight(1f),
-                            )
+                    // Offline header — only when not in selection and there is
+                    // something to show (missing or downloading). Grid is always
+                    // below it, even when everything is already offline.
+                    if (!selectionMode && (visibleMissing > 0 || progress != null)) {
+                        if (progress != null) {
+                            val (done, total) = progress
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = KraftSpacing.Spacing16,
+                                        vertical = KraftSpacing.Spacing8,
+                                    ),
+                            ) {
+                                Text(
+                                    text = "$done / $total",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(end = KraftSpacing.Spacing12),
+                                )
+                                LinearProgressIndicator(
+                                    progress = { done.toFloat() / total.coerceAtLeast(1) },
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        horizontal = KraftSpacing.Spacing16,
+                                        vertical = KraftSpacing.Spacing8,
+                                    ),
+                            ) {
+                                val visibleSaved = displayedFavorites.size - visibleMissing
+                                Text(
+                                    text = pluralStringResource(
+                                        R.plurals.favorites_offline_summary,
+                                        visibleSaved,
+                                        visibleSaved,
+                                        displayedFavorites.size,
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                TextButton(onClick = { startDownloadAll() }) {
+                                    Text(stringResource(R.string.favorites_download_all))
+                                }
+                            }
                         }
                     }
                     WallpaperGrid(
@@ -421,7 +445,6 @@ fun FavoritesScreen(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
             )
-                }
             }
         }
     }
@@ -609,7 +632,6 @@ fun FavoritesScreen(
                     val result = snackbarHostState.showSnackbar(
                         message = context.getString(R.string.collection_deleted),
                         actionLabel = context.getString(R.string.undo),
-                        duration = androidx.compose.material3.SnackbarDuration.Short,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         collectionsVm.restore(restoreName, restoreMembers)

@@ -177,111 +177,10 @@ fun WallKraftNavHost(container: AppContainer) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            // ── Top bar (outside SharedTransitionLayout) ──────────────
-            // ALWAYS rendered at the same height on every screen, so the
-            // Scaffold layout never shifts and transitions never jump.
-            // On Detail no branch matches: the Box is an empty transparent
-            // placeholder and the Detail screen draws full-bleed behind it.
-            Box(modifier = Modifier.heightIn(min = topInset)) {
-                when {
-                    isBrowse -> SearchFilterBar(
-                        query = browseSearchState.query,
-                        onQueryChange = {
-                            browseSearchState.query = it
-                            browseSearchState.titleActive = false
-                        },
-                        onSearch = { text -> browseSearchState.onSearch?.invoke(text) },
-                        filters = browseSearchState.filters,
-                        onFiltersChange = { browseSearchState.onFiltersChange?.invoke(it) },
-                        totalResults = browseSearchState.totalResults,
-                        hasApiKey = browseSearchState.hasApiKey,
-                        history = browseSearchState.history,
-                        onClearHistory = { browseSearchState.onClearHistory?.invoke() },
-                    )
-                    isFavorites -> {
-                        val title = if (favoritesTopBarState.selectionMode) {
-                            pluralStringResource(
-                                R.plurals.selected_count,
-                                favoritesTopBarState.selectedCount,
-                                favoritesTopBarState.selectedCount,
-                            )
-                        } else {
-                            stringResource(R.string.favorites_title)
-                        }
-                        KraftTopBar(
-                            title = title,
-                            navigationIcon = if (favoritesTopBarState.selectionMode) {
-                                {
-                                    IconButton(onClick = { favoritesTopBarState.onCancelSelection() }) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.Close,
-                                            contentDescription = stringResource(R.string.cancel),
-                                        )
-                                    }
-                                }
-                            } else null,
-                            actions = {
-                                // Selection mode actions
-                                AnimatedVisibility(
-                                    visible = favoritesTopBarState.selectionMode,
-                                    enter = fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.8f),
-                                    exit = fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
-                                ) {
-                                    Row {
-                                        val haptic = LocalHapticFeedback.current
-                                        TextButton(
-                                            onClick = {
-                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                favoritesTopBarState.onToggleSelectAll()
-                                            },
-                                        ) {
-                                            Text(
-                                                stringResource(
-                                                    // Visible list, not the global total: under a
-                                                    // collection filter these can disagree.
-                                                    if (favoritesTopBarState.allVisibleSelected) R.string.deselect_all else R.string.select_all,
-                                                ),
-                                            )
-                                        }
-                                        IconButton(
-                                            onClick = {
-                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                favoritesTopBarState.onAddToCollection()
-                                            },
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.CreateNewFolder,
-                                                contentDescription = stringResource(R.string.add_to_collection),
-                                            )
-                                        }
-                                        IconButton(
-                                            onClick = {
-                                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                if (favoritesTopBarState.isInCollection) {
-                                                    favoritesTopBarState.onRemoveFromCollection?.invoke()
-                                                } else {
-                                                    favoritesTopBarState.onDeleteSelected()
-                                                }
-                                            },
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.Delete,
-                                                contentDescription = if (favoritesTopBarState.isInCollection) stringResource(R.string.remove_from_collection) else stringResource(R.string.delete),
-                                                tint = MaterialTheme.colorScheme.error,
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                        )
-                    }
-                    isSettings -> KraftTopBar(
-                        title = stringResource(R.string.settings_title),
-                    )
-                }
-            }
-        },
+        topBar = {},
+        // No outer placeholder — glass top now owns the height. Keeping the
+        // old Box(heightIn) would double-stack at y=0..topInset with the
+        // GlassBox and with inner screens' contentPadding.
         bottomBar = {
             // Empty: the floating glass capsule below overlays full-bleed
             // content instead of reserving a slab. innerPadding.bottom drops
@@ -402,6 +301,139 @@ fun WallKraftNavHost(container: AppContainer) {
             // recompose together when the destination changes.
             glassContent = {
                 if (!isDetail) {
+                    // ── Top frosted bar ───────────────────────────────
+                    // Frost background is a GlassBox (blur behind grid). The
+                    // bar UI is a sibling on top of it — not a child — so the
+                    // filter/suggestion dropdowns (which overflow below the bar
+                    // via offset(barHeight)) are not clipped by the GlassBox's
+                    // bounds. Old bug: putting SearchFilterBar *inside* the
+                    // GlassBox clipped the dropdown at the frost's bottom edge.
+                    val frostShape = RoundedCornerShape(0.dp)
+                    GlassBox(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .height(topInset),
+                        blur = 0.95f,
+                        scale = 0.12f,
+                        centerDistortion = 0f,
+                        shape = frostShape,
+                        elevation = 8.dp,
+                        tint = Color.White.copy(alpha = 0.08f),
+                        darkness = 0.10f,
+                        warpEdges = 0.22f,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.22f), frostShape)
+                                .background(Color.White.copy(alpha = 0.22f), frostShape)
+                                .background(Color(0xFF3A3A3C).copy(alpha = 0.45f), frostShape)
+                                .background(Color(0xFF2C2C2E).copy(alpha = 0.15f), frostShape),
+                        ) {}
+                    }
+                    // Bar UI — sibling above the frost, not inside it. This
+                    // keeps the dropdown panels (offset below the bar) fully
+                    // visible and above the grid.
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth(),
+                    ) {
+                        when {
+                            isBrowse -> SearchFilterBar(
+                                query = browseSearchState.query,
+                                onQueryChange = {
+                                    browseSearchState.query = it
+                                    browseSearchState.titleActive = false
+                                },
+                                onSearch = { text -> browseSearchState.onSearch?.invoke(text) },
+                                filters = browseSearchState.filters,
+                                onFiltersChange = { browseSearchState.onFiltersChange?.invoke(it) },
+                                totalResults = browseSearchState.totalResults,
+                                hasApiKey = browseSearchState.hasApiKey,
+                                history = browseSearchState.history,
+                                onClearHistory = { browseSearchState.onClearHistory?.invoke() },
+                            )
+                            isFavorites -> {
+                                val title = if (favoritesTopBarState.selectionMode) {
+                                    pluralStringResource(
+                                        R.plurals.selected_count,
+                                        favoritesTopBarState.selectedCount,
+                                        favoritesTopBarState.selectedCount,
+                                    )
+                                } else {
+                                    stringResource(R.string.favorites_title)
+                                }
+                                KraftTopBar(
+                                    title = title,
+                                    navigationIcon = if (favoritesTopBarState.selectionMode) {
+                                        {
+                                            IconButton(onClick = { favoritesTopBarState.onCancelSelection() }) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Close,
+                                                    contentDescription = stringResource(R.string.cancel),
+                                                )
+                                            }
+                                        }
+                                    } else null,
+                                    actions = {
+                                        AnimatedVisibility(
+                                            visible = favoritesTopBarState.selectionMode,
+                                            enter = fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.8f),
+                                            exit = fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
+                                        ) {
+                                            Row {
+                                                val haptic = LocalHapticFeedback.current
+                                                TextButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        favoritesTopBarState.onToggleSelectAll()
+                                                    },
+                                                ) {
+                                                    Text(
+                                                        stringResource(
+                                                            if (favoritesTopBarState.allVisibleSelected) R.string.deselect_all else R.string.select_all,
+                                                        ),
+                                                    )
+                                                }
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        favoritesTopBarState.onAddToCollection()
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.CreateNewFolder,
+                                                        contentDescription = stringResource(R.string.add_to_collection),
+                                                    )
+                                                }
+                                                IconButton(
+                                                    onClick = {
+                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        if (favoritesTopBarState.isInCollection) {
+                                                            favoritesTopBarState.onRemoveFromCollection?.invoke()
+                                                        } else {
+                                                            favoritesTopBarState.onDeleteSelected()
+                                                        }
+                                                    },
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Delete,
+                                                        contentDescription = if (favoritesTopBarState.isInCollection) stringResource(R.string.remove_from_collection) else stringResource(R.string.delete),
+                                                        tint = MaterialTheme.colorScheme.error,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    },
+                                )
+                            }
+                            isSettings -> KraftTopBar(
+                                title = stringResource(R.string.settings_title),
+                            )
+                        }
+                    }
                     GlassBox(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)

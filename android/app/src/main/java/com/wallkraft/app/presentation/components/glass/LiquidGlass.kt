@@ -179,6 +179,9 @@ private class GlassScopeImpl(private val density: Density) : GlassScope {
             val position = coordinates.positionInRoot()
             val size = coordinates.size.toSize()
 
+            // Flat top bar (old shape) must not be pill-rounded like the bottom.
+            // RoundedCornerShape(0.dp) signals a rect; Pill signals a capsule.
+            val isFlat = shape == RoundedCornerShape(0.dp)
             val element = GlassElement(
                 id = elementId,
                 position = position,
@@ -186,8 +189,9 @@ private class GlassScopeImpl(private val density: Density) : GlassScope {
                 // True stadium radius: half the MIN dimension. Percent-based
                 // CornerSize can resolve against the width (half of 1048px on
                 // a 200px-tall pill), which turns the SDF capsule into a
-                // pointed football. min() is correct at every size.
-                cornerRadius = min(size.width, size.height) / 2f,
+                // pointed football. min() is correct for pills; flat rects
+                // use 0 so the top bar stays edge-to-edge like the old shape.
+                cornerRadius = if (isFlat) 0f else min(size.width, size.height) / 2f,
                 scale = scale,
                 blur = blur,
                 centerDistortion = centerDistortion,
