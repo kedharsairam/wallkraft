@@ -89,7 +89,7 @@ fun EmptyState(
         Spacer(Modifier.height(KraftSpacing.Spacing16))
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .padding(horizontal = KraftSpacing.Spacing32)

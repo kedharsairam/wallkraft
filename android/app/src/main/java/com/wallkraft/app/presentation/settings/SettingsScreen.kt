@@ -121,16 +121,16 @@ fun SettingsScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { Spacer(modifier = Modifier.height(topInset)) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { com.wallkraft.app.core.design.KraftSnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                // 8dp to match the Browse/Fav grid edges.
-                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing16),
-            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing24),
+                // 8dp horizontal to match grid, 20dp vertical so Default Filters sits 20 below top bar.
+                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing20),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing20),
         ) {
             SettingsBrowsingSection(
                 settings = settings,

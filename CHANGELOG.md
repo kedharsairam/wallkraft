@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.5] - 2026-09-10
+
+### Added
+- **Wallpaper rotation header in Favorites** — the rotation card (schedule/mode/target/source + Rotate Now) now lives at the top of Favorites, above Collections, always visible even when empty. Removed from Settings.
+
+### Fixed
+- **Favorites empty state centering** — the heart + text now centers in the visible area (divider ? pill top) via GlassBarReserve bottom inset, not behind the floating bar.
+- **Collection add/clear** — the add-to-collection picker now correctly clears selection on Done, exiting selection mode.
+- **Remove from collection** — when a collection filter is active, the top bar trash now correctly strips the selected wallpapers from that collection only (stays in Favorites) via FolderDelete ? now unified as single red trash handling both cases; shows Remove from collection description when in a collection.
+- **API key handling** — Browse now works for SFW/Sketchy even with an invalid API key; the X-API-Key header is only sent when piKeyValid is true, so a wrong key no longer blocks SFW.
+- **Left/right 8dp uniformity, divider 8/8, grid 8** — Favorites and Settings now use uniform 8dp outer with correct inner insets, divider 8 top/bottom, grid 8 gutters, and Apple header typography (WALLPAPER ROTATION/COLLECTIONS as labelSmall caps).
+- **Settings top bar 20dp, Settings outer 24/20** — KraftTopBar title at 20, outer vertical 24?20, header?collections 16, etc. — tightened to Apple 8pt rhythm.
+
 ## [1.19.4] - 2026-09-10
 
 ### Fixed

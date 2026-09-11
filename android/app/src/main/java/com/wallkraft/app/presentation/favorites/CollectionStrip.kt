@@ -60,17 +60,17 @@ fun CollectionStrip(
 ) {
     Column(modifier = modifier) {
         Text(
-            text = stringResource(R.string.collections_title),
-            style = MaterialTheme.typography.labelMedium,
+            text = stringResource(R.string.collections_title).uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = com.wallkraft.app.core.design.KraftTypeScale.LabelSpacing),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(
-                start = KraftSpacing.Spacing16,
+                start = KraftSpacing.Spacing12,
                 bottom = KraftSpacing.Spacing8,
             ),
         )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
-            contentPadding = PaddingValues(horizontal = KraftSpacing.Spacing16),
+            contentPadding = PaddingValues(horizontal = 0.dp),
         ) {
             item(key = "new") {
                 Column(

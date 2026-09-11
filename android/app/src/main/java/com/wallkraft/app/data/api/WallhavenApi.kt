@@ -125,7 +125,14 @@ class WallhavenApi(
 
     private suspend inline fun <reified T> execute(url: String): T =
         withContext(Dispatchers.IO) {
-            val apiKey = settings.current().apiKey
+            val currentSettings = settings.current()
+            val apiKey = currentSettings.apiKey
+            // Only send the key when it's been validated. An invalid key
+            // (wrong API key test) would otherwise make *every* request —
+            // even SFW/Sketchy which don't need a key — fail with 401 and
+            // show "Your API key was rejected" on Browse. SFW must work
+            // without a valid key.
+            val shouldSendKey = apiKey.isNotBlank() && currentSettings.apiKeyValid
             // Debug-only API timing. The key travels in a header, never the
             // URL, so logging the URL leaks nothing sensitive.
             val startMs = android.os.SystemClock.elapsedRealtime()
@@ -134,7 +141,7 @@ class WallhavenApi(
                 val request = Request.Builder()
                     .url(url)
                     .header("Accept", "application/json")
-                    .apply { if (apiKey.isNotBlank()) header("X-API-Key", apiKey) }
+                    .apply { if (shouldSendKey) header("X-API-Key", apiKey) }
                     .get()
                     .build()
 
