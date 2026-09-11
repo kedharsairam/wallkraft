@@ -33,6 +33,7 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import kotlin.math.roundToInt
 
 /**
@@ -45,10 +46,10 @@ import kotlin.math.roundToInt
 fun SettingsGroup(title: String, content: @Composable () -> Unit) {
     Column {
         Text(
-            text = title,
-            style = MaterialTheme.typography.labelMedium,
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = KraftTypeScale.LabelSpacing),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = KraftSpacing.Spacing4, start = KraftSpacing.Spacing4),
+            modifier = Modifier.padding(bottom = KraftSpacing.Spacing8, start = KraftSpacing.Spacing12),
         )
         Surface(
             shape = RoundedCornerShape(KraftRadius.Standard),
@@ -57,7 +58,7 @@ fun SettingsGroup(title: String, content: @Composable () -> Unit) {
             color = MaterialTheme.colorScheme.surfaceBright,
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12)) { content() }
+            Column(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12)) { content() }
         }
     }
 }

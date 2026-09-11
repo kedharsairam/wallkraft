@@ -25,6 +25,10 @@ class FavoritesTopBarState {
     var onToggleSelectAll by mutableStateOf<() -> Unit>({})
     /** Delete selected — opens the confirmation dialog. */
     var onDeleteSelected by mutableStateOf<() -> Unit>({})
+    /** Remove from current collection (when filtered). Null when in All. */
+    var onRemoveFromCollection by mutableStateOf<(() -> Unit)?>(null)
+    /** Whether a collection filter is active — drives Delete vs Remove UI. */
+    var isInCollection by mutableStateOf(false)
     /** Enters selection mode with all items selected. */
     var onEnterSelectionMode by mutableStateOf<() -> Unit>({})
     /** Opens the add-to-collection picker for the current selection. */

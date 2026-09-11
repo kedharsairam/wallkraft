@@ -68,6 +68,14 @@ fun WallpaperGrid(
     onToggleSelect: ((Wallpaper) -> Unit)? = null,
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    contentPadding: PaddingValues = PaddingValues(
+        start = KraftSpacing.Spacing8,
+        end = KraftSpacing.Spacing8,
+        top = KraftSpacing.Spacing8,
+        bottom = KraftSpacing.GlassBarReserve,
+    ),
+    horizontalSpacing: androidx.compose.ui.unit.Dp = KraftSpacing.Spacing8,
+    verticalSpacing: androidx.compose.ui.unit.Dp = KraftSpacing.Spacing8,
 ) {
     val gridState = state
 
@@ -111,20 +119,9 @@ fun WallpaperGrid(
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
         state = gridState,
-        contentPadding = PaddingValues(
-            // 8dp edges = 8dp tile gaps: edge-to-edge rhythm like Photos.
-            // (Was 16dp ScreenEdge — read as wasted frame on dark.)
-            // Bottom reserves the glass pill INSIDE the scrollable area:
-            // content flows behind the pill mid-scroll, and the last row
-            // still clears it at full scroll. (Modifier padding would shrink
-            // the viewport and strand the pill over void.)
-            start = KraftSpacing.Spacing8,
-            end = KraftSpacing.Spacing8,
-            top = KraftSpacing.Spacing8,
-            bottom = KraftSpacing.GlassBarReserve,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-        verticalItemSpacing = KraftSpacing.Spacing8,
+        contentPadding = contentPadding,
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
+        verticalItemSpacing = verticalSpacing,
         flingBehavior = flingBehavior,
         modifier = modifier.fillMaxSize(),
     ) {

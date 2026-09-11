@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -43,7 +44,10 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.filled.FolderDelete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -254,27 +258,19 @@ fun WallKraftNavHost(container: AppContainer) {
                                         IconButton(
                                             onClick = {
                                                 haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                                favoritesTopBarState.onDeleteSelected()
+                                                if (favoritesTopBarState.isInCollection) {
+                                                    favoritesTopBarState.onRemoveFromCollection?.invoke()
+                                                } else {
+                                                    favoritesTopBarState.onDeleteSelected()
+                                                }
                                             },
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Outlined.Delete,
-                                                contentDescription = stringResource(R.string.delete),
+                                                contentDescription = if (favoritesTopBarState.isInCollection) stringResource(R.string.remove_from_collection) else stringResource(R.string.delete),
                                                 tint = MaterialTheme.colorScheme.error,
                                             )
                                         }
-                                    }
-                                }
-                                // Non-selection mode: "Select" button
-                                AnimatedVisibility(
-                                    visible = !favoritesTopBarState.selectionMode && favoritesTopBarState.totalFavorites > 0,
-                                    enter = fadeIn(tween(220)),
-                                    exit = fadeOut(tween(180)),
-                                ) {
-                                    TextButton(onClick = {
-                                        favoritesTopBarState.onEnterSelectionMode()
-                                    }) {
-                                        Text(stringResource(R.string.select))
                                     }
                                 }
                             },
@@ -410,7 +406,7 @@ fun WallKraftNavHost(container: AppContainer) {
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .navigationBarsPadding()
-                            .padding(vertical = KraftSpacing.Spacing8)
+                            .padding(vertical = KraftSpacing.Spacing2)
                             .padding(horizontal = KraftSpacing.Spacing24)
                             .fillMaxWidth(),
                         blur = 0.95f,

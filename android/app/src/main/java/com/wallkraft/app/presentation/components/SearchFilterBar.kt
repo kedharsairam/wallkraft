@@ -391,10 +391,10 @@ fun SearchFilterBar(
 
                 // ── Categories ─────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_categories))
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                Spacer(Modifier.height(KraftSpacing.Spacing6))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Category.entries.forEach { cat ->
@@ -415,16 +415,16 @@ fun SearchFilterBar(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing6),
                     color = MaterialTheme.colorScheme.outline,
                 )
 
                 // ── Purity ─────────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_purity))
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                Spacer(Modifier.height(KraftSpacing.Spacing6))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Purity.entries.forEach { p ->
@@ -462,16 +462,16 @@ fun SearchFilterBar(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing6),
                     color = MaterialTheme.colorScheme.outline,
                 )
 
                 // ── Orientation ────────────────────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_orientation))
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                Spacer(Modifier.height(KraftSpacing.Spacing6))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Orientation.entries.forEach { o ->
@@ -487,28 +487,16 @@ fun SearchFilterBar(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
-                    color = MaterialTheme.colorScheme.outline,
-                )
-
-                // ── Colors ───────────────────────────────────────────────
-                ColorFilterRow(
-                    selectedHex = draftFilters.colors,
-                    onSelect = { hex ->
-                        draftFilters = draftFilters.copy(colors = hex)
-                    },
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing6),
                     color = MaterialTheme.colorScheme.outline,
                 )
 
                 // ── Sorting (wallhaven.cc order) ─────────────────────────
                 FilterSectionLabel(stringResource(R.string.filter_sorting))
-                Spacer(Modifier.height(KraftSpacing.Spacing4))
+                Spacer(Modifier.height(KraftSpacing.Spacing6))
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Sorting.entries.forEach { s ->
@@ -532,14 +520,14 @@ fun SearchFilterBar(
                 ) {
                     Column {
                         HorizontalDivider(
-                            modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                            modifier = Modifier.padding(vertical = KraftSpacing.Spacing8),
                             color = MaterialTheme.colorScheme.outline,
                         )
                         FilterSectionLabel(stringResource(R.string.filter_top_range))
-                        Spacer(Modifier.height(KraftSpacing.Spacing4))
+                        Spacer(Modifier.height(KraftSpacing.Spacing6))
                         FlowRow(
                             horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             TopRange.entries.forEach { t ->
@@ -557,7 +545,7 @@ fun SearchFilterBar(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing4),
+                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing6),
                     color = MaterialTheme.colorScheme.outline,
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing8))

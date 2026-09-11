@@ -289,32 +289,24 @@ fun FavoritesScreen(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = { Spacer(modifier = Modifier.height(topInset)) },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { com.wallkraft.app.core.design.KraftSnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
-        if (favorites.isEmpty()) {
-            EmptyState(
-                title = stringResource(R.string.no_favorites_title),
-                message = stringResource(R.string.no_favorites_message),
-                icon = Icons.Outlined.FavoriteBorder,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            )
-        } else {
-            // Offline/header counts follow the VISIBLE list: under a
-            // collection filter the header and Download-all act on what the
-            // user sees, not the global library.
-            val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
-            Column(modifier = Modifier.padding(innerPadding)) {
-                // Wallpaper rotation — moved here from Settings. Same store +
-                // scheduler, now surfaced where the source pool lives.
-                com.wallkraft.app.presentation.settings.SettingsRotationSection(
-                    settings = rotation,
-                    collections = rotationCollections,
-                    rotateWorking = rotateRequestId != null,
-                    rotateDone = rotateSucceeded,
-                    onSchedule = { schedule ->
-                        scope.launch { container.rotation.setSchedule(schedule) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing20),
+            verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing16),
+        ) {
+            // Wallpaper rotation — moved here from Settings. Always visible,
+            // even when empty, so you can set it up before adding anything.
+            com.wallkraft.app.presentation.settings.SettingsRotationSection(
+                settings = rotation,
+                collections = rotationCollections,
+                rotateWorking = rotateRequestId != null,
+                rotateDone = rotateSucceeded,
+                onSchedule = { schedule ->
+                    scope.launch { container.rotation.setSchedule(schedule) }
                         com.wallkraft.app.data.rotation.RotationScheduler.apply(context, schedule)
                     },
                     onMode = { mode -> scope.launch { container.rotation.setMode(mode) } },
@@ -326,31 +318,42 @@ fun FavoritesScreen(
                         }
                     },
                 )
-                CollectionStrip(
-                    collections = collections,
-                    covers = covers,
-                    activeId = activeCollectionId,
-                    onSelect = { activeCollectionId = it },
-                    onNew = { showCreateDialog = true },
-                    onMenu = { menuCollectionId = it },
-                    modifier = Modifier.padding(
-                        top = KraftSpacing.Spacing12,
-                        bottom = KraftSpacing.Spacing8,
-                    ),
-                )
-                // Divider between the collections zone and the images below —
-                // same outline style as the search-bar separator, inset 16dp
-                // to line up with the strip title/cards (not edge-to-edge).
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
-                )
-                // Offline status header: hidden in selection mode and when
-                // everything visible is saved. Shows progress while downloading.
-                // An active filter with nothing displayable gets an empty state
-                // (with a way out) instead of a dead blank grid.
-                val progress = repairProgress
-                if (displayedFavorites.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                ) {
+                    CollectionStrip(
+                        collections = collections,
+                        covers = covers,
+                        activeId = activeCollectionId,
+                        onSelect = { activeCollectionId = it },
+                        onNew = { showCreateDialog = true },
+                        onMenu = { menuCollectionId = it },
+                        modifier = Modifier.padding(
+                            top = KraftSpacing.Spacing4,
+                            bottom = KraftSpacing.Spacing4,
+                        ),
+                    )
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing8),
+                    )
+                    // Offline status header: hidden in selection mode and when
+                    // everything visible is saved. Shows progress while downloading.
+                    // An active filter with nothing displayable gets an empty state
+                    // (with a way out) instead of a dead blank grid.
+                    val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
+                    val progress = repairProgress
+                    if (favorites.isEmpty()) {
+                    EmptyState(
+                        title = stringResource(R.string.no_favorites_title),
+                        message = stringResource(R.string.no_favorites_message),
+                        icon = Icons.Outlined.FavoriteBorder,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(bottom = KraftSpacing.GlassBarReserve),
+                    )
+                } else if (displayedFavorites.isEmpty()) {
                     EmptyState(
                         title = stringResource(R.string.no_results_title),
                         message = stringResource(R.string.no_results_hint_filters),
@@ -359,7 +362,10 @@ fun FavoritesScreen(
                         onAction = { activeCollectionId = null },
                         modifier = Modifier.weight(1f),
                     )
-                } else if (!selectionMode && (visibleMissing > 0 || progress != null)) {
+                } else {
+                    // Apple way: no persistent "X of Y saved • Download all" chrome.
+                    // Offline is silent (ON_RESUME repair) + on-demand (zoom/set).
+                    // Progress still shows if a bulk repair is somehow in flight.
                     if (progress != null) {
                         val (done, total) = progress
                         Row(
@@ -381,36 +387,9 @@ fun FavoritesScreen(
                                 modifier = Modifier.weight(1f),
                             )
                         }
-                    } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    horizontal = KraftSpacing.Spacing16,
-                                    vertical = KraftSpacing.Spacing8,
-                                ),
-                        ) {
-                            val visibleSaved = displayedFavorites.size - visibleMissing
-                            Text(
-                                text = pluralStringResource(
-                                    R.plurals.favorites_offline_summary,
-                                    visibleSaved,
-                                    visibleSaved,
-                                    displayedFavorites.size,
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.weight(1f),
-                            )
-                            TextButton(onClick = { startDownloadAll() }) {
-                                Text(stringResource(R.string.favorites_download_all))
-                            }
-                        }
                     }
-                }
-            WallpaperGrid(
-                wallpapers = displayedFavorites.map { it.wallpaper },
+                    WallpaperGrid(
+                        wallpapers = displayedFavorites.map { it.wallpaper },
                 onOpen = { wallpaper ->
                     if (selectionMode) {
                         selectedIds = if (wallpaper.id in selectedIds) {
@@ -442,6 +421,7 @@ fun FavoritesScreen(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
             )
+                }
             }
         }
     }
@@ -629,6 +609,7 @@ fun FavoritesScreen(
                     val result = snackbarHostState.showSnackbar(
                         message = context.getString(R.string.collection_deleted),
                         actionLabel = context.getString(R.string.undo),
+                        duration = androidx.compose.material3.SnackbarDuration.Short,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         collectionsVm.restore(restoreName, restoreMembers)
