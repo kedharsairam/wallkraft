@@ -171,13 +171,9 @@ fun SearchFilterBar(
 
     Box(modifier = modifier) {
         // ── Main content ────────────────────────────────────────────────
-        // Top frost — exact 4-layer stack as bottom pill (GlassTabBar)
         Column(
             modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.22f))
-                .background(Color.White.copy(alpha = 0.22f))
-                .background(Color(0xFF3A3A3C).copy(alpha = 0.45f))
-                .background(Color(0xFF2C2C2E).copy(alpha = 0.15f))
+                .background(Color.Transparent)
                 .onGloballyPositioned { coordinates ->
                     barHeight = coordinates.size.height
                 },
@@ -355,8 +351,15 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    // Same card background as Settings groups (surfaceBright #1C1C1E).
-                    .background(MaterialTheme.colorScheme.surfaceBright)
+                    // Frosted like top/bottom but more opaque for readability:
+                    // top/bottom are small bars (translucent is fine), this
+                    // panel is large and needs ~95% opacity or text is lost
+                    // behind the grid (see screenshot). Same hue stack as top/bottom
+                    // but with higher alphas + a solid base.
+                    .background(Color.Black.copy(alpha = 0.55f), PanelShape)
+                    .background(Color.White.copy(alpha = 0.35f), PanelShape)
+                    .background(Color(0xFF3A3A3C).copy(alpha = 0.85f), PanelShape)
+                    .background(Color(0xFF2C2C2E).copy(alpha = 0.65f), PanelShape)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -624,7 +627,10 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    .background(MaterialTheme.colorScheme.surfaceBright)
+                    .background(Color.Black.copy(alpha = 0.55f), PanelShape)
+                    .background(Color.White.copy(alpha = 0.35f), PanelShape)
+                    .background(Color(0xFF3A3A3C).copy(alpha = 0.85f), PanelShape)
+                    .background(Color(0xFF2C2C2E).copy(alpha = 0.65f), PanelShape)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
             ) {

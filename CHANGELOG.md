@@ -7,18 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.6] - 2026-09-11
+
+### Fixed
+- **Top bar frosted glass** â€” unified top and bottom bars: top is now a flat edge-to-edge `GlassBox` (blur 0.95, 4-layer frost, square bottom) that the grid blurs behind on scroll, matching the bottom pill. Removed double-stacked `Spacer(topInset)` that hard-clipped the grid.
+- **Browse filter panel visibility** â€” panel was clipped at the frost's bottom edge because `SearchFilterBar` was inside the `GlassBox`. Frost is now a sibling background; the panel overflows unclipped.
+- **Filter panel background** â€” now uses the same 4-layer frost as top/bottom (more opaque for large panels) for both filters and suggestions.
+- **Favorites spacing** â€” outer `Column` now `20dp` like Settings (was `16dp`); `CollectionStrip` no longer double-counts `top 12dp` (was 32dp gap, now 20dp) to match Settings rhythm.
+- **Favorites grid visibility** â€” grid was nested inside the offline header condition and disappeared when all favs were offline or in selection mode. Grid now always shows when `displayedFavorites` is non-empty; header only shows when `visibleMissing>0` or downloading.
+- **Collection dialogs** â€” `Add to collection` and `3-dots` menus are now centered popups with `28dp` `surfaceContainerHigh` like `New collection` (was mismatched bottom sheets vs dialogs, blue tint vs neutral, rounded pill vs flat). All three share uniform background, search, checkmark accessories, pill fields with `0/40` and haptics.
+- **Collection menu bottom corners** â€” bottom sheets now flush square (`0dp`) to the bottom edge, no floating gap or thin black strip. `contentWindowInsets = 0` and `navigationBarsPadding` inside frost.
+- **Collection menu centering** â€” `Rename`/`Delete` rows now centered with icons like `Cancel` (was left-weighted).
+- **Favorites delete snackbar** â€” `FavoritesScreen` now uses `KraftSnackbarHost` dark pill above the glass bar, not the generic white `SnackbarHost`.
+
+### Changed
+- **Wallpaper rotation spacing** â€” Favorites `Wallpaper Rotation â†’ COLLECTIONS` gap now follows Settings `20dp` standard.
+- **Liquid-glass top** â€” `LiquidGlass` shader now respects `RoundedCornerShape(0.dp)` as flat `0` radius for the top bar (was always pill `min/2`).
+
 ## [1.19.5] - 2026-09-10
 
 ### Added
-- **Wallpaper rotation header in Favorites** — the rotation card (schedule/mode/target/source + Rotate Now) now lives at the top of Favorites, above Collections, always visible even when empty. Removed from Settings.
+- **Wallpaper rotation header in Favorites** ï¿½ the rotation card (schedule/mode/target/source + Rotate Now) now lives at the top of Favorites, above Collections, always visible even when empty. Removed from Settings.
 
 ### Fixed
-- **Favorites empty state centering** — the heart + text now centers in the visible area (divider ? pill top) via GlassBarReserve bottom inset, not behind the floating bar.
-- **Collection add/clear** — the add-to-collection picker now correctly clears selection on Done, exiting selection mode.
-- **Remove from collection** — when a collection filter is active, the top bar trash now correctly strips the selected wallpapers from that collection only (stays in Favorites) via FolderDelete ? now unified as single red trash handling both cases; shows Remove from collection description when in a collection.
-- **API key handling** — Browse now works for SFW/Sketchy even with an invalid API key; the X-API-Key header is only sent when piKeyValid is true, so a wrong key no longer blocks SFW.
-- **Left/right 8dp uniformity, divider 8/8, grid 8** — Favorites and Settings now use uniform 8dp outer with correct inner insets, divider 8 top/bottom, grid 8 gutters, and Apple header typography (WALLPAPER ROTATION/COLLECTIONS as labelSmall caps).
-- **Settings top bar 20dp, Settings outer 24/20** — KraftTopBar title at 20, outer vertical 24?20, header?collections 16, etc. — tightened to Apple 8pt rhythm.
+- **Favorites empty state centering** ï¿½ the heart + text now centers in the visible area (divider ? pill top) via GlassBarReserve bottom inset, not behind the floating bar.
+- **Collection add/clear** ï¿½ the add-to-collection picker now correctly clears selection on Done, exiting selection mode.
+- **Remove from collection** ï¿½ when a collection filter is active, the top bar trash now correctly strips the selected wallpapers from that collection only (stays in Favorites) via FolderDelete ? now unified as single red trash handling both cases; shows Remove from collection description when in a collection.
+- **API key handling** ï¿½ Browse now works for SFW/Sketchy even with an invalid API key; the X-API-Key header is only sent when piKeyValid is true, so a wrong key no longer blocks SFW.
+- **Left/right 8dp uniformity, divider 8/8, grid 8** ï¿½ Favorites and Settings now use uniform 8dp outer with correct inner insets, divider 8 top/bottom, grid 8 gutters, and Apple header typography (WALLPAPER ROTATION/COLLECTIONS as labelSmall caps).
+- **Settings top bar 20dp, Settings outer 24/20** ï¿½ KraftTopBar title at 20, outer vertical 24?20, header?collections 16, etc. ï¿½ tightened to Apple 8pt rhythm.
 
 ## [1.19.4] - 2026-09-10
 

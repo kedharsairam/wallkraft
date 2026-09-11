@@ -32,14 +32,9 @@ fun KraftTopBar(
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    // Exact match to bottom pill — Apple 4-layer stack (identical light/dark, ~82% opaque)
-    // Bottom uses these 4 backgrounds on the Row inside GlassBox; top uses same here.
+    // Stripped — outer GlassBox provides the single 4-layer frost
     Column(
-        modifier = modifier
-            .background(Color.Black.copy(alpha = 0.22f))
-            .background(Color.White.copy(alpha = 0.22f))
-            .background(Color(0xFF3A3A3C).copy(alpha = 0.45f))
-            .background(Color(0xFF2C2C2E).copy(alpha = 0.15f)),
+        modifier = modifier.background(Color.Transparent),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

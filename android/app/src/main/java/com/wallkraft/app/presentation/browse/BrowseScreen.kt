@@ -177,15 +177,19 @@ fun BrowseScreen(
             }
     }
 
+    // Full-bleed behind frosted top — no Scaffold topBar spacer.
+    // The grid's contentPadding handles topInset so at rest the first tile
+    // sits just below the frost, but on scroll tiles draw behind it and
+    // get blurred like the bottom pill. outer Scaffold still reserves topInset
+    // for measurement only.
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = { Spacer(modifier = Modifier.height(topInset)) },
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(bottom = innerPadding.calculateBottomPadding())
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
@@ -193,7 +197,11 @@ fun BrowseScreen(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 if (uiState.rateLimited) {
-                    RateLimitBanner(modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16))
+                    RateLimitBanner(
+                        modifier = Modifier
+                            .padding(horizontal = KraftSpacing.Spacing16)
+                            .padding(top = topInset),
+                    )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
                 }
 
@@ -201,8 +209,7 @@ fun BrowseScreen(
                     isRefreshing = uiState.isRefreshing,
                     onRefresh = viewModel::refresh,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .clipToBounds(),
+                        .fillMaxSize(),
                 ) {
                     // Crossfade between states for smooth transitions (content changes should feel cohesive).
                     val stateKey = when {
@@ -218,17 +225,21 @@ fun BrowseScreen(
                         label = "browseState",
                     ) { state ->
                         when (state) {
-                            "loading" -> ShimmerGrid()
+                            "loading" -> ShimmerGrid(
+                                modifier = Modifier.padding(top = topInset),
+                            )
                             "rateLimited" -> EmptyState(
                                 title = stringResource(R.string.rate_limit_banner),
                                 message = stringResource(R.string.rate_limit_hint),
                                 icon = Icons.Outlined.Warning,
                                 actionLabel = stringResource(R.string.error_retry),
                                 onAction = viewModel::retry,
+                                modifier = Modifier.padding(top = topInset),
                             )
                             "error" -> ErrorState(
                                 message = uiState.error ?: "",
                                 onRetry = viewModel::retry,
+                                modifier = Modifier.padding(top = topInset),
                             )
                             "empty" -> EmptyState(
                                 title = stringResource(R.string.no_results_title),
@@ -237,6 +248,7 @@ fun BrowseScreen(
                                 } else {
                                     stringResource(R.string.no_results_hint_query, uiState.filters.query)
                                 },
+                                modifier = Modifier.padding(top = topInset),
                             )
                             else -> WallpaperGrid(
                                 wallpapers = uiState.wallpapers,
@@ -248,7 +260,13 @@ fun BrowseScreen(
                                 footer = {
                                     if (uiState.isAppending) GridAppendFooter()
                                 },
-                                modifier = Modifier.padding(bottom = navBarPadding),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                    start = KraftSpacing.Spacing8,
+                                    end = KraftSpacing.Spacing8,
+                                    top = topInset + KraftSpacing.Spacing8,
+                                    bottom = KraftSpacing.GlassBarReserve + navBarPadding,
+                                ),
+                                modifier = Modifier.fillMaxSize(),
                                 sharedTransitionScope = sharedTransitionScope,
                                 animatedVisibilityScope = animatedVisibilityScope,
                             )
