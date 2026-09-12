@@ -2,6 +2,7 @@ package com.wallkraft.app
 
 import android.app.Application
 import android.os.Process
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -11,6 +12,7 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 
+@HiltAndroidApp
 class WallKraftApplication : Application() {
     lateinit var container: AppContainer
         private set
