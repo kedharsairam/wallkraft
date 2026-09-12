@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import com.wallkraft.app.domain.model.AppUpdateInfo
 @Composable
 fun UpdateAvailableDialog(
     info: AppUpdateInfo,
+    downloadState: SettingsViewModel.DownloadUiState = SettingsViewModel.DownloadUiState.Idle,
     onDismiss: () -> Unit,
     onDownload: () -> Unit,
 ) {
@@ -59,10 +62,42 @@ fun UpdateAvailableDialog(
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
             }
+            when (val d = downloadState) {
+                is SettingsViewModel.DownloadUiState.Downloading -> {
+                    val total = if (d.total > 0) d.total else info.sizeBytes
+                    val pct = if (total > 0) (d.read * 100 / total).toInt().coerceIn(0, 100) else 0
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { pct / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    Text(
+                        text = "${formatBytes(d.read)} / ${formatBytes(total)} ($pct%)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                is SettingsViewModel.DownloadUiState.Error -> {
+                    Text(
+                        text = d.message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
+                else -> Unit
+            }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.later)) }
                 Spacer(Modifier.width(KraftSpacing.Spacing8))
-                TextButton(onClick = onDownload) { Text(stringResource(R.string.download)) }
+                val downloading = downloadState is SettingsViewModel.DownloadUiState.Downloading
+                TextButton(onClick = onDownload, enabled = !downloading) {
+                    if (downloading) {
+                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(KraftSpacing.Spacing8))
+                    }
+                    Text(stringResource(R.string.download))
+                }
             }
         }
     }

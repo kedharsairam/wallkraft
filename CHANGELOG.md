@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-12
+
+### Fixed
+- **Update download actually installs** — replaced silent-failing DownloadManager (can't write to private cache) with OkHttp download to `cache/update` (tmp→rename, progress) + auto-launch system installer via FileProvider. Sheet shows progress + error.
+
 ## [2.1.0] - 2026-09-12
 
 ### Added

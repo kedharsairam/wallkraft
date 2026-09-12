@@ -129,6 +129,7 @@ private fun SettingsScreenImpl(
     val upToDateMsg = stringResource(R.string.update_up_to_date)
     val checkFailedMsg = stringResource(R.string.update_check_failed)
     var showUpdateDialog by remember { mutableStateOf<com.wallkraft.app.domain.model.AppUpdateInfo?>(null) }
+    val downloadState by viewModel.downloadState.collectAsState()
     LaunchedEffect(updateState) {
         when (val s = updateState) {
             is UpdateUiState.Available -> showUpdateDialog = s.info
@@ -142,6 +143,31 @@ private fun SettingsScreenImpl(
                 viewModel.clearUpdateState()
             }
             else -> Unit
+        }
+    }
+    // When download finishes, launch system installer — this IS the update.
+    LaunchedEffect(downloadState) {
+        val d = downloadState
+        if (d is SettingsViewModel.DownloadUiState.Downloaded) {
+            try {
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    d.file,
+                )
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, "application/vnd.android.package-archive")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            } catch (_: Exception) {
+                snackbarHostState.showSnackbar(checkFailedMsg)
+            } finally {
+                showUpdateDialog = null
+                viewModel.clearUpdateState()
+                viewModel.clearDownloadState()
+            }
         }
     }
 
@@ -250,28 +276,16 @@ private fun SettingsScreenImpl(
     showUpdateDialog?.let { info ->
         UpdateAvailableDialog(
             info = info,
+            downloadState = downloadState,
             onDismiss = {
                 showUpdateDialog = null
                 viewModel.clearUpdateState()
+                viewModel.clearDownloadState()
             },
             onDownload = {
-                showUpdateDialog = null
-                viewModel.clearUpdateState()
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                scope.launch(Dispatchers.IO) {
-                    runCatching {
-                        val dir = File(context.cacheDir, "update").apply { mkdirs() }
-                        dir.listFiles()?.forEach { it.delete() }
-                        val req = android.app.DownloadManager.Request(android.net.Uri.parse(info.apkUrl)).apply {
-                            setTitle("WallKraft ${info.version}")
-                            setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE)
-                            setDestinationUri(android.net.Uri.fromFile(File(dir, "wallkraft-${info.version}.apk")))
-                            setAllowedOverMetered(true)
-                        }
-                        val dm = context.getSystemService(android.app.DownloadManager::class.java)
-                        dm.enqueue(req)
-                    }
-                }
+                val dir = File(context.cacheDir, "update")
+                viewModel.downloadUpdate(info, dir)
             },
         )
     }
