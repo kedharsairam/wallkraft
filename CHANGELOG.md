@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.7] - 2026-09-11
+
+### Fixed
+- **Top bar** — solid `#2C2C2E` (lighter than `Search` `#1C1C1E`) for depth, not pure black; dropdowns now overflow correctly as siblings behind solid, not clipped inside the bar.
+- **Filter panel** — reverted frost to solid `surfaceBright` (`#1C1C1E`) with shadow; only the bottom pill remains frosted per request.
+- **Favorites divider** — tight `8dp` above and below the hairline (`Collections → Divider → grid`), while outer `20dp` `Rotation → Collections` stays like Settings.
+
+### Changed
+- **Collection popups** — all three share the `New collection` centered popup style: `surfaceContainerHigh` `28dp` `0dp` tonal, `16dp` shadow — uniform background.
+
 ## [1.19.6] - 2026-09-11
 
 ### Fixed

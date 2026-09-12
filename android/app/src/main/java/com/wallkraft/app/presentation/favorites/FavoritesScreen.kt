@@ -318,51 +318,54 @@ fun FavoritesScreen(
                         }
                     },
                 )
-                CollectionStrip(
-                    collections = collections,
-                    covers = covers,
-                    activeId = activeCollectionId,
-                    onSelect = { activeCollectionId = it },
-                    onNew = { showCreateDialog = true },
-                    onMenu = { menuCollectionId = it },
-                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
-                )
-                // Divider between the collections zone and the images below —
-                // same outline style as the search-bar separator, inset 16dp
-                // to line up with the strip title/cards (not edge-to-edge).
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
-                )
-                // Offline status header: hidden in selection mode and when
-                // everything visible is saved. Shows progress while downloading.
-                // An active filter with nothing displayable gets an empty state
-                // (with a way out) instead of a dead blank grid.
-                val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
-                val progress = repairProgress
-                if (favorites.isEmpty()) {
-                    EmptyState(
-                        title = stringResource(R.string.no_favorites_title),
-                        message = stringResource(R.string.no_favorites_message),
-                        icon = Icons.Outlined.FavoriteBorder,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(bottom = KraftSpacing.GlassBarReserve),
+                // Collections + divider + grid share tight 8dp rhythm
+                // (divider 8 above/below), while outer gap Rotation → this
+                // group stays 20dp like Settings. Inner Column owns the 8.
+                androidx.compose.foundation.layout.Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                ) {
+                    CollectionStrip(
+                        collections = collections,
+                        covers = covers,
+                        activeId = activeCollectionId,
+                        onSelect = { activeCollectionId = it },
+                        onNew = { showCreateDialog = true },
+                        onMenu = { menuCollectionId = it },
                     )
-                } else if (displayedFavorites.isEmpty()) {
-                    EmptyState(
-                        title = stringResource(R.string.no_results_title),
-                        message = stringResource(R.string.no_results_hint_filters),
-                        icon = Icons.Outlined.FilterAlt,
-                        actionLabel = stringResource(R.string.clear_filter),
-                        onAction = { activeCollectionId = null },
-                        modifier = Modifier.weight(1f),
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
                     )
-                } else {
-                    // Offline header — only when not in selection and there is
-                    // something to show (missing or downloading). Grid is always
-                    // below it, even when everything is already offline.
-                    if (!selectionMode && (visibleMissing > 0 || progress != null)) {
+                    // Offline status header: hidden in selection mode and when
+                    // everything visible is saved. Shows progress while downloading.
+                    // An active filter with nothing displayable gets an empty state
+                    // (with a way out) instead of a dead blank grid.
+                    val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
+                    val progress = repairProgress
+                    if (favorites.isEmpty()) {
+                        EmptyState(
+                            title = stringResource(R.string.no_favorites_title),
+                            message = stringResource(R.string.no_favorites_message),
+                            icon = Icons.Outlined.FavoriteBorder,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(bottom = KraftSpacing.GlassBarReserve),
+                        )
+                    } else if (displayedFavorites.isEmpty()) {
+                        EmptyState(
+                            title = stringResource(R.string.no_results_title),
+                            message = stringResource(R.string.no_results_hint_filters),
+                            icon = Icons.Outlined.FilterAlt,
+                            actionLabel = stringResource(R.string.clear_filter),
+                            onAction = { activeCollectionId = null },
+                            modifier = Modifier.weight(1f),
+                        )
+                    } else {
+                        // Offline header — only when not in selection and there is
+                        // something to show (missing or downloading). Grid is always
+                        // below it, even when everything is already offline.
+                        if (!selectionMode && (visibleMissing > 0 || progress != null)) {
                         if (progress != null) {
                             val (done, total) = progress
                             Row(
@@ -447,6 +450,7 @@ fun FavoritesScreen(
             )
             }
         }
+    }
     }
 
     // Remove confirmation dialog

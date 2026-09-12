@@ -301,44 +301,20 @@ fun WallKraftNavHost(container: AppContainer) {
             // recompose together when the destination changes.
             glassContent = {
                 if (!isDetail) {
-                    // ── Top frosted bar ───────────────────────────────
-                    // Frost background is a GlassBox (blur behind grid). The
-                    // bar UI is a sibling on top of it — not a child — so the
-                    // filter/suggestion dropdowns (which overflow below the bar
-                    // via offset(barHeight)) are not clipped by the GlassBox's
-                    // bounds. Old bug: putting SearchFilterBar *inside* the
-                    // GlassBox clipped the dropdown at the frost's bottom edge.
-                    val frostShape = RoundedCornerShape(0.dp)
-                    GlassBox(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .fillMaxWidth()
-                            .height(topInset),
-                        blur = 0.95f,
-                        scale = 0.12f,
-                        centerDistortion = 0f,
-                        shape = frostShape,
-                        elevation = 8.dp,
-                        tint = Color.White.copy(alpha = 0.08f),
-                        darkness = 0.10f,
-                        warpEdges = 0.22f,
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.22f), frostShape)
-                                .background(Color.White.copy(alpha = 0.22f), frostShape)
-                                .background(Color(0xFF3A3A3C).copy(alpha = 0.45f), frostShape)
-                                .background(Color(0xFF2C2C2E).copy(alpha = 0.15f), frostShape),
-                        ) {}
-                    }
-                    // Bar UI — sibling above the frost, not inside it. This
-                    // keeps the dropdown panels (offset below the bar) fully
-                    // visible and above the grid.
+                    // ── Top bar — solid opaque (only bottom pill stays frosted).
+                    // Background is a sibling *behind* the bar, not a parent —
+                    // so the filter/suggestion dropdowns (offset below the bar)
+                    // are not clipped by the background's fixed height. Previous
+                    // parent approach clipped the panel at the frost's bottom edge.
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .height(topInset)
+                            .background(Color(0xFF2C2C2E)),
+                    ) {}
+                    Box(
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
                     ) {
                         when {
                             isBrowse -> SearchFilterBar(

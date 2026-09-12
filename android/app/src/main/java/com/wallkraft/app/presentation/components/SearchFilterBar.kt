@@ -351,15 +351,7 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    // Frosted like top/bottom but more opaque for readability:
-                    // top/bottom are small bars (translucent is fine), this
-                    // panel is large and needs ~95% opacity or text is lost
-                    // behind the grid (see screenshot). Same hue stack as top/bottom
-                    // but with higher alphas + a solid base.
-                    .background(Color.Black.copy(alpha = 0.55f), PanelShape)
-                    .background(Color.White.copy(alpha = 0.35f), PanelShape)
-                    .background(Color(0xFF3A3A3C).copy(alpha = 0.85f), PanelShape)
-                    .background(Color(0xFF2C2C2E).copy(alpha = 0.65f), PanelShape)
+                    .background(MaterialTheme.colorScheme.surfaceBright)
                     .pointerInput(Unit) {
                         awaitEachGesture {
                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -627,10 +619,7 @@ fun SearchFilterBar(
                     .fillMaxWidth()
                     .shadow(16.dp, PanelShape)
                     .clip(PanelShape)
-                    .background(Color.Black.copy(alpha = 0.55f), PanelShape)
-                    .background(Color.White.copy(alpha = 0.35f), PanelShape)
-                    .background(Color(0xFF3A3A3C).copy(alpha = 0.85f), PanelShape)
-                    .background(Color(0xFF2C2C2E).copy(alpha = 0.65f), PanelShape)
+                    .background(MaterialTheme.colorScheme.surfaceBright)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8),
             ) {
