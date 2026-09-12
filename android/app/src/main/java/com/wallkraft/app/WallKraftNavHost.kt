@@ -99,7 +99,7 @@ import com.wallkraft.app.data.prefs.RotationStore
 import com.wallkraft.app.di.AppDependenciesViewModel
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.browse.BrowseSearchState
-import com.wallkraft.app.presentation.components.RotationTimingWelcome
+import com.wallkraft.app.presentation.components.WelcomeScreen
 import com.wallkraft.app.presentation.components.SearchFilterBar
 import com.wallkraft.app.presentation.components.glass.GlassBox
 import com.wallkraft.app.presentation.components.glass.GlassContainer
@@ -181,10 +181,10 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
     val timingSeen by rotationStore.timingWelcomeSeen.collectAsState(initial = true)
     val hostScope = rememberCoroutineScope()
     if (!timingSeen) {
-        RotationTimingWelcome(
+        WelcomeScreen(
             onDone = { hostScope.launch { rotationStore.markTimingWelcomeSeen() } },
         )
-    }
+    } else {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -488,6 +488,7 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                 }
             },
         )
+    }
     }
 }
 

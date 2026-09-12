@@ -249,5 +249,16 @@
     <string name="rate_limit_banner">Rate limit reached. Please wait a moment before browsing more.</string>
     <string name="rate_limit_hint">Wallhaven\'s API limit has been reached. Wait a minute and try again.</string>
     <string name="buy_me_a_coffee_title">Support</string>
-    <string name="buy_me_a_coffee_description">If you enjoy using WallKraft, consider buying me a coffee. It keeps the project going.</string>
+    <string name="buy_me_a_coffee_description">If you enjoy WallKraft, buy me a coffee:</string>
+
+    <!-- Welcome (first launch) -->
+    <string name="welcome_title_browse">Browse Wallhaven</string>
+    <string name="welcome_body_browse">Infinite wallpapers, filters, colors and sorting — all private, no trackers.</string>
+    <string name="welcome_title_organize">Organize &amp; Rotate</string>
+    <string name="welcome_body_organize">Save favorites offline, make collections, auto-rotate on schedule.</string>
+    <string name="welcome_title_private">Private by default</string>
+    <string name="welcome_body_private">No accounts, no analytics. Your API key and favorites stay on your device.</string>
+    <string name="next">Next</string>
+    <string name="skip">Skip</string>
+    <string name="get_started">Get Started</string>
 </resources>
