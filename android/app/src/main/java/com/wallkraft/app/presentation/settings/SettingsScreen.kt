@@ -86,6 +86,7 @@ private fun SettingsScreenImpl(
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
     val isValidating by viewModel.isValidating.collectAsState()
+    val updateState by viewModel.updateState.collectAsState()
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -125,6 +126,24 @@ private fun SettingsScreenImpl(
     val cacheClearedMsg = stringResource(R.string.cache_cleared)
     val apiSavedMsg = stringResource(R.string.api_key_saved)
     val noCrashLogsMsg = stringResource(R.string.no_crash_logs)
+    val upToDateMsg = stringResource(R.string.update_up_to_date)
+    val checkFailedMsg = stringResource(R.string.update_check_failed)
+    var showUpdateDialog by remember { mutableStateOf<com.wallkraft.app.domain.model.AppUpdateInfo?>(null) }
+    LaunchedEffect(updateState) {
+        when (val s = updateState) {
+            is UpdateUiState.Available -> showUpdateDialog = s.info
+            is UpdateUiState.UpToDate -> {
+                // Only snackbar when user tapped Check (state leaves Idle). Silent otherwise.
+                snackbarHostState.showSnackbar(upToDateMsg)
+                viewModel.clearUpdateState()
+            }
+            is UpdateUiState.Error -> {
+                snackbarHostState.showSnackbar(s.message.ifBlank { checkFailedMsg })
+                viewModel.clearUpdateState()
+            }
+            else -> Unit
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -168,6 +187,8 @@ private fun SettingsScreenImpl(
             SettingsAboutSection(
                 githubUrl = githubUrl,
                 onPrivacyClick = { showPrivacyDialog = true },
+                updateState = updateState,
+                onCheckUpdates = { viewModel.checkForUpdates() },
                 onShareCrashLogClick = {
                     val log = CrashLogs.latestCrashLog(context)
                     if (log == null) {
@@ -224,5 +245,34 @@ private fun SettingsScreenImpl(
 
     if (showPrivacyDialog) {
         PrivacyDialog(onDismiss = { showPrivacyDialog = false })
+    }
+
+    showUpdateDialog?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            onDismiss = {
+                showUpdateDialog = null
+                viewModel.clearUpdateState()
+            },
+            onDownload = {
+                showUpdateDialog = null
+                viewModel.clearUpdateState()
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                scope.launch(Dispatchers.IO) {
+                    runCatching {
+                        val dir = File(context.cacheDir, "update").apply { mkdirs() }
+                        dir.listFiles()?.forEach { it.delete() }
+                        val req = android.app.DownloadManager.Request(android.net.Uri.parse(info.apkUrl)).apply {
+                            setTitle("WallKraft ${info.version}")
+                            setNotificationVisibility(android.app.DownloadManager.Request.VISIBILITY_VISIBLE)
+                            setDestinationUri(android.net.Uri.fromFile(File(dir, "wallkraft-${info.version}.apk")))
+                            setAllowedOverMetered(true)
+                        }
+                        val dm = context.getSystemService(android.app.DownloadManager::class.java)
+                        dm.enqueue(req)
+                    }
+                }
+            },
+        )
     }
 }

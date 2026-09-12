@@ -2,8 +2,12 @@ package com.wallkraft.app.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallkraft.app.data.api.GithubApi
 import com.wallkraft.app.data.api.WallhavenApi
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.AppSettings
+import com.wallkraft.app.domain.model.AppUpdateInfo
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
@@ -26,10 +30,20 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(FlowPreview::class)
+sealed interface UpdateUiState {
+    data object Idle : UpdateUiState
+    data object Checking : UpdateUiState
+    data class Available(val info: AppUpdateInfo) : UpdateUiState
+    data object UpToDate : UpdateUiState
+    data class Error(val message: String) : UpdateUiState
+}
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val api: WallhavenApi,
+    private val githubApi: GithubApi,
+    private val errorMessage: @JvmSuppressWildcards (AppError) -> String,
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
@@ -144,6 +158,37 @@ class SettingsViewModel @Inject constructor(
 
     fun setDataSaverMode(enabled: Boolean) {
         viewModelScope.launch { settingsRepository.update { it.copy(dataSaverMode = enabled) } }
+    }
+
+    private val _updateState = MutableStateFlow<UpdateUiState>(UpdateUiState.Idle)
+    val updateState: StateFlow<UpdateUiState> = _updateState.asStateFlow()
+    private var updateJob: kotlinx.coroutines.Job? = null
+
+    /** Manual update check only — no auto, no worker. Caller is Settings About row. */
+    fun checkForUpdates() {
+        updateJob?.cancel()
+        updateJob = viewModelScope.launch {
+            _updateState.value = UpdateUiState.Checking
+            when (val result = githubApi.latestRelease()) {
+                is Result.Success -> {
+                    val info = result.data
+                    _updateState.value = if (info == null) UpdateUiState.UpToDate else UpdateUiState.Available(info)
+                }
+                is Result.Failure -> {
+                    // RateLimited/offline → silent UpToDate to avoid nagging, else mapped message
+                    _updateState.value = when (result.error) {
+                        is AppError.NetworkError.RateLimited,
+                        is AppError.NetworkError.NoConnection,
+                        is AppError.NetworkError.Timeout -> UpdateUiState.UpToDate
+                        else -> UpdateUiState.Error(errorMessage(result.error))
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearUpdateState() {
+        _updateState.value = UpdateUiState.Idle
     }
 
     override fun onCleared() {

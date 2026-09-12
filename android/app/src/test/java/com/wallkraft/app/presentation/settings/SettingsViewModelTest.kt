@@ -1,4 +1,4 @@
-package com.wallkraft.app.presentation.settings
+﻿package com.wallkraft.app.presentation.settings
 
 import com.wallkraft.app.data.api.RateLimitState
 import com.wallkraft.app.data.api.WallhavenApi
@@ -46,7 +46,7 @@ class SettingsViewModelTest {
     @Test
     fun `settings starts with defaults`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         assertEquals(AppSettings(), vm.settings.value)
@@ -55,7 +55,7 @@ class SettingsViewModelTest {
     @Test
     fun `setSorting updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         vm.setSorting(Sorting.Views)
@@ -67,7 +67,7 @@ class SettingsViewModelTest {
     @Test
     fun `setApiKey updates apiKeyText`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         vm.setApiKey("my-secret-key")
@@ -80,7 +80,7 @@ class SettingsViewModelTest {
     fun `apiKeyText seeds from persisted value`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
         repo._settings.value = AppSettings(apiKey = "existing-key")
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         assertEquals("existing-key", vm.apiKeyText.value)
@@ -89,7 +89,7 @@ class SettingsViewModelTest {
     @Test
     fun `setOrientation updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         vm.setOrientation(Orientation.Portrait)
@@ -101,7 +101,7 @@ class SettingsViewModelTest {
     @Test
     fun `setDataSaverMode updates repository`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         vm.setDataSaverMode(true)
@@ -113,7 +113,7 @@ class SettingsViewModelTest {
     @Test
     fun `dataSaverMode defaults to off`() = runTest(dispatcher) {
         val repo = FakeSettingsRepository()
-        val vm = SettingsViewModel(repo, fakeApi)
+        val vm = SettingsViewModel(repo, fakeApi, com.wallkraft.app.data.api.GithubApi(okhttp3.OkHttpClient(), kotlinx.serialization.json.Json {}), { "??" })
         advanceUntilIdle()
 
         assertEquals(false, vm.settings.value.dataSaverMode)

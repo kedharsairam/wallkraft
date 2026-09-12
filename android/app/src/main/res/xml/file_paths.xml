@@ -7,4 +7,6 @@
     <!-- Crash logs written by the uncaught-exception handler. Shared only
          when the user explicitly taps "Share crash log". -->
     <cache-path name="crash" path="crash/" />
+    <!-- Downloaded update APK (manual Check for updates only). -->
+    <cache-path name="update" path="update/" />
 </paths>

@@ -3,6 +3,7 @@ package com.wallkraft.app.di
 import android.content.Context
 import androidx.room.Room
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.data.api.GithubApi
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.SearchResponseCache
@@ -70,6 +71,12 @@ object AppModule {
         settings: SettingsRepository,
         rateLimitState: com.wallkraft.app.data.api.RateLimitState,
     ): WallhavenApi = WallhavenApi(client, json, settings, rateLimitState)
+
+    @Provides @Singleton
+    fun provideGithubApi(
+        client: OkHttpClient,
+        json: Json,
+    ): GithubApi = GithubApi(client, json)
 
     @Provides @Singleton
     fun provideSearchResponseCache(
