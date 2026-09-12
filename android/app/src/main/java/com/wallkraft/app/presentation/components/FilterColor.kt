@@ -217,7 +217,7 @@ private fun ColorDot(
             modifier = modifier
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.primary)
-                .padding(2.dp)
+                .padding(KraftSpacing.Spacing2)
                 .semantics(mergeDescendants = true) {
                     contentDescription = contentDesc
                     role = Role.RadioButton
@@ -230,7 +230,7 @@ private fun ColorDot(
                     .fillMaxSize()
                     .clip(shape)
                     .background(MaterialTheme.colorScheme.surfaceBright)
-                    .padding(2.dp),
+                    .padding(KraftSpacing.Spacing2),
             ) {
                 Box(
                     modifier = Modifier

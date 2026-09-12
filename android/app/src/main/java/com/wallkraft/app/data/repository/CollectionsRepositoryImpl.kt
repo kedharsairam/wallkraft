@@ -52,7 +52,7 @@ class CollectionsRepositoryImpl(
         try {
             dao.addItem(CollectionItemEntity(collectionId, wallpaperId))
         } catch (e: SQLiteConstraintException) {
-            Log.w("CollectionsRepo", "addTo ignored (stale collection/member)", e)
+            if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("CollectionsRepo", "addTo ignored (stale collection/member)", e)
         }
     }
 

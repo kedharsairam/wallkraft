@@ -112,12 +112,12 @@ class WallhavenApi(
                     val rateRemaining = response.header("X-RateLimit-Remaining")?.toIntOrNull()
                     // Consume body to release connection
                     response.body?.string()
-                    android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining")
+                    if (com.wallkraft.app.BuildConfig.DEBUG) android.util.Log.d("WallhavenApi", "validateApiKey: code=${response.code}, X-RateLimit-Limit=$rateLimit, X-RateLimit-Remaining=$rateRemaining")
                     // 200 = valid key, 401 = invalid key
                     response.code == 200
                 }
             } catch (e: Exception) {
-                android.util.Log.e("WallhavenApi", "validateApiKey error: ${e.message}", e)
+                if (com.wallkraft.app.BuildConfig.DEBUG) android.util.Log.e("WallhavenApi", "validateApiKey error: ${e.message}", e)
                 false
             }
         }

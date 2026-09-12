@@ -61,7 +61,7 @@ object KraftColors {
     val GlassBorder = Color.White.copy(alpha = 0.35f)
 
     // ─── Tab Bar ────────────────────────────────────────────────────────
-    val TabBarInactive = Color(0xFF8E8E93)     // standard inactive tab — ~4.2:1 on #000000
+    val TabBarInactive = Color(0xFF9E9EA3)     // inactive tab — ~5.2:1 on #000000 (AA 4.5:1, bumped from #8E8E93 4.23:1)
     val TabBarSeparator = Color(0xFF38383A)    // opaque separator — structural hairline
 
     // ─── Filter Chips ──────────────────────────────────────────────────

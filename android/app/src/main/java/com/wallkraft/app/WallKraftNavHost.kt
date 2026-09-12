@@ -93,6 +93,7 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.core.design.KraftTypeScale
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.browse.BrowseSearchState
 import com.wallkraft.app.presentation.components.RotationTimingWelcome
@@ -160,10 +161,11 @@ fun WallKraftNavHost(container: AppContainer) {
     // screens so their content starts exactly below the bar. Constant
     // across routes, so no layout ever shifts during transitions.
     val density = LocalDensity.current
+    val reduceMotion = rememberReduceMotion()
     val topInset = WindowInsets.statusBars
         .asPaddingValues(density)
         .calculateTopPadding() + KraftSpacing.Spacing8 +
-        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + 1.dp
+        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + KraftSpacing.BorderWidth
 
     // One-shot timing welcome: fresh installs and upgraders alike learn the
     // boundary behavior once. Initial true = never flash before load.
@@ -214,8 +216,8 @@ fun WallKraftNavHost(container: AppContainer) {
                         navArgument("query") { type = NavType.StringType; defaultValue = "" },
                         navArgument("title") { type = NavType.StringType; defaultValue = "" },
                     ),
-                    enterTransition = { fadeIn(tween(220)) },
-                    exitTransition = { fadeOut(tween(220)) },
+                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
+                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
                 ) { entry ->
                     val query = entry.arguments?.getString("query").orEmpty()
                     val title = entry.arguments?.getString("title").orEmpty()
@@ -234,8 +236,8 @@ fun WallKraftNavHost(container: AppContainer) {
                 }
                 composable(
                     Routes.FAVORITES,
-                    enterTransition = { fadeIn(tween(220)) },
-                    exitTransition = { fadeOut(tween(220)) },
+                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
+                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
                 ) {
                     FavoritesScreen(
                         container = container,
@@ -250,8 +252,8 @@ fun WallKraftNavHost(container: AppContainer) {
                 }
                 composable(
                     Routes.SETTINGS,
-                    enterTransition = { fadeIn(tween(220)) },
-                    exitTransition = { fadeOut(tween(220)) },
+                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
+                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
                 ) {
                     SettingsScreen(
                         container = container,
@@ -271,10 +273,10 @@ fun WallKraftNavHost(container: AppContainer) {
                     // same quick fade (predictable) — never a reverse morph.
                     // Purity borders stay on the tiles (no shared overlay), so
                     // the full-screen border flight is gone by construction.
-                    enterTransition = { fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.96f) },
-                    exitTransition = { fadeOut(tween(180)) },
-                    popEnterTransition = { fadeIn(tween(220)) },
-                    popExitTransition = { fadeOut(tween(180)) },
+                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.96f) },
+                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
+                    popEnterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
+                    popExitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
                 ) { entry ->
                     DetailScreen(
                         container = container,
@@ -312,7 +314,7 @@ fun WallKraftNavHost(container: AppContainer) {
                             .align(Alignment.TopCenter)
                             .fillMaxWidth()
                             .height(topInset)
-                            .background(Color(0xFF2C2C2E)),
+                            .background(KraftColors.SurfaceSecondary),
                     ) {}
                     Box(
                         modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
@@ -357,8 +359,8 @@ fun WallKraftNavHost(container: AppContainer) {
                                     actions = {
                                         AnimatedVisibility(
                                             visible = favoritesTopBarState.selectionMode,
-                                            enter = fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.8f),
-                                            exit = fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
+                                            enter = if (reduceMotion) fadeIn(tween(220)) else fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.8f),
+                                            exit = if (reduceMotion) fadeOut(tween(180)) else fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
                                         ) {
                                             Row {
                                                 val haptic = LocalHapticFeedback.current
@@ -472,8 +474,8 @@ private fun GlassTabBar(
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = KraftConstants.GlassTabOuterAlpha), GlassShape)
             .background(Color.White.copy(alpha = KraftConstants.GlassTabInnerAlpha), GlassShape)
-            .background(Color(0xFF3A3A3C).copy(alpha = KraftConstants.GlassTabMidAlpha), GlassShape)
-            .background(Color(0xFF2C2C2E).copy(alpha = KraftConstants.GlassTabHighlightAlpha), GlassShape)
+            .background(KraftColors.SurfaceTertiary.copy(alpha = KraftConstants.GlassTabMidAlpha), GlassShape)
+            .background(KraftColors.SurfaceSecondary.copy(alpha = KraftConstants.GlassTabHighlightAlpha), GlassShape)
             .padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
@@ -508,7 +510,7 @@ private fun HigTabItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val tint = if (selected) MaterialTheme.colorScheme.primary else Color(0xFFFFFFFF)
+    val tint = if (selected) MaterialTheme.colorScheme.primary else KraftColors.TextPrimary
     val haptic = LocalHapticFeedback.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
@@ -526,7 +528,7 @@ private fun HigTabItem(
             }
             .clip(RoundedCornerShape(KraftRadius.Pill))
             .background(
-                if (selected) Color(0xFF1C1C1E)
+                if (selected) KraftColors.Surface
                 else Color.Transparent,
             )
             .clickable(
