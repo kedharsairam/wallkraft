@@ -141,7 +141,7 @@ fun CollectionStrip(
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(KraftSpacing.Spacing4)
-                                .size(28.dp)
+                                .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.45f))
                                 .clickable { onMenu(entry.collection.id) },

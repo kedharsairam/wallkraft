@@ -28,9 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 // Precomputed heights — deterministic pattern, no Random allocation per recomposition.
 private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 290, 340, 250, 310)
@@ -44,18 +48,25 @@ private val placeholderHeights = listOf(220, 320, 260, 380, 240, 300, 350, 280, 
  */
 @Composable
 fun ShimmerGrid(modifier: Modifier = Modifier) {
+    val reduceMotion = rememberReduceMotion()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isVisible = lifecycleState.isAtLeast(Lifecycle.State.STARTED) && !reduceMotion
     val transition = rememberInfiniteTransition(label = "shimmer")
-    // Sweep offset: animates from -1f (off-screen left) to 2f (off-screen right)
-    // EaseInOut for natural shimmer feel (motion should feel organic).
-    val sweepOffset by transition.animateFloat(
-        initialValue = -1f,
-        targetValue = 2f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = EaseInOut),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "shimmerSweep",
-    )
+    // Respect ReduceMotion + background: snap to 0 when disabled (P0 battery/a11y).
+    val sweepOffset by if (isVisible) {
+        transition.animateFloat(
+            initialValue = -1f,
+            targetValue = 2f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1200, easing = EaseInOut),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "shimmerSweep",
+        )
+    } else {
+        remember { androidx.compose.runtime.mutableStateOf(0f) }
+    }
 
     val shimmerColors = listOf(
         MaterialTheme.colorScheme.surfaceVariant,

@@ -127,8 +127,8 @@ fun AddToCollectionDialog(
                                 inner()
                             }
                             if (filter.isNotEmpty()) {
-                                IconButton(onClick = { filter = "" }, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Filled.Close, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                                IconButton(onClick = { filter = "" }, modifier = Modifier.size(KraftSpacing.TouchTarget)) {
+                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.search_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
@@ -309,8 +309,8 @@ fun RenameCollectionDialog(
                                 inner()
                             }
                             if (text.isNotEmpty()) {
-                                IconButton(onClick = { text = "" }, modifier = Modifier.size(24.dp)) {
-                                    Icon(Icons.Filled.Close, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                                IconButton(onClick = { text = "" }, modifier = Modifier.size(KraftSpacing.TouchTarget)) {
+                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.search_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                                 }
                             }
                         }
