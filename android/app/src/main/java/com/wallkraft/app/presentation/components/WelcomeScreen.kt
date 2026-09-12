@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -99,23 +100,32 @@ fun WelcomeScreen(onDone: () -> Unit) {
                     )
                 }
             }
-            if (pagerState.currentPage < 2) {
-                Button(
-                    onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(KraftRadius.Standard),
-                ) { Text(stringResource(R.string.next)) }
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
-                TextButton(
-                    onClick = onDone,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text(stringResource(R.string.skip)) }
-            } else {
-                Button(
-                    onClick = onDone,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(KraftRadius.Standard),
-                ) { Text(stringResource(R.string.get_started)) }
+            // Fixed button area so Get Started doesn't jump — Next turns into Get Started in place.
+            // Both buttons same reasonable size (260x44, not fillMaxWidth stretched), centered.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth().height(88.dp),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        onClick = {
+                            if (pagerState.currentPage < 2) scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            else onDone()
+                        },
+                        modifier = Modifier.width(260.dp).height(44.dp),
+                        shape = RoundedCornerShape(KraftRadius.Standard),
+                    ) { Text(if (pagerState.currentPage < 2) stringResource(R.string.next) else stringResource(R.string.get_started)) }
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                    // Keep Skip space on last page invisible so button doesn't jump
+                    if (pagerState.currentPage < 2) {
+                        TextButton(
+                            onClick = onDone,
+                            modifier = Modifier.width(260.dp),
+                        ) { Text(stringResource(R.string.skip)) }
+                    } else {
+                        Spacer(Modifier.height(36.dp))
+                    }
+                }
             }
         }
     }

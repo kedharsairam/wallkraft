@@ -5,10 +5,6 @@ Private wallpapers, crafted. A fast, offline-first wallpaper app for Android —
 No ads. No analytics. No trackers. Your data never leaves your device.
 
 <p align="center">
-  <img src="docs/screenshots/hero.png" alt="WallKraft hero" width="400">
-</p>
-
-<p align="center">
   <a href="https://github.com/kedharsairam/wallkraft/releases/latest"><img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge" alt="Download APK"></a>
 </p>
 
