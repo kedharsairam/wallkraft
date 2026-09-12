@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.8] - 2026-09-12
+
+### Fixed
+- **Detail crash at max zoom** — `DetailContent` `coerceIn(fill*1.2, 8)` threw `IllegalArgumentException` when `fill==8` (9.6>8). Now `coerceAtLeast/AtMost` clamps to 8, no crash on ultra-wide/tall images.
+- **Detail pan locked at fill** — `ZoomableImage` capped `fillRelative` to `1..8` and fixed `s+0.015<fill` check; vertical/horizontal axes now hard-lock correctly at fill (no wiggle), only overflowing axis pans. Duplicate zoom levels deduped with `0.05` tolerance so double-tap no longer stalls on `[8,8,1]`.
+- **Too-wide max bounce** — double-tap to `8==MaxCropZoom` now uses critical damping `1.0` (no overshoot) so ultra-wide fill snaps dead without arrival wiggle; normal zooms keep `0.7` bounce.
+
 ## [1.19.7] - 2026-09-11
 
 ### Fixed
