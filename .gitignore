@@ -26,5 +26,9 @@ Thumbs.db
 *.log
 verify_out.txt
 
+# Kotlin incremental cache
+.kotlin/
+**/.kotlin/
+
 # Built APKs (hand-copied release artifacts)
-dist/
+**/dist/
