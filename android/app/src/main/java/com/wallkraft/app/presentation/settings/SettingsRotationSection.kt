@@ -137,7 +137,7 @@ fun SettingsRotationSection(
         FilterSectionLabel(stringResource(R.string.rotation_schedule))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -177,7 +177,7 @@ fun SettingsRotationSection(
         FilterSectionLabel(stringResource(R.string.rotation_style))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -201,7 +201,7 @@ fun SettingsRotationSection(
         FilterSectionLabel(stringResource(R.string.rotation_screen))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
             modifier = Modifier.fillMaxWidth(),
         ) {
