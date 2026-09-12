@@ -70,7 +70,7 @@ object DownloadedFiles {
                     wallpaperId = id,
                     name = name,
                     size = cursor.getLong(sizeCol),
-                    uri = uri,
+                    uriString = uri.toString(),
                     relativePath = cursor.getString(pathCol) ?: "Download/",
                 )
             }
@@ -90,7 +90,7 @@ object DownloadedFiles {
                     wallpaperId = id,
                     name = file.name,
                     size = file.length(),
-                    uri = Uri.fromFile(file),
+                    uriString = Uri.fromFile(file).toString(),
                     relativePath = "Download/",
                 )
             }
@@ -104,14 +104,16 @@ object DownloadedFiles {
      * the file was created by this app, so it owns it). API 26-28 deletes the
      * raw file directly, which is correct on those versions.
      */
-    fun delete(context: Context, file: DownloadedFile): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            runCatching { context.contentResolver.delete(file.uri, null, null) > 0 }
+    fun delete(context: Context, file: DownloadedFile): Boolean {
+        val uri = Uri.parse(file.uriString)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            runCatching { context.contentResolver.delete(uri, null, null) > 0 }
                 .getOrDefault(false)
         } else {
-            runCatching { file.uri.path?.let { File(it).delete() } == true }
+            runCatching { uri.path?.let { File(it).delete() } == true }
                 .getOrDefault(false)
         }
+    }
 
     /**
      * Opens the location of a downloaded file: the Downloads folder in the
@@ -130,7 +132,7 @@ object DownloadedFiles {
         if (runCatching { context.startActivity(folderIntent) }.isSuccess) return
         // Fallback: open the file itself.
         val fileIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(file.uri, "image/*")
+            setDataAndType(Uri.parse(file.uriString), "image/*")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
         runCatching { context.startActivity(fileIntent) }

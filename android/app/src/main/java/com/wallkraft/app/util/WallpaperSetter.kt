@@ -7,6 +7,13 @@ import com.wallkraft.app.domain.model.WallpaperPosition
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/** Maps a pure [WallpaperPosition] to the corresponding [WallpaperManager] flags. */
+fun WallpaperPosition.toFlags(): Int = when (this) {
+    WallpaperPosition.HOME -> WallpaperManager.FLAG_SYSTEM
+    WallpaperPosition.LOCK -> WallpaperManager.FLAG_LOCK
+    WallpaperPosition.BOTH -> WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+}
+
 /**
  * Applies a pre-cropped bitmap as the device wallpaper.
  *
@@ -20,7 +27,7 @@ object WallpaperSetter {
         withContext(Dispatchers.IO) {
             runCatching {
                 val wm = WallpaperManager.getInstance(context)
-                wm.setBitmap(bitmap, null, true, position.flags)
+                wm.setBitmap(bitmap, null, true, position.toFlags())
             }.isSuccess
         }
 }

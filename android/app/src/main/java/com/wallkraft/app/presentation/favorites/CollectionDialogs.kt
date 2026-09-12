@@ -79,7 +79,7 @@ import com.wallkraft.app.core.design.KraftSpacing
 
 @Composable
 fun AddToCollectionDialog(
-    collections: List<com.wallkraft.app.data.db.CollectionWithItems>,
+    collections: List<com.wallkraft.app.domain.model.Collection>,
     selectedIds: Set<String>,
     onToggle: (collectionId: Long, member: Boolean) -> Unit,
     onCreate: (String) -> Unit,
@@ -90,7 +90,7 @@ fun AddToCollectionDialog(
     var newName by remember { mutableStateOf("") }
     val filtered = remember(collections, filter) {
         if (filter.isBlank()) collections
-        else collections.filter { it.collection.name.contains(filter, ignoreCase = true) }
+        else collections.filter { it.name.contains(filter, ignoreCase = true) }
     }
 
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
@@ -140,19 +140,19 @@ fun AddToCollectionDialog(
                     modifier = Modifier.fillMaxWidth().heightIn(max = KraftConstants.DialogListMaxHeightDp.dp),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing2),
                 ) {
-                    items(filtered, key = { it.collection.id }) { entry ->
-                        val members = entry.items.map { it.wallpaperId }.toSet()
+                    items(filtered, key = { it.id }) { entry ->
+                        val members = entry.items.toSet()
                         val allMembers = selectedIds.isNotEmpty() && selectedIds.all { it in members }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(KraftRadius.Standard))
-                                .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onToggle(entry.collection.id, !allMembers) }
+                                .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onToggle(entry.id, !allMembers) }
                                 .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing12),
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(entry.collection.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(entry.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(pluralStringResource(R.plurals.collection_item_count, entry.items.size, entry.items.size), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             Icon(

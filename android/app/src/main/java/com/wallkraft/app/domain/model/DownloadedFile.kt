@@ -7,6 +7,10 @@ data class DownloadedFile(
     val wallpaperId: String,
     val name: String,
     val size: Long,
-    val uri: Uri,
+    val uriString: String,
     val relativePath: String,
-)
+) {
+    /** Compatibility getter — prefer [uriString] as source of truth. */
+    @Deprecated("Use uriString", ReplaceWith("Uri.parse(uriString)"))
+    val uri: Uri get() = Uri.parse(uriString)
+}

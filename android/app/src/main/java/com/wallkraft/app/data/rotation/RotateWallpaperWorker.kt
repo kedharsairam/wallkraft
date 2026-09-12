@@ -46,8 +46,8 @@ class RotateWallpaperWorker(
             .map { it.wallpaper }
         val pool = if (settings.sourceCollectionId != null) {
             val memberIds = container.collectionsRepository.observeAll().first()
-                .firstOrNull { it.collection.id == settings.sourceCollectionId }
-                ?.items?.map { it.wallpaperId }?.toSet()
+                .firstOrNull { it.id == settings.sourceCollectionId }
+                ?.items?.toSet()
                 ?: emptySet()
             favorites.filter { it.id in memberIds }
         } else {

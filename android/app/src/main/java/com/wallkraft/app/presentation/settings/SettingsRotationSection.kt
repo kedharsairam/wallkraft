@@ -55,8 +55,8 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.data.db.CollectionWithItems
 import com.wallkraft.app.data.prefs.RotationSettings
+import com.wallkraft.app.domain.model.Collection
 import com.wallkraft.app.domain.model.RotationMode
 import com.wallkraft.app.domain.model.RotationSchedule
 import com.wallkraft.app.domain.model.RotationTarget
@@ -74,7 +74,7 @@ import com.wallkraft.app.presentation.components.FilterSectionLabel
 @Composable
 fun SettingsRotationSection(
     settings: RotationSettings,
-    collections: List<CollectionWithItems>,
+    collections: List<Collection>,
     onSchedule: (RotationSchedule) -> Unit,
     onMode: (RotationMode) -> Unit,
     onTarget: (RotationTarget) -> Unit,
@@ -85,8 +85,8 @@ fun SettingsRotationSection(
 ) {
     val haptic = LocalHapticFeedback.current
     var showSource by remember { mutableStateOf(false) }
-    val sourceName = collections.firstOrNull { it.collection.id == settings.sourceCollectionId }
-        ?.collection?.name ?: stringResource(R.string.rotation_all_favorites)
+    val sourceName = collections.firstOrNull { it.id == settings.sourceCollectionId }
+        ?.name ?: stringResource(R.string.rotation_all_favorites)
 
     SettingsGroup(title = stringResource(R.string.rotation_title)) {
         // Saveable (not plain remember): setting the wallpaper regenerates
@@ -305,12 +305,12 @@ fun SettingsRotationSection(
                             },
                         )
                     }
-                    items(collections, key = { "source-${it.collection.id}" }) { entry ->
+                    items(collections, key = { "source-${it.id}" }) { entry ->
                         SourceRow(
-                            name = entry.collection.name,
-                            selected = entry.collection.id == settings.sourceCollectionId,
+                            name = entry.name,
+                            selected = entry.id == settings.sourceCollectionId,
                             onClick = {
-                                onSource(entry.collection.id)
+                                onSource(entry.id)
                                 showSource = false
                             },
                         )
