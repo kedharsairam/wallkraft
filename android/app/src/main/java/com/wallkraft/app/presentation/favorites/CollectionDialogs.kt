@@ -75,8 +75,9 @@ import com.wallkraft.app.core.design.KraftSpacing
  * and the same 4-layer frost as GlassTabBar (Black 0.22/White 0.22/3A3A3C 0.45/2C2C2E 0.15).
  */
 
-// ── Add to collection — centered popup (like New collection) ──────────
+// ── Add to collection — bottom sheet ──────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddToCollectionDialog(
     collections: List<com.wallkraft.app.domain.model.Collection>,
@@ -93,14 +94,23 @@ fun AddToCollectionDialog(
         else collections.filter { it.name.contains(filter, ignoreCase = true) }
     }
 
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(KraftRadius.Modal),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
-        ) {
-            Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = KraftSpacing.Spacing12)
+                    .size(width = 36.dp, height = 6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            )
+        },
+    ) {
+        Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.add_to_collection), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
@@ -200,11 +210,11 @@ fun AddToCollectionDialog(
                 }
             }
         }
-    }
 }
 
-// ── 3-dots collection menu — centered popup (like New collection) ─
+// ── 3-dots collection menu — bottom sheet ─
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionMenuDialog(
     name: String,
@@ -213,14 +223,23 @@ fun CollectionMenuDialog(
     onDismiss: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(KraftRadius.Modal),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
-        ) {
-            Column(modifier = Modifier.padding(vertical = KraftSpacing.Spacing8)) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = KraftSpacing.Spacing12)
+                    .size(width = 36.dp, height = 6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            )
+        },
+    ) {
+        Column(modifier = Modifier.padding(vertical = KraftSpacing.Spacing8).navigationBarsPadding()) {
                 Text(
                     text = name,
                     style = MaterialTheme.typography.titleMedium,
@@ -263,11 +282,11 @@ fun CollectionMenuDialog(
                 }
             }
         }
-    }
 }
 
-// ── Rename / New — polished alert (kept as dialog for focus, but Kraft-styled) ─
+// ── Rename / New — bottom sheet ─
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CollectionNameDialog(
     title: String,
@@ -280,14 +299,23 @@ fun CollectionNameDialog(
     val focusRequester = remember { FocusRequester() }
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(KraftRadius.Modal),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
-        ) {
-            Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = KraftSpacing.Spacing12)
+                    .size(width = 36.dp, height = 6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            )
+        },
+    ) {
+        Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
                 BasicTextField(
@@ -335,7 +363,6 @@ fun CollectionNameDialog(
                 }
             }
         }
-    }
 }
 
 // Backward-compat alias — FavoritesScreen previously used RenameCollectionDialog.
@@ -353,6 +380,7 @@ fun RenameCollectionDialog(
     @StringRes confirmLabel: Int = R.string.rename,
 ) = CollectionNameDialog(title, current, onDismiss, onSave, confirmLabel)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeleteCollectionDialog(
     name: String,
@@ -360,14 +388,23 @@ fun DeleteCollectionDialog(
     onConfirm: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(KraftRadius.Modal),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 0.dp,
-            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
-        ) {
-            Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        dragHandle = {
+            Box(
+                modifier = Modifier
+                    .padding(vertical = KraftSpacing.Spacing12)
+                    .size(width = 36.dp, height = 6.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+            )
+        },
+    ) {
+        Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
                 Text(stringResource(R.string.delete_collection_title, name), style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
                 Text(stringResource(R.string.delete_collection_message), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -381,5 +418,4 @@ fun DeleteCollectionDialog(
                 }
             }
         }
-    }
 }

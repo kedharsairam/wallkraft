@@ -1,6 +1,7 @@
 package com.wallkraft.app.presentation.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /**
  * Clean empty state — large icon, concise title, and
@@ -53,15 +55,16 @@ fun EmptyState(
     onAction: (() -> Unit)? = null,
 ) {
     var entered by remember { mutableStateOf(false) }
+    val reduceMotion = rememberReduceMotion()
     LaunchedEffect(Unit) { entered = true }
     val iconScale by animateFloatAsState(
         targetValue = if (entered) 1f else 0.6f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 300f),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 300f),
         label = "emptyIconScale",
     )
     val contentAlpha by animateFloatAsState(
         targetValue = if (entered) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 200f),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.8f, stiffness = 200f),
         label = "emptyContentAlpha",
     )
 
