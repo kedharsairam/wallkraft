@@ -1,5 +1,7 @@
 package com.wallkraft.app.presentation.browse
 
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -61,9 +63,9 @@ class BrowseViewModelTest {
             calls++
             if (calls == 1) {
                 gate.await() // first (init) request hangs
-                Result.success(pageOf("stale", filters))
+                Result.Success(pageOf("stale", filters))
             } else {
-                Result.success(pageOf(if (filters.query == "new") "new-result" else "other", filters))
+                Result.Success(pageOf(if (filters.query == "new") "new-result" else "other", filters))
             }
         }
         val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
@@ -83,8 +85,8 @@ class BrowseViewModelTest {
     @Test
     fun `search failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.onSearch = { _, _ -> Result.failure(Exception("network")) }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> e.message ?: "unknown" })
+        repo.onSearch = { _, _ -> Result.Failure(AppError.Unknown(message = "network")) }
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
 
         vm.search("cats")
         advanceUntilIdle()
@@ -97,7 +99,7 @@ class BrowseViewModelTest {
     fun `loadNextPage appends results`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.onSearch = { filters, page ->
-            Result.success(
+            Result.Success(
                 WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = page, lastPage = 2),
@@ -120,7 +122,7 @@ class BrowseViewModelTest {
     fun `loadNextPage does nothing when already at last page`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.onSearch = { filters, page ->
-            Result.success(
+            Result.Success(
                 WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = page, lastPage = 1),
@@ -144,17 +146,17 @@ class BrowseViewModelTest {
         repo.onSearch = { filters, page ->
             callCount++
             if (callCount == 1) {
-                Result.success(
+                Result.Success(
                     WallpaperResponse(
                         data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
                         meta = WallpaperMeta(currentPage = 1, lastPage = 2),
                     ),
                 )
             } else {
-                Result.failure(Exception("network"))
+                Result.Failure(AppError.Unknown(message = "network"))
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> e.message ?: "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
         advanceUntilIdle()
 
         vm.loadNextPage()
@@ -168,7 +170,7 @@ class BrowseViewModelTest {
     fun `totalResults comes from meta total`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.onSearch = { _, page ->
-            Result.success(
+            Result.Success(
                 WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = page, lastPage = 5, total = 5085),
@@ -189,7 +191,7 @@ class BrowseViewModelTest {
         repo.onSearch = { _, page ->
             calls++
             if (calls == 1) {
-                Result.success(
+                Result.Success(
                     WallpaperResponse(
                         data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
                         meta = WallpaperMeta(currentPage = 1, lastPage = 5, total = 5085),
@@ -197,7 +199,7 @@ class BrowseViewModelTest {
                 )
             } else {
                 gate.await()
-                Result.success(
+                Result.Success(
                     WallpaperResponse(
                         data = listOf(Wallpaper(id = "wp-2", dimensionX = 1920, dimensionY = 1080)),
                         meta = WallpaperMeta(currentPage = 1, lastPage = 3, total = 1234),
@@ -229,7 +231,7 @@ class BrowseViewModelTest {
     private class FakeWallpaperRepository : WallpaperRepository {
         val searchRequests = mutableListOf<Pair<WallhavenFilters, Int>>()
         var onSearch: suspend (WallhavenFilters, Int) -> Result<WallpaperResponse> = { filters, page ->
-            Result.success(
+            Result.Success(
                 WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-$page", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = page, lastPage = 1),
@@ -247,7 +249,7 @@ class BrowseViewModelTest {
         }
 
         override suspend fun wallpaper(id: String): Result<Wallpaper> =
-            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
 
         override fun observeRateLimited(): Flow<Boolean> = MutableStateFlow(false)
     }

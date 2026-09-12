@@ -3,6 +3,8 @@ package com.wallkraft.app.presentation.common
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
@@ -51,7 +53,7 @@ data class WallpaperListUiState(
 abstract class WallpaperListViewModel(
     private val repository: WallpaperRepository,
     settingsRepository: SettingsRepository,
-    private val errorMessage: (Throwable) -> String,
+    private val errorMessage: (AppError) -> String,
     private val initialQuery: String = "",
     private val clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },
 ) : ViewModel() {
@@ -139,8 +141,9 @@ abstract class WallpaperListViewModel(
             try {
                 // forceRefresh bypasses the response cache so the user gets
                 // live data, not a replay of the last fetch.
-                repository.search(filters, 1, forceRefresh = true)
-                    .onSuccess { response ->
+                when (val result = repository.search(filters, 1, forceRefresh = true)) {
+                    is Result.Success -> {
+                        val response = result.data
                         _uiState.update {
                             it.copy(
                                 wallpapers = response.data,
@@ -153,11 +156,12 @@ abstract class WallpaperListViewModel(
                             )
                         }
                     }
-                    .onFailure { e ->
+                    is Result.Failure -> {
                         _uiState.update {
-                            it.copy(isRefreshing = false, error = errorMessage(e))
+                            it.copy(isRefreshing = false, error = errorMessage(result.error))
                         }
                     }
+                }
             } finally {
                 // Keep the indicator up for at least MIN_REFRESH_MS so it has
                 // time to animate away. Without this, a very fast network
@@ -179,8 +183,9 @@ abstract class WallpaperListViewModel(
             _uiState.update { it.copy(isInitialLoading = true, error = null, totalResults = 0) }
             val filters = _uiState.value.filters
             try {
-                repository.search(filters, 1)
-                    .onSuccess { response ->
+                when (val result = repository.search(filters, 1)) {
+                    is Result.Success -> {
+                        val response = result.data
                         _uiState.update {
                             it.copy(
                                 wallpapers = response.data,
@@ -194,11 +199,12 @@ abstract class WallpaperListViewModel(
                             )
                         }
                     }
-                    .onFailure { e ->
+                    is Result.Failure -> {
                         _uiState.update {
-                            it.copy(isInitialLoading = false, error = errorMessage(e))
+                            it.copy(isInitialLoading = false, error = errorMessage(result.error))
                         }
                     }
+                }
             } finally {
                 // Also runs when the job is cancelled by a newer search, so the
                 // UI never gets stuck on a spinner.
@@ -214,8 +220,9 @@ abstract class WallpaperListViewModel(
         loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isAppending = true) }
             try {
-                repository.search(state.filters, state.currentPage + 1)
-                    .onSuccess { response ->
+                when (val result = repository.search(state.filters, state.currentPage + 1)) {
+                    is Result.Success -> {
+                        val response = result.data
                         _uiState.update { cur ->
                             cur.copy(
                                 // The Wallhaven API can return the same wallpaper on
@@ -230,11 +237,12 @@ abstract class WallpaperListViewModel(
                             )
                         }
                     }
-                    .onFailure { e ->
+                    is Result.Failure -> {
                         _uiState.update {
-                            it.copy(isAppending = false, error = errorMessage(e))
+                            it.copy(isAppending = false, error = errorMessage(result.error))
                         }
                     }
+                }
             } finally {
                 _uiState.update { it.copy(isAppending = false) }
             }

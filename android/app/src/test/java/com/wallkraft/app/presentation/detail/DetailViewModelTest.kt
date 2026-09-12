@@ -1,5 +1,7 @@
 package com.wallkraft.app.presentation.detail
 
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.repository.FavoritesRepository
@@ -40,7 +42,7 @@ class DetailViewModelTest {
     fun `load fetches wallpaper by id`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id ->
-            Result.success(Wallpaper(id = id, dimensionX = 2560, dimensionY = 1440))
+            Result.Success(Wallpaper(id = id, dimensionX = 2560, dimensionY = 1440))
         }
         val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
@@ -55,8 +57,8 @@ class DetailViewModelTest {
     @Test
     fun `load failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.wallpaperResult = { Result.failure(Exception("network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> e.message ?: "unknown" })
+        repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -70,7 +72,7 @@ class DetailViewModelTest {
         val favRepo = FakeFavoritesRepository()
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id ->
-            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
         val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
@@ -89,7 +91,7 @@ class DetailViewModelTest {
         favRepo.emitFavorites()
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id ->
-            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
         val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
@@ -106,7 +108,7 @@ class DetailViewModelTest {
         var callCount = 0
         repo.wallpaperResult = { id ->
             callCount++
-            Result.success(Wallpaper(id = "$id-$callCount", dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = "$id-$callCount", dimensionX = 1920, dimensionY = 1080))
         }
         val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
@@ -134,7 +136,7 @@ class DetailViewModelTest {
         favRepo.emitFavorites()
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id ->
-            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
         val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
         advanceUntilIdle()
@@ -145,8 +147,8 @@ class DetailViewModelTest {
     @Test
     fun `load failure does not set wallpaper`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.wallpaperResult = { Result.failure(Exception("not found")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> e.message ?: "error" })
+        repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "not found")) }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.wallpaper)
@@ -156,7 +158,7 @@ class DetailViewModelTest {
     @Test
     fun `isDetailLoaded becomes true after a successful load`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.wallpaperResult = { id -> Result.success(Wallpaper(id = id)) }
+        repo.wallpaperResult = { id -> Result.Success(Wallpaper(id = id)) }
         val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
@@ -166,7 +168,7 @@ class DetailViewModelTest {
     @Test
     fun `isDetailLoaded stays false when the load fails`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.wallpaperResult = { Result.failure(Exception("network")) }
+        repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
         val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
         advanceUntilIdle()
 
@@ -176,7 +178,7 @@ class DetailViewModelTest {
     @Test
     fun `preview seed keeps isDetailLoaded false`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        repo.wallpaperResult = { Result.success(Wallpaper(id = it)) }
+        repo.wallpaperResult = { Result.Success(Wallpaper(id = it)) }
         val vm = DetailViewModel(
             "wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" },
             previewThumb = "thumb.jpg", previewPath = "path.jpg",
@@ -189,7 +191,7 @@ class DetailViewModelTest {
 
     private class FakeWallpaperRepository : WallpaperRepository {
         var wallpaperResult: (String) -> Result<Wallpaper> = {
-            Result.success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))
         }
 
         override suspend fun search(
@@ -197,7 +199,7 @@ class DetailViewModelTest {
             page: Int,
             forceRefresh: Boolean,
         ): Result<com.wallkraft.app.domain.model.WallpaperResponse> =
-            Result.success(com.wallkraft.app.domain.model.WallpaperResponse())
+            Result.Success(com.wallkraft.app.domain.model.WallpaperResponse())
 
         override suspend fun wallpaper(id: String): Result<Wallpaper> = wallpaperResult(id)
         override fun observeRateLimited(): Flow<Boolean> = MutableStateFlow(false)

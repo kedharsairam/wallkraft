@@ -1,6 +1,8 @@
 package com.wallkraft.app.data.api
 
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Sorting
 import com.wallkraft.app.domain.model.WallhavenFilters
@@ -9,7 +11,6 @@ import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.model.toCategoryParam
 import com.wallkraft.app.domain.model.toPurityParam
 import com.wallkraft.app.domain.repository.SettingsRepository
-import com.wallkraft.app.domain.repository.WallpaperError
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -23,6 +24,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import java.net.SocketTimeoutException
 
 @Serializable
 private data class WallpaperEnvelope(
@@ -33,8 +35,8 @@ private data class WallpaperEnvelope(
  * Wallhaven API client with rate-limit tracking.
  *
  * Reads the API key from [SettingsRepository] on every request so key changes
- * (via Settings) take effect immediately without a restart. Throws
- * [WallpaperError.RateLimited] when the limit is reached.
+ * (via Settings) take effect immediately without a restart. Returns
+ * [Result.Failure] with [AppError.NetworkError.RateLimited] when the limit is reached.
  *
  * Hilt: [RateLimitState] is now injected so tests can provide a fake and the
  * singleton is owned by the graph.
@@ -53,12 +55,8 @@ class WallhavenApi @javax.inject.Inject constructor(
         const val TAG = "WallKraftPerf"
     }
 
-    private fun checkRateLimit() {
-        if (rateLimitState.limited.value) throw WallpaperError.RateLimited
-    }
-
-    suspend fun search(filters: WallhavenFilters, page: Int): WallpaperResponse {
-        checkRateLimit()
+    suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> {
+        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("search")
             .apply {
@@ -83,13 +81,16 @@ class WallhavenApi @javax.inject.Inject constructor(
         return execute(url.toString())
     }
 
-    suspend fun wallpaper(id: String): Wallpaper {
-        checkRateLimit()
+    suspend fun wallpaper(id: String): Result<Wallpaper> {
+        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("w")
             .addPathSegment(id)
             .build()
-        return execute<WallpaperEnvelope>(url.toString()).data
+        return when (val result = execute<WallpaperEnvelope>(url.toString())) {
+            is Result.Success -> Result.Success(result.data.data)
+            is Result.Failure -> result
+        }
     }
 
     fun observeRateLimited(): Flow<Boolean> = rateLimitState.limited
@@ -127,7 +128,7 @@ class WallhavenApi @javax.inject.Inject constructor(
         }
     }
 
-    private suspend inline fun <reified T> execute(url: String): T =
+    private suspend inline fun <reified T> execute(url: String): Result<T> =
         withContext(Dispatchers.IO) {
             val currentSettings = settings.current()
             val apiKey = currentSettings.apiKey
@@ -155,27 +156,31 @@ class WallhavenApi @javax.inject.Inject constructor(
                         when {
                             response.isSuccessful -> {
                                 val body = response.body?.string()
-                                    ?: throw WallpaperError.Api("Empty response")
-                                val result = json.decodeFromString<T>(body)
+                                    ?: return@withContext Result.Failure(
+                                        AppError.DataError.Parse(message = "Empty response")
+                                    )
+                                val result = try {
+                                    json.decodeFromString<T>(body)
+                                } catch (e: SerializationException) {
+                                    return@withContext Result.Failure(
+                                        AppError.DataError.Parse(message = "Invalid API response", cause = e)
+                                    )
+                                }
                                 if (com.wallkraft.app.BuildConfig.DEBUG) {
                                     val took = android.os.SystemClock.elapsedRealtime() - startMs
                                     android.util.Log.d(TAG, "api ${took}ms (attempts=${attempt + 1}) $url")
                                 }
-                                return@withContext result
+                                return@withContext Result.Success(result)
                             }
-                            response.code == 429 -> throw WallpaperError.RateLimited
+                            response.code == 429 -> return@withContext Result.Failure(AppError.NetworkError.RateLimited)
                             // Transient server error — retry with backoff.
                             response.code in 500..599 && attempt < MAX_RETRIES -> {
                                 delay(backoffMillis(attempt))
                                 attempt++
                             }
-                            else -> throw WallpaperError.Api(
-                                "API error: ${response.code}", code = response.code,
-                            )
+                            else -> return@withContext Result.Failure(httpCodeToAppError(response.code, "API error: ${response.code}"))
                         }
                     }
-                } catch (e: WallpaperError) {
-                    throw e
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: IOException) {
@@ -184,12 +189,17 @@ class WallhavenApi @javax.inject.Inject constructor(
                         delay(backoffMillis(attempt))
                         attempt++
                     } else {
-                        throw WallpaperError.Api("Network error: ${e.message}")
+                        val appError = if (e is SocketTimeoutException) {
+                            AppError.NetworkError.Timeout
+                        } else {
+                            AppError.NetworkError.NoConnection
+                        }
+                        return@withContext Result.Failure(appError)
                     }
                 } catch (e: SerializationException) {
-                    throw WallpaperError.Api("Invalid API response")
+                    return@withContext Result.Failure(AppError.DataError.Parse(message = "Invalid API response", cause = e))
                 } catch (e: Exception) {
-                    throw WallpaperError.Api("Request failed: ${e.message}")
+                    return@withContext Result.Failure(AppError.Unknown(throwable = e, message = e.message))
                 }
             }
             // The loop only exits via return/throw — this satisfies the type
@@ -197,6 +207,16 @@ class WallhavenApi @javax.inject.Inject constructor(
             @Suppress("KotlinUnreachableCode")
             error("unreachable")
         }
+
+    private fun httpCodeToAppError(code: Int, message: String?): AppError = when (code) {
+        400 -> AppError.DataError.Validation(message)
+        401 -> AppError.AuthError.Unauthorized
+        403 -> AppError.AuthError.Expired
+        404 -> AppError.DataError.NotFound
+        429 -> AppError.NetworkError.RateLimited
+        in 500..599 -> AppError.NetworkError.ServerError(code, message)
+        else -> AppError.Unknown(message = message)
+    }
 
     private fun backoffMillis(attempt: Int): Long = KraftConstants.RetryBackoffBaseMs * (1 shl attempt)
 

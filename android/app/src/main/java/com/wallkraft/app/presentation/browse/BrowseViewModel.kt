@@ -1,6 +1,7 @@
 package com.wallkraft.app.presentation.browse
 
 import androidx.lifecycle.SavedStateHandle
+import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import com.wallkraft.app.presentation.common.WallpaperListViewModel
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.update
 class BrowseViewModel @Inject constructor(
     wallpaperRepository: WallpaperRepository,
     settingsRepository: SettingsRepository,
-    errorMessageMapper: @JvmSuppressWildcards (Throwable) -> String,
+    errorMessageMapper: @JvmSuppressWildcards (AppError) -> String,
     savedStateHandle: SavedStateHandle,
     clock: ElapsedClock,
 ) : WallpaperListViewModel(
@@ -41,7 +42,7 @@ class BrowseViewModel @Inject constructor(
     constructor(
         repository: WallpaperRepository,
         settingsRepository: SettingsRepository,
-        errorMessage: (Throwable) -> String,
+        errorMessage: (AppError) -> String,
         initialQuery: String = "",
         clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },
     ) : this(
