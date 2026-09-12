@@ -5,14 +5,11 @@ Private wallpapers, crafted. A fast, offline-first wallpaper app for Android —
 No ads. No analytics. No trackers. Your data never leaves your device.
 
 <p align="center">
-  <img src="docs/screenshots/hero.png" alt="WallKraft hero" width="800">
+  <img src="docs/screenshots/hero.png" alt="WallKraft hero" width="600">
 </p>
 
 <p align="center">
   <a href="https://github.com/kedharsairam/wallkraft/releases/latest"><img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge" alt="Download APK"></a>
-  <img src="https://img.shields.io/badge/Quality-High--grade-black?style=for-the-badge" alt="High-grade">
-  <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-Private-green?style=for-the-badge" alt="Privacy"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-lightgrey?style=for-the-badge" alt="MIT"></a>
 </p>
 
 ---
@@ -92,9 +89,11 @@ android/app/src/main/java/com/wallkraft/app/
 
 ## Screenshots
 
-| Browse | Detail | Favorites |
-|--------|--------|-----------|
-| ![Browse](docs/screenshots/browse.png) | ![Detail](docs/screenshots/detail.png) | ![Favorites](docs/screenshots/favorites.png) |
+<p align="center">
+  <img src="docs/screenshots/browse.png" width="250" alt="Browse"> &nbsp;&nbsp;
+  <img src="docs/screenshots/detail.png" width="250" alt="Detail"> &nbsp;&nbsp;
+  <img src="docs/screenshots/favorites.png" width="250" alt="Favorites">
+</p>
 
 ## Privacy
 
