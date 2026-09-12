@@ -11,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.wallkraft.app.core.design.KraftConstants
 
 class MainActivity : ComponentActivity() {
     /**
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
     private val frameListener =
         Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
             val totalMs = metrics.getMetric(FrameMetrics.TOTAL_DURATION) / 1_000_000
-            if (totalMs > 32) {
+            if (totalMs > KraftConstants.SlowFrameThresholdMs) {
                 Log.w("WallKraftPerf", "slow frame ${totalMs}ms")
             }
         }

@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftSpacing
 
 /**
@@ -51,7 +52,7 @@ fun ApiKeyDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> Uni
                 )
                 OutlinedTextField(
                     value = text,
-                    onValueChange = { if (it.length <= 64) text = it },
+                    onValueChange = { if (it.length <= KraftConstants.ApiKeyMaxLength) text = it },
                     placeholder = { Text(stringResource(R.string.api_key_hint)) },
                     singleLine = true,
                     visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),

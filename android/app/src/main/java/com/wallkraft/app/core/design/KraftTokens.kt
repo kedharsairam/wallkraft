@@ -139,6 +139,7 @@ object KraftRadius {
     val Standard = 12.dp   // Cards, list items — spec 12 (was 10)
     val Large = 14.dp      // Large cards, search bars — keep 14 for search
     val Hero = 20.dp       // Sheets, modals — spec 20 (was 22)
+    val Modal = 28.dp      // Centered dialogs — was raw 28dp in CollectionDialogs
     val Pill = 50.dp       // Fully rounded — buttons, tags, filters
     val DragHandle = 2.5.dp // Drag handle radius
 }
@@ -241,4 +242,15 @@ object KraftConstants {
     // -- Deleted uploader --
     const val DeletedUploaderBgAlpha = 0.12f     // Deleted account avatar background
     const val DeletedUploaderTextAlpha = 0.5f    // Deleted account name + icon tint
+
+    // -- Tokens for previously magic literals (P1) --
+    const val ApiKeyMaxLength = 64
+    const val SlowFrameThresholdMs = 32
+    const val ValidateLimit = 1
+    const val DialogListMaxHeightDp = 280
+    const val CropDialogMaxHeightDp = 320
+    const val GlassTabOuterAlpha = 0.22f
+    const val GlassTabInnerAlpha = 0.22f
+    const val GlassTabMidAlpha = 0.45f
+    const val GlassTabHighlightAlpha = 0.15f
 }
