@@ -1,11 +1,9 @@
 package com.wallkraft.app.domain.model
 
-import androidx.compose.runtime.Immutable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Locale
 
-@Immutable
 @Serializable
 data class Thumbs(
     @SerialName("large") val large: String? = null,
@@ -13,7 +11,6 @@ data class Thumbs(
     @SerialName("small") val small: String? = null,
 )
 
-@Immutable
 @Serializable
 data class Tag(
     @SerialName("id") val id: Int = 0,
@@ -24,7 +21,6 @@ data class Tag(
  * The uploader's avatar image at the sizes Wallhaven serves. Only the detail
  * endpoint returns the uploader; search listings omit it entirely.
  */
-@Immutable
 @Serializable
 data class UploaderAvatar(
     @SerialName("200px") val px200: String = "",
@@ -37,14 +33,12 @@ data class UploaderAvatar(
  * The wallpaper's uploader. `null` (or an empty [username]) means the account
  * no longer exists — Wallhaven keeps the wallpaper but the uploader is gone.
  */
-@Immutable
 @Serializable
 data class Uploader(
     @SerialName("username") val username: String = "",
     @SerialName("avatar") val avatar: UploaderAvatar? = null,
 )
 
-@Immutable
 @Serializable
 data class Wallpaper(
     @SerialName("id") val id: String,
@@ -113,7 +107,6 @@ data class Wallpaper(
     }
 }
 
-@Immutable
 @Serializable
 data class WallpaperMeta(
     @SerialName("current_page") val currentPage: Int = 1,
@@ -122,7 +115,6 @@ data class WallpaperMeta(
     @SerialName("total") val total: Int = 0,
 )
 
-@Immutable
 @Serializable
 data class WallpaperResponse(
     @SerialName("data") val data: List<Wallpaper> = emptyList(),
