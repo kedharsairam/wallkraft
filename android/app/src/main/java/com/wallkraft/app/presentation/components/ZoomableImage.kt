@@ -142,11 +142,11 @@ fun ZoomableImage(
         val startX = offset.x
         val startY = offset.y
         val anim = Animatable(0f)
-        // At MaxCropZoom (too-wide fill==8) the 0.7 damping overshoot looks like a vertical
-        // wiggle on the locked axis. Use critical damping (1.0) at max so it snaps dead.
+        // At MaxCropZoom (too-wide fill==8) even 1.0 damping still shows vertical wiggle on the locked axis.
+        // Use tween (no overshoot) at Max so ultrawide snaps dead hard-lock; normal keeps 0.7 spring.
         val isAtMax = endScale >= KraftConstants.MaxCropZoom - 0.01f
         val spec: androidx.compose.animation.core.AnimationSpec<Float> =
-            if (isAtMax) spring(dampingRatio = 1f, stiffness = Spring.StiffnessMedium)
+            if (isAtMax) androidx.compose.animation.core.tween(durationMillis = 220, easing = androidx.compose.animation.core.EaseOutCubic)
             else spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium)
         animJob = scope.launch {
             anim.animateTo(1f, spec) {
