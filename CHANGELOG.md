@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-12
+
+### Added
+- **New WK icon** — `iconwk/wk.png` 1254×1254 → `mipmap` 48/72/96/144/192 + `drawable/ic_splash.png` 512, adaptive icon `ic_launcher.xml` background `#000000`
+- **README** — high-grade hero (no hero image, screenshots speak), `Download APK` only functional badge, screenshots `250` centered with `&nbsp;&nbsp;`, 3 pillars (Crafted/Private/Reliable), collapsible Tech/Build/Structure
+
+### Fixed
+- **Pull-to-refresh** — indicator now below Glass top bar (not beneath at screen edge) + after `RateLimitBanner`, always visible; `isRefreshing` kept true until `500ms`, haptic light, `PullToRefreshBox` weight(1f) fix for banner overflow, `topInset` 1dp orphan removed
+
 ## [1.20.1] - 2026-09-12
 
 ### Fixed
