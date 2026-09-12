@@ -134,11 +134,11 @@ object KraftSpacing {
 }
 
 object KraftRadius {
-    /** Standard corner radii — system-wide consistency. */
-    val Small = 8.dp       // Small elements: chips, badges
-    val Standard = 10.dp   // Cards, list items — standard card radius
-    val Large = 14.dp      // Large cards, search bars
-    val Hero = 22.dp       // Sheets, modals — sheet radius
+    /** Standard corner radii — system-wide consistency per DESIGN.md. */
+    val Small = 8.dp       // Tight grid cards (spec 8)
+    val Standard = 12.dp   // Cards, list items — spec 12 (was 10)
+    val Large = 14.dp      // Large cards, search bars — keep 14 for search
+    val Hero = 20.dp       // Sheets, modals — spec 20 (was 22)
     val Pill = 50.dp       // Fully rounded — buttons, tags, filters
     val DragHandle = 2.5.dp // Drag handle radius
 }
