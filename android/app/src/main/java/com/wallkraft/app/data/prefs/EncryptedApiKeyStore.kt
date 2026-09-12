@@ -20,17 +20,20 @@ class EncryptedApiKeyStore(context: Context) {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        EncryptedSharedPreferences.create(
+        val enc = EncryptedSharedPreferences.create(
             context,
             "wallkraft_secure_prefs",
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
+        // Encrypted succeeded — clean up any prior plaintext fallback file.
+        try { context.deleteSharedPreferences("wallkraft_fallback_prefs") } catch (_: Exception) {}
+        enc
     } catch (e: Exception) {
-        Log.w("EncryptedApiKeyStore", "Keystore unavailable, using unencrypted fallback")
-        // Keystore unavailable (e.g. some emulators). Fall back to plain
-        // storage — still functional, just not encrypted at rest.
+        // Keystore unavailable (emulators without hardware). Plain fallback
+        // is P0 insecure — log error (DEBUG only) and warn UI via Settings.
+        if (com.wallkraft.app.BuildConfig.DEBUG) Log.e("EncryptedApiKeyStore", "Keystore unavailable, using unencrypted fallback (insecure)", e)
         context.getSharedPreferences("wallkraft_fallback_prefs", Context.MODE_PRIVATE)
     }
 
