@@ -79,7 +79,7 @@ class FavoriteImageStore(
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id}", e)
+                if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id}", e)
                 false
             }
         }

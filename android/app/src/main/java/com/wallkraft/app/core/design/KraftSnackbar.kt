@@ -54,7 +54,7 @@ private fun KraftSnackbar(data: SnackbarData) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(KraftRadius.Pill))
-                .background(Color(0xFF1C1C1E), RoundedCornerShape(KraftRadius.Pill))
+                .background(KraftColors.Surface, RoundedCornerShape(KraftRadius.Pill))
                 .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,

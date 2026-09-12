@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
     private val frameListener =
         Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
             val totalMs = metrics.getMetric(FrameMetrics.TOTAL_DURATION) / 1_000_000
-            if (totalMs > KraftConstants.SlowFrameThresholdMs) {
+            if (totalMs > KraftConstants.SlowFrameThresholdMs && BuildConfig.DEBUG) {
                 Log.w("WallKraftPerf", "slow frame ${totalMs}ms")
             }
         }

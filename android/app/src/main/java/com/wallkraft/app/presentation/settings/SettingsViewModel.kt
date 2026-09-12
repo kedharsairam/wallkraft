@@ -83,14 +83,14 @@ class SettingsViewModel(
                 .debounce(500)
                 .collect { key ->
                     val trimmed = key.trim()
-                    android.util.Log.d("SettingsViewModel", "Debounced key (length=${trimmed.length})")
+                    if (com.wallkraft.app.BuildConfig.DEBUG) android.util.Log.d("SettingsViewModel", "Debounced key (length=${trimmed.length})")
                     if (seedComplete && trimmed != lastPersisted) {
                         // Show verifying state while the API call is in flight.
                         _isValidating.value = true
                         try {
                             // Validate the key against the API
                             val isValid = api.validateApiKey(trimmed)
-                            android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
+                            if (com.wallkraft.app.BuildConfig.DEBUG) android.util.Log.d("SettingsViewModel", "API key validation result: $isValid")
                             settingsRepository.update { current ->
                                 val updated = current.copy(apiKey = trimmed, apiKeyValid = isValid)
                                 if (trimmed.isBlank() || !isValid) {
