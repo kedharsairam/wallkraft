@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
@@ -30,6 +32,7 @@ fun RateLimitBanner(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(KraftRadius.Standard))
             .background(MaterialTheme.colorScheme.errorContainer)
+            .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite }
             .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
     ) {
         Icon(

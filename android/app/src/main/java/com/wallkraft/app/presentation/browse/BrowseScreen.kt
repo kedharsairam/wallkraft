@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
@@ -28,7 +29,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -214,12 +214,10 @@ private fun BrowseScreenImpl(
                     interactionSource = remember { MutableInteractionSource() },
                 ) { focusManager.clearFocus() },
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().padding(top = topInset)) {
                 if (uiState.rateLimited) {
                     RateLimitBanner(
-                        modifier = Modifier
-                            .padding(horizontal = KraftSpacing.Spacing16)
-                            .padding(top = topInset),
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
                 }
@@ -229,7 +227,7 @@ private fun BrowseScreenImpl(
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                         viewModel.refresh()
                     },
-                    modifier = Modifier.fillMaxSize().padding(top = topInset),
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
                 ) {
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
