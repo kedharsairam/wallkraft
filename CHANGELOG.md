@@ -7,15 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-09-12
+
 ### Fixed
-- **Apple-grade audit — 157 issues** across Architecture, Code/Syntax, File Org, Design, A11y, Motion, Security — all P0 (18) + P1 (68) fixed locally, no push until ship
+- **Kraft audit — 157 issues** across Architecture, Code/Syntax, File Org, Design, A11y, Motion, Security — all P0 (18) + P1 (68) fixed, Hilt + Result + domain purity + light theme + sheets
 - **Domain purity** — `Wallpaper @Immutable` stripped, `WallpaperPosition` pure + `toFlags()`, `DownloadedFile Uri→uriString`, `Collection` domain mapper (`Flow<List<Collection>>`)
-- **Hilt DI** — `AppModule` + `@HiltViewModel` for Browse/Favorites/Collections/Detail/Settings + `@Singleton` RateLimit/ImageCache/GridImageLoader — `AppContainer` kept for transition
+- **Hilt DI** — `AppModule` + `@HiltViewModel` for Browse/Favorites/Collections/Detail/Settings + `@Singleton` RateLimit/ImageCache/GridImageLoader — `AppContainer` lazy-deprecated no dual graph (EntryPoint for RotationStore)
 - **Result/AppError** — `AppError` hierarchy + `Result<T>` migration for `WallpaperRepository` (NoConnection/Timeout/ServerError/Parse/NotFound/RateLimited/Auth)
 - **Design tokens** — `Radius 10→12/22→20+Modal28`, `TopBar 20→16`, `Grid/Shimmer 8→16`, `Spacing6→8`, `GlassTab 0.22/0.45/0.15`→constants, `FilterColor 44dp`, `ApiKey 64/SlowFrame 32/Validate 1/Dialog 280`, `0xFF` only in tokens
 - **A11y/battery/security** — `TextTertiary 30→45% (4.6:1)`, `TabBar 5.2:1`, `28/24→44dp`, `ReduceMotion+Lifecycle` gated Shimmer/EmptyState/NavHost, `handle 40x4→36x6`, `KraftHaptics`, `Encrypted fallback` cleanup, `atomic cache v3 + topRange`, `no destructive downgrade`
 - **Visual sheets** — `Dialog 28dp → ModalBottomSheet Hero 20dp + 36x6 pill` (4 dialogs), `lightColorScheme` (dark-first, follows system)
-- **File org** — stray `app/` + `android/README.md` removed, `.kotlin` + `**/dist/` ignored, privacy dates synced, `projects.md v1.19.8`, `docs/architecture.md` ADR
+- **File org** — stray `app/` + `android/README.md` removed, `.kotlin` + `**/dist/` ignored, privacy dates synced, `projects.md v1.19.8`→`1.20.0`, `docs/architecture.md` ADR
 
 ## [1.19.8] - 2026-09-12
 
