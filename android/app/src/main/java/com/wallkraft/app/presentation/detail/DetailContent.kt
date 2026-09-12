@@ -80,6 +80,7 @@ import com.wallkraft.app.util.WallpaperSharing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.min
 
 /**
@@ -193,10 +194,16 @@ internal fun DetailContent(
         val nativeRelative = if (aspect <= 0f || displayedH <= 0f) {
             (fillRelative * 2f).coerceAtMost(8f)
         } else {
-            (ht / displayedH).coerceIn(fillRelative * 1.2f, 8f)
+            // fillRelative is 1..8, so lower = 1.2..9.6 may exceed upper 8.
+            // coerceIn(lower,8) throws when lower>upper (e.g. fill=8 -> 9.6>8).
+            // Chain AtLeast/AtMost so it clamps to 8 instead of crashing.
+            (ht / displayedH).coerceAtLeast(fillRelative * 1.2f).coerceAtMost(8f)
         }
         val zoomLevels = remember(fillRelative, nativeRelative) {
-            listOf(fillRelative, nativeRelative, 1f)
+            // Dedupe near-identical levels (fill==8 -> native==8 after clamp) so double-tap
+            // doesn't stall. 0.05 tolerance matches ZoomableImage's currentLevel check.
+            val raw = listOf(fillRelative, nativeRelative, 1f)
+            raw.filterIndexed { index, value -> raw.subList(0, index).none { abs(it - value) < 0.05f } }
         }
 
         var fullResLoaded by remember { mutableStateOf(false) }

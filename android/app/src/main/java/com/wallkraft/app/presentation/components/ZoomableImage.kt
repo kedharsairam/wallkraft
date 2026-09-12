@@ -113,22 +113,23 @@ fun ZoomableImage(
         val scaledInnerW = elementSize.width * s
         val scaledInnerH = elementSize.height * s
         val fillRelative = if (fitW > 0 && fitH > 0) {
-            maxOf(viewportSize.width / fitW, viewportSize.height / fitH)
+            maxOf(viewportSize.width / fitW, viewportSize.height / fitH).coerceIn(1f, KraftConstants.MaxCropZoom)
         } else 1f
         // Below fill: image doesn't cover viewport, lock to centered position
         // so no black-bar drift. At fill and above, allow covering pan.
-        if (s < fillRelative - 0.01f) {
+        // Use capped fill (1..8) and tiny epsilon so s==8 with fill==8 doesn't lock.
+        if (s + 0.015f < fillRelative) {
             val cx = (viewportSize.width - scaledInnerW) / 2f
             val cy = (viewportSize.height - scaledInnerH) / 2f
             return Offset(cx, cy)
         }
-        // Covering: keep displayed image over the viewport (no bars)
+        // Covering: keep displayed image over the viewport (no bars) — at exactly
+        // fill one axis is exactly 0 range (e.g. wide panorama height fills).
+        // Keep it hard-locked, no elastic wiggle — only the overflowing axis pans.
         val lowerX = viewportSize.width - (scaledInnerW + displayedW) / 2f
         val upperX = -(scaledInnerW - displayedW) / 2f
         val lowerY = viewportSize.height - (scaledInnerH + displayedH) / 2f
         val upperY = -(scaledInnerH - displayedH) / 2f
-        // When one axis is exactly fill, lower==upper (locked); when both
-        // overflow, range allows free pan.
         return Offset(
             x.coerceIn(minOf(lowerX, upperX), maxOf(lowerX, upperX)),
             y.coerceIn(minOf(lowerY, upperY), maxOf(lowerY, upperY)),
@@ -141,8 +142,14 @@ fun ZoomableImage(
         val startX = offset.x
         val startY = offset.y
         val anim = Animatable(0f)
+        // At MaxCropZoom (too-wide fill==8) the 0.7 damping overshoot looks like a vertical
+        // wiggle on the locked axis. Use critical damping (1.0) at max so it snaps dead.
+        val isAtMax = endScale >= KraftConstants.MaxCropZoom - 0.01f
+        val spec: androidx.compose.animation.core.AnimationSpec<Float> =
+            if (isAtMax) spring(dampingRatio = 1f, stiffness = Spring.StiffnessMedium)
+            else spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium)
         animJob = scope.launch {
-            anim.animateTo(1f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium)) {
+            anim.animateTo(1f, spec) {
                 val t = value
                 scale = startScale + (endScale - startScale) * t
                 offset = Offset(
