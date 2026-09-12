@@ -147,7 +147,6 @@ abstract class WallpaperListViewModel(
                         _uiState.update {
                             it.copy(
                                 wallpapers = response.data,
-                                isRefreshing = false,
                                 currentPage = response.meta.currentPage,
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
@@ -158,7 +157,7 @@ abstract class WallpaperListViewModel(
                     }
                     is Result.Failure -> {
                         _uiState.update {
-                            it.copy(isRefreshing = false, error = errorMessage(result.error))
+                            it.copy(error = errorMessage(result.error))
                         }
                     }
                 }
@@ -167,7 +166,8 @@ abstract class WallpaperListViewModel(
                 // time to animate away. Without this, a very fast network
                 // round-trip can leave Material3's PullToRefreshBox stuck
                 // showing the spinner (isRefreshing toggles true→false within
-                // a single frame).
+                // a single frame). Note: Success/Failure above do NOT clear
+                // isRefreshing — that happens here after the minimum delay.
                 val elapsed = clock.elapsedMs() - startedAt
                 if (elapsed < MIN_REFRESH_MS) delay(MIN_REFRESH_MS - elapsed)
                 _uiState.update { it.copy(isRefreshing = false) }
