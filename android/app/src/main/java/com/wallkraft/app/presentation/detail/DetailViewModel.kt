@@ -3,6 +3,8 @@ package com.wallkraft.app.presentation.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.Thumbs
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.FavoritesRepository
@@ -41,7 +43,7 @@ data class DetailUiState(
 class DetailViewModel @Inject constructor(
     private val wallpaperRepository: WallpaperRepository,
     private val favoritesRepository: FavoritesRepository,
-    private val errorMessage: @JvmSuppressWildcards (Throwable) -> String,
+    private val errorMessage: @JvmSuppressWildcards (AppError) -> String,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
@@ -57,7 +59,7 @@ class DetailViewModel @Inject constructor(
         id: String,
         wallpaperRepository: WallpaperRepository,
         favoritesRepository: FavoritesRepository,
-        errorMessage: (Throwable) -> String,
+        errorMessage: (AppError) -> String,
         previewThumb: String? = null,
         previewPath: String? = null,
     ) : this(
@@ -118,20 +120,21 @@ class DetailViewModel @Inject constructor(
             // preview). With a preview, the image is already visible, so the
             // background refresh must not flash a spinner over it.
             _uiState.update { it.copy(isLoading = it.wallpaper == null, error = null) }
-            wallpaperRepository.wallpaper(id)
-                .onSuccess { wallpaper ->
+            when (val result = wallpaperRepository.wallpaper(id)) {
+                is Result.Success -> {
                     _uiState.update {
-                        it.copy(wallpaper = wallpaper, isLoading = false, isDetailLoaded = true)
+                        it.copy(wallpaper = result.data, isLoading = false, isDetailLoaded = true)
                     }
                 }
-                .onFailure { e ->
+                is Result.Failure -> {
                     // Keep the preview (if any) so the user still sees the
                     // image; only surface an error when there's nothing to show.
                     _uiState.update {
                         if (it.wallpaper != null) it.copy(isLoading = false)
-                        else it.copy(isLoading = false, error = errorMessage(e))
+                        else it.copy(isLoading = false, error = errorMessage(result.error))
                     }
                 }
+            }
         }
     }
 

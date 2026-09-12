@@ -1,10 +1,13 @@
 package com.wallkraft.app.domain.repository
 
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperResponse
 import kotlinx.coroutines.flow.Flow
 
+/** Legacy error type — kept for reference but no longer thrown. Prefer [com.wallkraft.app.core.errors.AppError]. */
+@Deprecated("Use AppError via core.utils.Result", ReplaceWith("com.wallkraft.app.core.errors.AppError"))
 sealed class WallpaperError : Exception() {
     data object RateLimited : WallpaperError() {
         override val message: String = "Rate limited"
@@ -16,8 +19,7 @@ sealed class WallpaperError : Exception() {
  * Fetches wallpapers from the Wallhaven API.
  *
  * [search] pages through results; [wallpaper] fetches a single wallpaper by id.
- * Errors are surfaced as [WallpaperError] so callers can show targeted UI
- * (e.g., a rate-limit banner).
+ * Errors are surfaced as [com.wallkraft.app.core.errors.AppError] via [Result.Failure].
  *
  * [search] serves fresh results from the response cache when available. Pass
  * `forceRefresh = true` to bypass the cache and hit the network — used by

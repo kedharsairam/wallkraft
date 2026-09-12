@@ -15,6 +15,7 @@ import com.wallkraft.app.domain.repository.CollectionsRepository
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
+import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.util.ElapsedClock
 import com.wallkraft.app.util.toUserMessage
 import dagger.Module
@@ -129,7 +130,7 @@ object AppModule {
     @Provides @Singleton
     fun provideErrorMessageMapper(
         @ApplicationContext context: Context,
-    ): (Throwable) -> String = { throwable ->
-        throwable.toUserMessage(context.resources)
+    ): (AppError) -> String = { appError ->
+        appError.toUserMessage(context.resources)
     }
 }

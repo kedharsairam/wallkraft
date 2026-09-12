@@ -11,8 +11,7 @@ import com.wallkraft.app.core.errors.AppError
  *
  * Note: this is distinct from Kotlin's stdlib [Result]. Import this type
  * explicitly when you need typed errors (`com.wallkraft.app.core.utils.Result`).
- * WallpaperRepository still returns stdlib Result for now; it will migrate
- * to this type in a follow-up without breaking the current build.
+ * WallpaperRepository now returns this type.
  */
 sealed class Result<out T> {
 
@@ -44,3 +43,13 @@ fun <T> T.asSuccess(): Result<T> = Result.Success(this)
 
 /** Convenience: wrap an [AppError] as [Result.Failure]. */
 fun AppError.asFailure(): Result<Nothing> = Result.Failure(this)
+
+inline fun <T> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+    if (this is Result.Success) action(data)
+    return this
+}
+
+inline fun <T> Result<T>.onFailure(action: (AppError) -> Unit): Result<T> {
+    if (this is Result.Failure) action(error)
+    return this
+}

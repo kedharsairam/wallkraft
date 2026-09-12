@@ -1,5 +1,7 @@
 ﻿package com.wallkraft.app.presentation.common
 
+import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -93,7 +95,7 @@ class WallpaperListViewModelTest {
     fun `loadNextPage appends results`() = runTest(dispatcher) {
         val repo = FakeRepo()
         repo.onSearch = { _, page ->
-            Result.success(WallpaperResponse(
+            Result.Success(WallpaperResponse(
                 data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
                 meta = WallpaperMeta(currentPage = page, lastPage = 2),
             ))
@@ -114,7 +116,7 @@ class WallpaperListViewModelTest {
     fun `loadNextPage does nothing at last page`() = runTest(dispatcher) {
         val repo = FakeRepo()
         repo.onSearch = { _, page ->
-            Result.success(WallpaperResponse(
+            Result.Success(WallpaperResponse(
                 data = listOf(Wallpaper(id = "wp-p$page", dimensionX = 1920, dimensionY = 1080)),
                 meta = WallpaperMeta(currentPage = page, lastPage = 1),
             ))
@@ -131,8 +133,8 @@ class WallpaperListViewModelTest {
     @Test
     fun `failure sets error message`() = runTest(dispatcher) {
         val repo = FakeRepo()
-        repo.onSearch = { _, _ -> Result.failure(Exception("network")) }
-        val vm = TestVM(repo, errorMessage = { e -> e.message ?: "unknown" })
+        repo.onSearch = { _, _ -> Result.Failure(AppError.Unknown(message = "network")) }
+        val vm = TestVM(repo, errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
         advanceUntilIdle()
 
         assertEquals("network", vm.uiState.value.error)
@@ -143,7 +145,7 @@ class WallpaperListViewModelTest {
     fun `empty results sets empty list`() = runTest(dispatcher) {
         val repo = FakeRepo()
         repo.onSearch = { _, _ ->
-            Result.success(WallpaperResponse(
+            Result.Success(WallpaperResponse(
                 data = emptyList(),
                 meta = WallpaperMeta(currentPage = 1, lastPage = 1),
             ))
@@ -162,12 +164,12 @@ class WallpaperListViewModelTest {
         repo.onSearch = { _, page ->
             callCount++
             if (callCount <= 1) {
-                Result.success(WallpaperResponse(
+                Result.Success(WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-dup", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = 1, lastPage = 2),
                 ))
             } else {
-                Result.success(WallpaperResponse(
+                Result.Success(WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-dup", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = 2, lastPage = 2),
                 ))
@@ -191,12 +193,12 @@ class WallpaperListViewModelTest {
         repo.onSearch = { _, page ->
             if (page == 1 && !page1Loaded) {
                 page1Loaded = true
-                Result.success(WallpaperResponse(
+                Result.Success(WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-old", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = 1, lastPage = 2),
                 ))
             } else {
-                Result.success(WallpaperResponse(
+                Result.Success(WallpaperResponse(
                     data = listOf(Wallpaper(id = "wp-new", dimensionX = 1920, dimensionY = 1080)),
                     meta = WallpaperMeta(currentPage = 1, lastPage = 1),
                 ))
@@ -220,7 +222,7 @@ class WallpaperListViewModelTest {
     fun `refresh stays visible for minimum duration`() = runTest(dispatcher) {
         val repo = FakeRepo()
         repo.onSearch = { _, _ ->
-            Result.success(WallpaperResponse(
+            Result.Success(WallpaperResponse(
                 data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
                 meta = WallpaperMeta(currentPage = 1, lastPage = 1),
             ))
@@ -247,14 +249,14 @@ class WallpaperListViewModelTest {
     private class TestVM(
         repository: WallpaperRepository,
         initialQuery: String = "",
-        errorMessage: (Throwable) -> String = { "error" },
+        errorMessage: (AppError) -> String = { "error" },
         clock: ElapsedClock = FakeClock(),
     ) : WallpaperListViewModel(repository, FakeSettingsRepo(), errorMessage, initialQuery, clock)
 
     private class FakeRepo : WallpaperRepository {
         val searchRequests = mutableListOf<Triple<WallhavenFilters, Int, Boolean>>()
         var onSearch: suspend (WallhavenFilters, Int) -> Result<WallpaperResponse> = { _, page ->
-            Result.success(WallpaperResponse(
+            Result.Success(WallpaperResponse(
                 data = listOf(Wallpaper(id = "wp-$page", dimensionX = 1920, dimensionY = 1080)),
                 meta = WallpaperMeta(currentPage = page, lastPage = 1),
             ))
@@ -265,7 +267,7 @@ class WallpaperListViewModelTest {
             return onSearch(filters, page)
         }
         override suspend fun wallpaper(id: String): Result<Wallpaper> =
-            Result.success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         override fun observeRateLimited(): Flow<Boolean> = MutableStateFlow(false)
     }
 
