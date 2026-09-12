@@ -191,7 +191,7 @@ fun SettingsBrowsingSection(
                 FilterSectionLabel(stringResource(R.string.settings_categories))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -217,7 +217,7 @@ fun SettingsBrowsingSection(
                 FilterSectionLabel(stringResource(R.string.settings_purity))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -262,7 +262,7 @@ fun SettingsBrowsingSection(
                 FilterSectionLabel(stringResource(R.string.settings_orientation))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -286,7 +286,7 @@ fun SettingsBrowsingSection(
                 FilterSectionLabel(stringResource(R.string.settings_sorting))
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                    horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -316,7 +316,7 @@ fun SettingsBrowsingSection(
                         FilterSectionLabel(stringResource(R.string.settings_top_range))
                         Spacer(Modifier.height(KraftSpacing.Spacing4))
                         FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                             modifier = Modifier.fillMaxWidth(),
                         ) {

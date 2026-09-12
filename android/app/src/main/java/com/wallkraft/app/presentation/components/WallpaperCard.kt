@@ -152,7 +152,7 @@ fun WallpaperCard(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(KraftSpacing.Spacing6)
+                    .padding(KraftSpacing.Spacing8)
                     .size(KraftIconSize.Medium)
                     .clip(CircleShape)
                     .background(KraftColors.AccentGreen.copy(alpha = KraftConstants.BadgeAlpha)),
@@ -172,7 +172,7 @@ fun WallpaperCard(
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(KraftSpacing.Spacing6)
+                    .padding(KraftSpacing.Spacing8)
                     .size(KraftIconSize.Large)
                     .clip(CircleShape)
                     .background(
