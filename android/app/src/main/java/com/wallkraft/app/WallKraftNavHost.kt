@@ -87,6 +87,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -469,10 +470,10 @@ private fun GlassTabBar(
         // their bar, net ~82% opaque.
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = 0.22f), GlassShape)
-            .background(Color.White.copy(alpha = 0.22f), GlassShape)
-            .background(Color(0xFF3A3A3C).copy(alpha = 0.45f), GlassShape)
-            .background(Color(0xFF2C2C2E).copy(alpha = 0.15f), GlassShape)
+            .background(Color.Black.copy(alpha = KraftConstants.GlassTabOuterAlpha), GlassShape)
+            .background(Color.White.copy(alpha = KraftConstants.GlassTabInnerAlpha), GlassShape)
+            .background(Color(0xFF3A3A3C).copy(alpha = KraftConstants.GlassTabMidAlpha), GlassShape)
+            .background(Color(0xFF2C2C2E).copy(alpha = KraftConstants.GlassTabHighlightAlpha), GlassShape)
             .padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
