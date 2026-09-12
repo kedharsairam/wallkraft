@@ -172,7 +172,7 @@ fun WallpaperGrid(
     }
 }
 
-/** Appending spinner shown at the bottom of the grid during pagination. */
+/** Appending spinner shown at the bottom of the grid during pagination — Depth2 per DESIGN (keep spinner, not shimmer). */
 @Composable
 fun GridAppendFooter() {
     Box(
