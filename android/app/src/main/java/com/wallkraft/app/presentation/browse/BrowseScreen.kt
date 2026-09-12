@@ -229,7 +229,7 @@ private fun BrowseScreenImpl(
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                         viewModel.refresh()
                     },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(top = topInset),
                 ) {
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
@@ -245,7 +245,7 @@ private fun BrowseScreenImpl(
                     ) { state ->
                         when (state) {
                             "loading" -> ShimmerGrid(
-                                modifier = Modifier.padding(top = topInset),
+                                modifier = Modifier,
                             )
                             "rateLimited" -> EmptyState(
                                 title = stringResource(R.string.rate_limit_banner),
@@ -253,12 +253,12 @@ private fun BrowseScreenImpl(
                                 icon = Icons.Outlined.Warning,
                                 actionLabel = stringResource(R.string.error_retry),
                                 onAction = viewModel::retry,
-                                modifier = Modifier.padding(top = topInset),
+                                modifier = Modifier,
                             )
                             "error" -> ErrorState(
                                 message = uiState.error ?: "",
                                 onRetry = viewModel::retry,
-                                modifier = Modifier.padding(top = topInset),
+                                modifier = Modifier,
                             )
                             "empty" -> EmptyState(
                                 title = stringResource(R.string.no_results_title),
@@ -267,7 +267,7 @@ private fun BrowseScreenImpl(
                                 } else {
                                     stringResource(R.string.no_results_hint_query, uiState.filters.query)
                                 },
-                                modifier = Modifier.padding(top = topInset),
+                                modifier = Modifier,
                             )
                             else -> WallpaperGrid(
                                 wallpapers = uiState.wallpapers,
@@ -280,9 +280,9 @@ private fun BrowseScreenImpl(
                                     if (uiState.isAppending) GridAppendFooter()
                                 },
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                                    start = KraftSpacing.Spacing8,
-                                    end = KraftSpacing.Spacing8,
-                                    top = topInset + KraftSpacing.Spacing8,
+                                    start = KraftSpacing.Spacing16,
+                                    end = KraftSpacing.Spacing16,
+                                    top = KraftSpacing.Spacing8,
                                     bottom = KraftSpacing.GlassBarReserve + navBarPadding,
                                 ),
                                 modifier = Modifier.fillMaxSize(),
