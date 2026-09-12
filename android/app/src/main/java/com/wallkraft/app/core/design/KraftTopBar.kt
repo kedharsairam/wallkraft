@@ -41,7 +41,7 @@ fun KraftTopBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .padding(horizontal = KraftSpacing.Spacing20, vertical = KraftSpacing.Spacing8)
+                .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8)
                 .height(KraftSpacing.TopBarHeight),
         ) {
             if (navigationIcon != null) {

@@ -69,8 +69,8 @@ fun WallpaperGrid(
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
     contentPadding: PaddingValues = PaddingValues(
-        start = KraftSpacing.Spacing8,
-        end = KraftSpacing.Spacing8,
+        start = KraftSpacing.Spacing16,
+        end = KraftSpacing.Spacing16,
         top = KraftSpacing.Spacing8,
         bottom = KraftSpacing.GlassBarReserve,
     ),

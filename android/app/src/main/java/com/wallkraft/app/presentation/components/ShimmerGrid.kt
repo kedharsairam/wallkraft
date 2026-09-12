@@ -84,8 +84,8 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(
             // Must match WallpaperGrid edges or content jumps on load.
             // Bottom reserves the glass pill like the grid (same reason).
-            start = KraftSpacing.Spacing8,
-            end = KraftSpacing.Spacing8,
+            start = KraftSpacing.Spacing16,
+            end = KraftSpacing.Spacing16,
             top = KraftSpacing.Spacing8,
             bottom = KraftSpacing.GlassBarReserve,
         ),
