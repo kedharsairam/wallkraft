@@ -189,6 +189,7 @@ private fun BrowseScreenImpl(
 
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     LaunchedEffect(effectiveGridState) {
         snapshotFlow { effectiveGridState.isScrollInProgress }
@@ -222,12 +223,12 @@ private fun BrowseScreenImpl(
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
                 }
-                // Pull indicator must be *below* the outer Glass top bar and
-                // *below* the RateLimit banner, not beneath the top bar at screen top.
-                // So PullToRefreshBox wraps only the list content, not the whole screen.
                 PullToRefreshBox(
                     isRefreshing = uiState.isRefreshing,
-                    onRefresh = viewModel::refresh,
+                    onRefresh = {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                        viewModel.refresh()
+                    },
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     val stateKey = when {
