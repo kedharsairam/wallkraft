@@ -204,38 +204,32 @@ private fun BrowseScreenImpl(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        // Pull indicator must be *below* the outer Glass top bar (which lives in
-        // WallKraftNavHost outer Scaffold), not beneath it. Wrap the *whole*
-        // inner content so the spinner is at the very top of the list area,
-        // just under the top bar, and scrolls with the list.
-        PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
-            onRefresh = {
-                // Scroll to top so refresh is visible, then fetch.
-                scope.launch { effectiveGridState.animateScrollToItem(0) }
-                viewModel.refresh()
-            },
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding()),
+                .padding(bottom = innerPadding.calculateBottomPadding())
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                ) { focusManager.clearFocus() },
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() },
-                    ) { focusManager.clearFocus() },
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    if (uiState.rateLimited) {
-                        RateLimitBanner(
-                            modifier = Modifier
-                                .padding(horizontal = KraftSpacing.Spacing16)
-                                .padding(top = topInset),
-                        )
-                        Spacer(Modifier.height(KraftSpacing.Spacing8))
-                    }
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (uiState.rateLimited) {
+                    RateLimitBanner(
+                        modifier = Modifier
+                            .padding(horizontal = KraftSpacing.Spacing16)
+                            .padding(top = topInset),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
+                // Pull indicator must be *below* the outer Glass top bar and
+                // *below* the RateLimit banner, not beneath the top bar at screen top.
+                // So PullToRefreshBox wraps only the list content, not the whole screen.
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = viewModel::refresh,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
                         uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"
