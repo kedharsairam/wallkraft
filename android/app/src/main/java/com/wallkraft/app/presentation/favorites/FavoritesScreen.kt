@@ -97,14 +97,14 @@ fun FavoritesScreen(
     var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(collections) {
         if (activeCollectionId != null &&
-            collections.none { it.collection.id == activeCollectionId }
+            collections.none { it.id == activeCollectionId }
         ) {
             activeCollectionId = null
         }
     }
-    val activeCollection = collections.firstOrNull { it.collection.id == activeCollectionId }
+    val activeCollection = collections.firstOrNull { it.id == activeCollectionId }
     val displayedFavorites = remember(favorites, activeCollection) {
-        val memberIds = activeCollection?.items?.map { it.wallpaperId }?.toSet()
+        val memberIds = activeCollection?.items?.toSet()
         if (memberIds == null) favorites
         else favorites.filter { it.wallpaper.id in memberIds }
     }
@@ -494,7 +494,7 @@ fun FavoritesScreen(
                         // favorite. Count affected collections BEFORE removal so
                         // the user is told — never a silent strip.
                         val stripped = collections.count { entry ->
-                            entry.items.any { it.wallpaperId in removedIds }
+                            entry.items.any { it in removedIds }
                         }
                         wallpapersToRemove.forEach { viewModel.remove(it.id) }
                         selectedIds = selectedIds - removedIds
@@ -571,17 +571,17 @@ fun FavoritesScreen(
 
     // Long-press menu on a collection card.
     val menuEntry = menuCollectionId?.let { id ->
-        collections.firstOrNull { it.collection.id == id }
+        collections.firstOrNull { it.id == id }
     }
     if (menuEntry != null) {
         CollectionMenuDialog(
-            name = menuEntry.collection.name,
+            name = menuEntry.name,
             onRename = {
-                renameCollectionId = menuEntry.collection.id
+                renameCollectionId = menuEntry.id
                 menuCollectionId = null
             },
             onDelete = {
-                deleteCollectionId = menuEntry.collection.id
+                deleteCollectionId = menuEntry.id
                 menuCollectionId = null
             },
             onDismiss = { menuCollectionId = null },
@@ -590,17 +590,17 @@ fun FavoritesScreen(
 
     // Rename.
     val renameEntry = renameCollectionId?.let { id ->
-        collections.firstOrNull { it.collection.id == id }
+        collections.firstOrNull { it.id == id }
     }
     if (renameEntry != null) {
         CollectionNameDialog(
             title = stringResource(R.string.rename),
-            current = renameEntry.collection.name,
+            current = renameEntry.name,
             onDismiss = { renameCollectionId = null },
             onSave = { name ->
                 // Duplicate names stay open with a notice instead of
                 // closing silently (or crashing, as before).
-                collectionsVm.rename(renameEntry.collection.id, name) { ok ->
+                collectionsVm.rename(renameEntry.id, name) { ok ->
                     if (ok) {
                         renameCollectionId = null
                     } else {
@@ -617,20 +617,20 @@ fun FavoritesScreen(
 
     // Delete (members cascade; the wallpapers stay in Favorites).
     val deleteEntry = deleteCollectionId?.let { id ->
-        collections.firstOrNull { it.collection.id == id }
+        collections.firstOrNull { it.id == id }
     }
     if (deleteEntry != null) {
         DeleteCollectionDialog(
-            name = deleteEntry.collection.name,
+            name = deleteEntry.name,
             onDismiss = { deleteCollectionId = null },
             onConfirm = {
                 // Snapshot members first: delete cascades the rows away.
-                val restoreName = deleteEntry.collection.name
-                val restoreMembers = deleteEntry.items.map { it.wallpaperId }
-                collectionsVm.delete(deleteEntry.collection.id)
+                val restoreName = deleteEntry.name
+                val restoreMembers = deleteEntry.items
+                collectionsVm.delete(deleteEntry.id)
                 // Leaving an active filter on a deleted collection shows a
                 // dead empty grid — drop back to All immediately.
-                if (activeCollectionId == deleteEntry.collection.id) activeCollectionId = null
+                if (activeCollectionId == deleteEntry.id) activeCollectionId = null
                 deleteCollectionId = null
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(

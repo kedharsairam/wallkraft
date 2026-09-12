@@ -8,9 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.wallkraft.app.core.design.KraftTheme
-import com.wallkraft.app.data.db.CollectionEntity
-import com.wallkraft.app.data.db.CollectionItemEntity
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -25,16 +23,18 @@ class CollectionStripTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val beach = CollectionWithItems(
-        CollectionEntity(id = 7L, name = "Beach", createdAt = 1L),
-        listOf(CollectionItemEntity(7L, "w1")),
+    private val beach = Collection(
+        id = 7L,
+        name = "Beach",
+        createdAt = 1L,
+        items = listOf("w1"),
     )
 
     private fun setStrip(
         activeId: Long? = null,
         onSelect: (Long?) -> Unit = {},
         onNew: () -> Unit = {},
-        onLongPress: (Long) -> Unit = {},
+        onMenu: (Long) -> Unit = {},
     ) {
         compose.setContent {
             KraftTheme {
@@ -44,7 +44,7 @@ class CollectionStripTest {
                     activeId = activeId,
                     onSelect = onSelect,
                     onNew = onNew,
-                    onLongPress = onLongPress,
+                    onMenu = onMenu,
                 )
             }
         }
@@ -71,7 +71,7 @@ class CollectionStripTest {
                     activeId = active.value,
                     onSelect = { selected += it; active.value = it },
                     onNew = {},
-                    onLongPress = {},
+                    onMenu = {},
                 )
             }
         }

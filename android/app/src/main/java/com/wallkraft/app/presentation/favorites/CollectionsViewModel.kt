@@ -2,7 +2,7 @@ package com.wallkraft.app.presentation.favorites
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ class CollectionsViewModel(
     private val collectionsRepository: CollectionsRepository,
 ) : ViewModel() {
 
-    val collections: StateFlow<List<CollectionWithItems>> = collectionsRepository.observeAll()
+    val collections: StateFlow<List<Collection>> = collectionsRepository.observeAll()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

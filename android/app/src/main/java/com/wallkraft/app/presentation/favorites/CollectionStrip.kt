@@ -38,7 +38,7 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
 
 /**
  * Horizontal collections strip for the Favorites tab.
@@ -50,7 +50,7 @@ import com.wallkraft.app.data.db.CollectionWithItems
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CollectionStrip(
-    collections: List<CollectionWithItems>,
+    collections: List<Collection>,
     covers: Map<String, String>,
     activeId: Long?,
     onSelect: (Long?) -> Unit,
@@ -103,16 +103,16 @@ fun CollectionStrip(
                     )
                 }
             }
-            items(collections, key = { "collection-${it.collection.id}" }) { entry ->
-                val active = entry.collection.id == activeId
-                val cover = entry.items.lastOrNull()?.wallpaperId?.let { covers[it] }.orEmpty()
+            items(collections, key = { "collection-${it.id}" }) { entry ->
+                val active = entry.id == activeId
+                val cover = entry.items.lastOrNull()?.let { covers[it] }.orEmpty()
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .width(KraftSpacing.CollectionCardSize)
                         .combinedClickable(
-                            onClick = { onSelect(if (active) null else entry.collection.id) },
-                            onLongClick = { onMenu(entry.collection.id) },
+                            onClick = { onSelect(if (active) null else entry.id) },
+                            onLongClick = { onMenu(entry.id) },
                         ),
                 ) {
                     Box(
@@ -128,7 +128,7 @@ fun CollectionStrip(
                     ) {
                         AsyncImage(
                             model = cover.ifEmpty { null },
-                            contentDescription = entry.collection.name,
+                            contentDescription = entry.name,
                             placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
                             error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
                             contentScale = ContentScale.Crop,
@@ -144,7 +144,7 @@ fun CollectionStrip(
                                 .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
                                 .background(Color.Black.copy(alpha = 0.45f))
-                                .clickable { onMenu(entry.collection.id) },
+                                .clickable { onMenu(entry.id) },
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
@@ -155,7 +155,7 @@ fun CollectionStrip(
                         }
                     }
                     Text(
-                        text = entry.collection.name,
+                        text = entry.name,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,

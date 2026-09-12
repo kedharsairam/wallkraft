@@ -2,6 +2,7 @@
 
 import android.app.WallpaperManager
 import com.wallkraft.app.domain.model.WallpaperPosition
+import com.wallkraft.app.util.toFlags
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,18 +11,18 @@ class WallpaperActionsDataTest {
 
     @Test
     fun `WallpaperPosition HOME has correct flags`() {
-        assertEquals(WallpaperManager.FLAG_SYSTEM, WallpaperPosition.HOME.flags)
+        assertEquals(WallpaperManager.FLAG_SYSTEM, WallpaperPosition.HOME.toFlags())
     }
 
     @Test
     fun `WallpaperPosition LOCK has correct flags`() {
-        assertEquals(WallpaperManager.FLAG_LOCK, WallpaperPosition.LOCK.flags)
+        assertEquals(WallpaperManager.FLAG_LOCK, WallpaperPosition.LOCK.toFlags())
     }
 
     @Test
     fun `WallpaperPosition BOTH has combined flags`() {
         val expected = WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
-        assertEquals(expected, WallpaperPosition.BOTH.flags)
+        assertEquals(expected, WallpaperPosition.BOTH.toFlags())
     }
 
     @Test
