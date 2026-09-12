@@ -557,7 +557,7 @@ fun FavoritesScreen(
 
     // New collection, from the strip.
     if (showCreateDialog) {
-        RenameCollectionDialog(
+        CollectionNameDialog(
             title = stringResource(R.string.new_collection),
             current = "",
             onDismiss = { showCreateDialog = false },
@@ -593,7 +593,7 @@ fun FavoritesScreen(
         collections.firstOrNull { it.collection.id == id }
     }
     if (renameEntry != null) {
-        RenameCollectionDialog(
+        CollectionNameDialog(
             title = stringResource(R.string.rename),
             current = renameEntry.collection.name,
             onDismiss = { renameCollectionId = null },
