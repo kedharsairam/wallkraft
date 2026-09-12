@@ -27,9 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
@@ -39,7 +37,6 @@ import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.util.WallpaperDownload
 import com.wallkraft.app.util.WallpaperSetter
 import com.wallkraft.app.util.WallpaperSharing
-import com.wallkraft.app.util.toUserMessage
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -60,20 +57,9 @@ fun DetailScreen(
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
-    val viewModel: DetailViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer {
-                DetailViewModel(
-                    id = wallpaperId,
-                    wallpaperRepository = container.wallpaperRepository,
-                    favoritesRepository = container.favoritesRepository,
-                    errorMessage = { e -> e.toUserMessage(container.resources) },
-                    previewThumb = previewThumb.ifBlank { null },
-                    previewPath = previewPath.ifBlank { null },
-                )
-            }
-        },
-    )
+    // Hilt: VM reads id/thumb/path via SavedStateHandle; container remains for
+    // settings/offline/rotation during transition (see AppModule).
+    val viewModel: DetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
