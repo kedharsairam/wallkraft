@@ -33,13 +33,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.work.WorkInfo
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
@@ -69,9 +67,8 @@ fun SettingsScreen(
     // starts exactly below the bar. Constant — never shifts.
     topInset: Dp = 0.dp,
 ) {
-    val viewModel: SettingsViewModel = viewModel(
-        factory = viewModelFactory { initializer { SettingsViewModel(container.settings, container.api) } },
-    )
+    // Hilt: SettingsViewModel is provided by the graph; container remains for cache size etc. during transition.
+    val viewModel: SettingsViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
     val isValidating by viewModel.isValidating.collectAsState()
