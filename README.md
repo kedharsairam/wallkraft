@@ -96,8 +96,6 @@ android/app/src/main/java/com/wallkraft/app/
 |--------|--------|-----------|
 | ![Browse](docs/screenshots/browse.png) | ![Detail](docs/screenshots/detail.png) | ![Favorites](docs/screenshots/favorites.png) |
 
-> Add `browse.png`, `detail.png`, `favorites.png` to `docs/screenshots/` — 1 hero + 3 above.
-
 ## Privacy
 
 Private by default. See [PRIVACY.md](PRIVACY.md).
