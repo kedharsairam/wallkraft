@@ -61,6 +61,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -94,7 +95,7 @@ fun AddToCollectionDialog(
 
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
             shadowElevation = 16.dp,
@@ -136,7 +137,7 @@ fun AddToCollectionDialog(
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp),
+                    modifier = Modifier.fillMaxWidth().heightIn(max = KraftConstants.DialogListMaxHeightDp.dp),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing2),
                 ) {
                     items(filtered, key = { it.collection.id }) { entry ->
@@ -214,7 +215,7 @@ fun CollectionMenuDialog(
     val haptic = LocalHapticFeedback.current
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
             shadowElevation = 16.dp,
@@ -281,7 +282,7 @@ fun RenameCollectionDialog(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
             shadowElevation = 16.dp,
@@ -346,7 +347,7 @@ fun DeleteCollectionDialog(
     val haptic = LocalHapticFeedback.current
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
             shadowElevation = 16.dp,

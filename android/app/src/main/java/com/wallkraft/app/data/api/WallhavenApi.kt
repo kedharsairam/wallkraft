@@ -100,7 +100,7 @@ class WallhavenApi(
         if (trimmed.isBlank()) return false
         return withContext(Dispatchers.IO) {
             try {
-                val url = "$baseUrl/search?q=&page=1&limit=1"
+                val url = "$baseUrl/search?q=&page=1&limit=${KraftConstants.ValidateLimit}"
                 val request = Request.Builder()
                     .url(url)
                     .header("Accept", "application/json")
