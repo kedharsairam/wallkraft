@@ -86,12 +86,12 @@ internal fun DetailPanelContent(
             .padding(horizontal = KraftSpacing.Spacing16)
             .padding(top = KraftSpacing.Spacing16, bottom = KraftSpacing.Spacing16 + bottomPadding),
     ) {
-        // Drag handle — 40x5, white 38% so it reads on the dark panel.
+        // Drag handle — 36x6 pill per DESIGN.md Sheets spec (was 40x4).
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .size(width = KraftSpacing.Spacing40, height = KraftSpacing.Spacing4)
-                .shadow(KraftSpacing.Spacing4, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
+                .size(width = 36.dp, height = 6.dp)
+                .shadow(4.dp, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
                 .clip(RoundedCornerShape(KraftRadius.DragHandle))
                 .background(Color.White.copy(alpha = KraftConstants.OverlayDragHandleAlpha)),
         )
