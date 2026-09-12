@@ -1,8 +1,10 @@
 package com.wallkraft.app.core.design
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -16,6 +18,44 @@ import androidx.compose.ui.unit.sp
  * White labels, brighter accent colors. Wallpaper-first.
  */
 object KraftColorSchemes {
+    // Light — DESIGN.md Light palette (systemGrouped #F2F2F7, surface #FFFFFF, accent #007AFF etc)
+    // Keeps dark-first OLED default but satisfies DESIGN “Every color has Light and Dark” and CHECKLIST dark mode.
+    val Light = lightColorScheme(
+        primary = Color(0xFF007AFF),
+        onPrimary = Color.White,
+        primaryContainer = Color(0xFF007AFF).copy(alpha = KraftConstants.ContainerAlpha),
+        onPrimaryContainer = Color(0xFF007AFF),
+        secondary = Color(0xFF5AC8FA),
+        onSecondary = Color.White,
+        secondaryContainer = Color(0xFF5AC8FA).copy(alpha = KraftConstants.ContainerAlpha),
+        onSecondaryContainer = Color(0xFF5AC8FA),
+        tertiary = Color(0xFFFF9500),
+        onTertiary = Color.White,
+        error = Color(0xFFFF3B30),
+        onError = Color.White,
+        errorContainer = Color(0xFFFF3B30).copy(alpha = KraftConstants.ContainerAlpha),
+        onErrorContainer = Color(0xFFFF3B30),
+        background = Color(0xFFF2F2F7),
+        onBackground = Color(0xFF000000),
+        surface = Color(0xFFFFFFFF),
+        onSurface = Color(0xFF000000),
+        surfaceVariant = Color(0xFFE5E5EA),
+        onSurfaceVariant = Color(0xFF3A3A3C),
+        surfaceContainerLowest = Color(0xFFFFFFFF),
+        surfaceContainerLow = Color(0xFFF2F2F7),
+        surfaceContainer = Color(0xFFF2F2F7),
+        surfaceContainerHigh = Color(0xFFFFFFFF),
+        surfaceContainerHighest = Color(0xFFE5E5EA),
+        surfaceDim = Color(0xFFE5E5EA),
+        surfaceBright = Color(0xFFFFFFFF),
+        inverseSurface = Color(0xFF000000),
+        inverseOnSurface = Color.White,
+        inversePrimary = Color(0xFF007AFF),
+        scrim = Color.Black,
+        outline = Color(0xFFC6C6C8).copy(alpha = 0.3f),
+        outlineVariant = Color(0xFFC6C6C8),
+    )
+
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlue,
         onPrimary = Color.Black,
@@ -136,13 +176,15 @@ object KraftTypography {
     )
 }
 
-/** Theme wrapper — dark only, OLED-optimized. */
+/** Theme wrapper — dark-first OLED, Light available per DESIGN (follows system). */
 @Composable
 fun KraftTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
+    val scheme = if (darkTheme) KraftColorSchemes.Dark else KraftColorSchemes.Light
     MaterialTheme(
-        colorScheme = KraftColorSchemes.Dark,
+        colorScheme = scheme,
         typography = KraftTypography.Typography,
         content = content,
     )
