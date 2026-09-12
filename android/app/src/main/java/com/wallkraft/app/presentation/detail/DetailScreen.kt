@@ -31,7 +31,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.data.cache.FavoriteImageStore
+import com.wallkraft.app.data.prefs.RotationCropStore
+import com.wallkraft.app.di.AppDependenciesViewModel
 import com.wallkraft.app.domain.model.Wallpaper
+import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.util.WallpaperDownload
@@ -46,6 +50,37 @@ internal val SharedElementSpringFloat = spring<Float>(dampingRatio = 0.7f, stiff
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun DetailScreen(
+    wallpaperId: String,
+    onBack: () -> Unit,
+    onTagClick: (String) -> Unit = {},
+    onUploaderClick: (String) -> Unit = {},
+    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    previewThumb: String = "",
+    previewPath: String = "",
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+) {
+    val deps: AppDependenciesViewModel = hiltViewModel()
+    DetailScreenImpl(
+        settingsRepository = deps.settingsRepository,
+        favoriteImageStore = deps.favoriteImageStore,
+        rotationCropStore = deps.rotationCropStore,
+        wallpaperId = wallpaperId,
+        onBack = onBack,
+        onTagClick = onTagClick,
+        onUploaderClick = onUploaderClick,
+        navBarPadding = navBarPadding,
+        previewThumb = previewThumb,
+        previewPath = previewPath,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+    )
+}
+
+@Deprecated("Use Hilt version — container will be removed")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Composable
+fun DetailScreen(
     container: AppContainer,
     wallpaperId: String,
     onBack: () -> Unit,
@@ -57,8 +92,38 @@ fun DetailScreen(
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
-    // Hilt: VM reads id/thumb/path via SavedStateHandle; container remains for
-    // settings/offline/rotation during transition (see AppModule).
+    DetailScreenImpl(
+        settingsRepository = container.settings,
+        favoriteImageStore = container.favoriteImageStore,
+        rotationCropStore = container.rotationCrops,
+        wallpaperId = wallpaperId,
+        onBack = onBack,
+        onTagClick = onTagClick,
+        onUploaderClick = onUploaderClick,
+        navBarPadding = navBarPadding,
+        previewThumb = previewThumb,
+        previewPath = previewPath,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Composable
+private fun DetailScreenImpl(
+    settingsRepository: SettingsRepository,
+    favoriteImageStore: FavoriteImageStore,
+    rotationCropStore: RotationCropStore,
+    wallpaperId: String,
+    onBack: () -> Unit,
+    onTagClick: (String) -> Unit = {},
+    onUploaderClick: (String) -> Unit = {},
+    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    previewThumb: String = "",
+    previewPath: String = "",
+    sharedTransitionScope: SharedTransitionScope? = null,
+    animatedVisibilityScope: AnimatedVisibilityScope? = null,
+) {
     val viewModel: DetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -68,23 +133,13 @@ fun DetailScreen(
     val wallpaper = uiState.wallpaper
     var setWallpaperTarget by remember { mutableStateOf<Wallpaper?>(null) }
 
-    // Data saver: when enabled, the full-res image is deferred until the user
-    // zooms (or the image is already local -- favorites cost zero data). The
-    // thumbnail still renders instantly, so the screen never feels slow.
-    // Read once (null until known) so the full-res decision is never made
-    // against the default value -- that would start a download we don't want.
     var dataSaverEnabled by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(Unit) {
-        dataSaverEnabled = container.settings.current().dataSaverMode
+        dataSaverEnabled = settingsRepository.current().dataSaverMode
     }
 
-    // Resolve snackbar copy now -- stringResource is composable and can't
-    // be called inside the action callbacks below.
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
-    // Smooth background: animate from transparent -> black over 220ms on enter,
-    // synchronized with the shared element's bounds animation. The alpha is
-    // read by DetailContent to color the background.
     val backgroundAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
     LaunchedEffect(Unit) {
         backgroundAlpha.animateTo(1f, animationSpec = SharedElementSpringFloat)
@@ -108,8 +163,6 @@ fun DetailScreen(
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {
-                    // Build the shared element modifier for the detail image so
-                    // it participates in the container-transform transition.
                     val sharedElementModifier: Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) {
                             Modifier.sharedElement(
@@ -123,27 +176,22 @@ fun DetailScreen(
                     }
 
                     DetailContent(
-                        container = container,
+                        favoriteImageStore = favoriteImageStore,
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
                         isUploaderDeleted = uiState.isDetailLoaded && wallpaper.uploaderName.isBlank(),
                         dataSaverEnabled = dataSaverEnabled,
-                        imageModel = container.favoriteImageStore.fileFor(wallpaper.id) ?: wallpaper.path,
+                        imageModel = favoriteImageStore.fileFor(wallpaper.id) ?: wallpaper.path,
                         backgroundAlpha = backgroundAlpha.value,
                         onToggleFavorite = {
-                            // Subtle tick so the action feels acknowledged.
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val wasFavorite = wallpaper.id in uiState.favoriteIds
                             viewModel.toggleFavorite(wallpaper)
-                            // Keep favorites viewable offline: download the
-                            // full-res into the private store on favorite,
-                            // remove it on unfavorite. Fire-and-forget so the
-                            // toggle never waits on the network.
                             if (wasFavorite) {
-                                container.favoriteImageStore.delete(wallpaper.id)
+                                favoriteImageStore.delete(wallpaper.id)
                             } else {
                                 scope.launch {
-                                    val saved = container.favoriteImageStore.save(wallpaper)
+                                    val saved = favoriteImageStore.save(wallpaper)
                                     if (!saved) {
                                         snackbarHostState.showSnackbar(
                                             context.getString(R.string.favorite_save_failed),
@@ -183,9 +231,6 @@ fun DetailScreen(
 
     val setTarget = setWallpaperTarget
     if (setTarget != null) {
-        // Resolve a local image file (offline favorite copy, else download to
-        // cache) so the crop dialog can decode it. Show the crop dialog once
-        // it's ready; surface an error if the image can't be obtained.
         var resolvedFile by remember(setTarget) { mutableStateOf<File?>(null) }
         var resolving by remember(setTarget) { mutableStateOf(true) }
         LaunchedEffect(setTarget) {
@@ -193,7 +238,7 @@ fun DetailScreen(
             resolvedFile = WallpaperSharing.imageFile(
                 context,
                 setTarget,
-                container.favoriteImageStore.fileFor(setTarget.id),
+                favoriteImageStore.fileFor(setTarget.id),
             )
             resolving = false
         }
@@ -202,26 +247,18 @@ fun DetailScreen(
             file != null -> WallpaperCropDialog(
                 imageFile = file,
                 onDismiss = { setWallpaperTarget = null },
-                // The dialog owns the feedback: it shows a spinner while the
-                // wallpaper applies, a centered checkmark on success (then
-                // dismisses itself), or a snackbar on failure (and stays open).
-                // We just apply the wallpaper and report whether it worked.
                 onConfirm = { cropped, position ->
                     val ok = WallpaperSetter.setAsWallpaper(context, cropped, position)
                     if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     ok
                 },
-                // Remember the user's framing so rotation can reuse it.
                 onCropRect = { rect ->
                     scope.launch {
-                        container.rotationCrops.save(wallpaperId, rect)
+                        rotationCropStore.save(wallpaperId, rect)
                     }
                 },
             )
             resolving -> {
-                // Still resolving the image (downloading a non-favorite's
-                // full-res into cache). Show a spinner so the tap isn't a
-                // silent no-op while the network does its thing.
                 Dialog(
                     onDismissRequest = { setWallpaperTarget = null },
                     properties = DialogProperties(
@@ -240,7 +277,6 @@ fun DetailScreen(
                 }
             }
             else -> {
-                // Resolution finished but no file -- show the failure and close.
                 LaunchedEffect(Unit) {
                     setWallpaperTarget = null
                     snackbarHostState.showSnackbar(wallpaperSetFailedMsg)

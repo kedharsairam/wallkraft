@@ -40,6 +40,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.wallkraft.app.AppContainer
+import com.wallkraft.app.data.prefs.SearchHistoryStore
+import com.wallkraft.app.di.AppDependenciesViewModel
+import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -59,12 +62,9 @@ import androidx.compose.material.icons.outlined.Warning
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
 @Composable
 fun BrowseScreen(
-    container: AppContainer,
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
-    // Height of the outer top bar (SearchFilterBar). Reserved here so the
-    // grid starts exactly below the bar. Constant — never shifts.
     topInset: androidx.compose.ui.unit.Dp = 0.dp,
     initialQuery: String = "",
     title: String = "",
@@ -72,62 +72,100 @@ fun BrowseScreen(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     searchState: BrowseSearchState = BrowseSearchState(),
 ) {
-    // Hilt pilot: BrowseViewModel is provided by Hilt. Nav argument "query" is read
-    // via SavedStateHandle inside the ViewModel, so we no longer pass initialQuery
-    // or container resources into a manual factory. Container is still used for
-    // settings/history/download state (remaining screens migrate next).
+    val deps: AppDependenciesViewModel = hiltViewModel()
+    BrowseScreenImpl(
+        settingsRepository = deps.settingsRepository,
+        searchHistoryStore = deps.searchHistoryStore,
+        onOpenWallpaper = onOpenWallpaper,
+        gridState = gridState,
+        navBarPadding = navBarPadding,
+        topInset = topInset,
+        initialQuery = initialQuery,
+        title = title,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        searchState = searchState,
+    )
+}
+
+@Deprecated("Use Hilt version — container will be removed", ReplaceWith("BrowseScreen(onOpenWallpaper, gridState, navBarPadding, topInset, initialQuery, title, sharedTransitionScope, animatedVisibilityScope, searchState)"))
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
+@Composable
+fun BrowseScreen(
+    container: AppContainer,
+    onOpenWallpaper: (Wallpaper) -> Unit,
+    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
+    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
+    initialQuery: String = "",
+    title: String = "",
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    searchState: BrowseSearchState = BrowseSearchState(),
+) {
+    BrowseScreenImpl(
+        settingsRepository = container.settings,
+        searchHistoryStore = container.searchHistory,
+        onOpenWallpaper = onOpenWallpaper,
+        gridState = gridState,
+        navBarPadding = navBarPadding,
+        topInset = topInset,
+        initialQuery = initialQuery,
+        title = title,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        searchState = searchState,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
+@Composable
+private fun BrowseScreenImpl(
+    settingsRepository: SettingsRepository,
+    searchHistoryStore: SearchHistoryStore,
+    onOpenWallpaper: (Wallpaper) -> Unit,
+    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
+    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
+    initialQuery: String = "",
+    title: String = "",
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    searchState: BrowseSearchState = BrowseSearchState(),
+) {
     val viewModel: BrowseViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    // The Browse tab hoists its grid state (so it survives tab switches); a
-    // tag-as-browse entry passes null and gets its own state, so scrolling a
-    // tag list never moves the original Browse position.
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
-    // Sync shared search state (lives outside SharedTransitionLayout).
-    // Initial query from nav args seeds the field once per entry.
     val scope = rememberCoroutineScope()
     LaunchedEffect(initialQuery, title) {
         searchState.query = title.ifBlank { uiState.filters.query }
         searchState.titleActive = title.isNotBlank()
-        // Tag/uploader entries are NOT recorded — history holds only what
-        // Kedhar explicitly searched (typed + submitted via onSearch below).
     }
     searchState.filters = uiState.filters
     searchState.totalResults = uiState.totalResults
-    val settings by container.settings.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
+    val settings by settingsRepository.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
     searchState.hasApiKey = settings.apiKeyValid
-    // Suggestion source for the outer bar: explicit search history only.
-    // (Session tags from loaded wallpapers are intentionally NOT suggested —
-    // the dropdown shows only what Kedhar typed and searched.)
-    val history by container.searchHistory.history.collectAsState(initial = emptyList())
+    val history by searchHistoryStore.history.collectAsState(initial = emptyList())
     searchState.history = history
     searchState.onClearHistory = {
-        scope.launch { container.searchHistory.clear() }
+        scope.launch { searchHistoryStore.clear() }
     }
     searchState.onSearch = { text ->
-        scope.launch { container.searchHistory.add(text) }
+        scope.launch { searchHistoryStore.add(text) }
         viewModel.search(if (searchState.titleActive) uiState.filters.query else text)
     }
     searchState.onFiltersChange = viewModel::setFilters
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
-    // Data saver: skip the full-res prefetch on tap so opening a wallpaper
-    // doesn't download it until the user actually zooms.
     var prefetchFullRes by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        prefetchFullRes = !container.settings.current().dataSaverMode
+        prefetchFullRes = !settingsRepository.current().dataSaverMode
     }
 
-    // Refresh downloaded IDs when screen becomes visible — a wallpaper downloaded
-    // from the detail screen (or outside the app) should show its badge immediately
-    // when the user returns to Browse, without needing to restart.
-    // MediaStore query can be heavy, so we do it off the main thread.
-    // Both ON_START and ON_RESUME are observed to catch every return path
-    // (e.g. multi-window, split-screen, notification overlay).
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
-                // Fire-and-forget off main thread to avoid jank when resuming.
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val ids = DownloadedFiles.downloadedIds(context)
                     withContext(Dispatchers.Main) {
@@ -140,10 +178,6 @@ fun BrowseScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // A new search or filter change replaces the whole list, so jump back to
-    // the top instead of leaving the user staring at a stale scroll position.
-    // Track the last-seen values so re-entering this tab (which recreates the
-    // LaunchedEffect) doesn't reset the scroll — only an actual change should.
     var lastScrolledFilters by remember { mutableStateOf(uiState.filters) }
     LaunchedEffect(uiState.filters) {
         val filters = uiState.filters
@@ -156,7 +190,6 @@ fun BrowseScreen(
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
-    // Dismiss the keyboard + clear cursor when the user starts scrolling the grid.
     LaunchedEffect(effectiveGridState) {
         snapshotFlow { effectiveGridState.isScrollInProgress }
             .collect { scrolling ->
@@ -167,11 +200,6 @@ fun BrowseScreen(
             }
     }
 
-    // Full-bleed behind frosted top — no Scaffold topBar spacer.
-    // The grid's contentPadding handles topInset so at rest the first tile
-    // sits just below the frost, but on scroll tiles draw behind it and
-    // get blurred like the bottom pill. outer Scaffold still reserves topInset
-    // for measurement only.
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -201,7 +229,6 @@ fun BrowseScreen(
                     modifier = Modifier
                         .fillMaxSize(),
                 ) {
-                    // Crossfade between states for smooth transitions (content changes should feel cohesive).
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
                         uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"

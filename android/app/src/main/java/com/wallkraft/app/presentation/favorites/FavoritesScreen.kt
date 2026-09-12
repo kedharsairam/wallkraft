@@ -53,9 +53,14 @@ import kotlinx.coroutines.withContext
 import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
+import com.wallkraft.app.data.prefs.RotationStore
+import com.wallkraft.app.di.AppDependenciesViewModel
 import com.wallkraft.app.domain.model.Wallpaper
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import com.wallkraft.app.domain.repository.CollectionsRepository
+import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.DownloadedFile
@@ -64,27 +69,87 @@ import com.wallkraft.app.util.DownloadedFiles
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun FavoritesScreen(
-    container: AppContainer,
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,
-    // Height of the outer top bar (KraftTopBar). Reserved here so the grid
-    // starts exactly below the bar. Constant — never shifts.
     topInset: Dp = 0.dp,
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
-    // Offline repair orchestration. Defaults to the real store; tests inject
-    // a fake. When false, no automatic repair runs (Download-all still works).
     offlineRepair: FavoriteOfflineRepair? = null,
     autoRepairOffline: Boolean = true,
 ) {
-    // Hilt: VMs are provided by the graph; container remains for rotation/offline/images during transition.
+    val deps: AppDependenciesViewModel = hiltViewModel()
+    FavoritesScreenImpl(
+        settingsRepository = deps.settingsRepository,
+        rotationStore = deps.rotationStore,
+        collectionsRepository = deps.collectionsRepository,
+        favoriteImageStore = deps.favoriteImageStore,
+        onOpenWallpaper = onOpenWallpaper,
+        gridState = gridState,
+        navBarPadding = navBarPadding,
+        topInset = topInset,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        topBarState = topBarState,
+        offlineRepair = offlineRepair,
+        autoRepairOffline = autoRepairOffline,
+    )
+}
+
+@Deprecated("Use Hilt version — container will be removed")
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun FavoritesScreen(
+    container: AppContainer,
+    onOpenWallpaper: (Wallpaper) -> Unit,
+    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
+    navBarPadding: Dp = 0.dp,
+    topInset: Dp = 0.dp,
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    topBarState: FavoritesTopBarState = FavoritesTopBarState(),
+    offlineRepair: FavoriteOfflineRepair? = null,
+    autoRepairOffline: Boolean = true,
+) {
+    FavoritesScreenImpl(
+        settingsRepository = container.settings,
+        rotationStore = container.rotation,
+        collectionsRepository = container.collectionsRepository,
+        favoriteImageStore = container.favoriteImageStore,
+        onOpenWallpaper = onOpenWallpaper,
+        gridState = gridState,
+        navBarPadding = navBarPadding,
+        topInset = topInset,
+        sharedTransitionScope = sharedTransitionScope,
+        animatedVisibilityScope = animatedVisibilityScope,
+        topBarState = topBarState,
+        offlineRepair = offlineRepair,
+        autoRepairOffline = autoRepairOffline,
+    )
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun FavoritesScreenImpl(
+    settingsRepository: SettingsRepository,
+    rotationStore: RotationStore,
+    collectionsRepository: CollectionsRepository,
+    favoriteImageStore: FavoriteImageStore,
+    onOpenWallpaper: (Wallpaper) -> Unit,
+    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
+    navBarPadding: Dp = 0.dp,
+    topInset: Dp = 0.dp,
+    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
+    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
+    topBarState: FavoritesTopBarState = FavoritesTopBarState(),
+    offlineRepair: FavoriteOfflineRepair? = null,
+    autoRepairOffline: Boolean = true,
+) {
     val viewModel: FavoritesViewModel = hiltViewModel()
     val favorites by viewModel.favorites.collectAsState()
     val collectionsVm: CollectionsViewModel = hiltViewModel()
     val collections by collectionsVm.collections.collectAsState()
-    // Active collection filter; cleared automatically if deleted.
     var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(collections) {
         if (activeCollectionId != null &&
@@ -102,8 +167,6 @@ fun FavoritesScreen(
     val covers = remember(favorites) {
         favorites.associate { fav ->
             fav.wallpaper.id to (
-                // Card-sized: original (~300px) first, not large — the strip
-                // cards are small and large thumbs waste payload.
                 fav.wallpaper.thumbs.original
                     ?: fav.wallpaper.thumbs.small
                     ?: fav.wallpaper.thumbs.large
@@ -111,24 +174,18 @@ fun FavoritesScreen(
                 )
         }
     }
-    // The set of downloaded IDs, so the grid can badge cards that are already
-    // on disk. Refreshed on resume — a download from the detail screen must
-    // show up without restarting the app.
     var downloadedFiles by remember { mutableStateOf(emptyMap<String, DownloadedFile>()) }
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    // Data saver: skip the full-res prefetch on tap (favorites are already
-    // local files, so the detail screen loads them instantly anyway).
     var prefetchFullRes by remember { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        prefetchFullRes = !container.settings.current().dataSaverMode
+        prefetchFullRes = !settingsRepository.current().dataSaverMode
     }
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val haptic = LocalHapticFeedback.current
-    // Rotation header state — lives here now (was in Settings).
-    val rotation by container.rotation.settings.collectAsState(initial = com.wallkraft.app.data.prefs.RotationSettings())
-    val rotationCollections by container.collectionsRepository.observeAll()
+    val rotation by rotationStore.settings.collectAsState(initial = com.wallkraft.app.data.prefs.RotationSettings())
+    val rotationCollections by collectionsRepository.observeAll()
         .collectAsState(initial = emptyList())
     var rotateRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     var rotateSucceeded by rememberSaveable { mutableStateOf(false) }
@@ -163,10 +220,8 @@ fun FavoritesScreen(
         }
     }
     val repair = offlineRepair
-        ?: remember(container) { FavoriteOfflineRepair(container.favoriteImageStore) }
-    // Ids with a valid offline copy — drives the "saved offline" header.
+        ?: remember(favoriteImageStore) { FavoriteOfflineRepair(favoriteImageStore) }
     var offlineIds by remember { mutableStateOf(emptySet<String>()) }
-    // Batch download progress (done, total); null when idle.
     var repairProgress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
     fun refreshOfflineStatus() {
@@ -178,12 +233,9 @@ fun FavoritesScreen(
         }
     }
 
-    // Re-paint offline badges whenever the list changes.
     LaunchedEffect(favorites) { refreshOfflineStatus() }
 
     fun startDownloadAll() {
-        // Acts on the visible list: under a collection filter only the
-        // filtered items download (matches the scoped header counts).
         scope.launch {
             val missed = withContext(Dispatchers.IO) {
                 repair.missing(displayedFavorites.map { it.wallpaper })
@@ -218,11 +270,9 @@ fun FavoritesScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 downloadedFiles = DownloadedFiles.downloadedFiles(context)
                     .associateBy { it.wallpaperId }
-                // Silent repair: restore missing offline copies. Skipped on
-                // data saver — bulk downloads are explicit (Download-all).
                 if (autoRepairOffline) {
                     lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        if (!container.settings.current().dataSaverMode) {
+                        if (!settingsRepository.current().dataSaverMode) {
                             repair.repairAll(repair.missing(favorites.map { it.wallpaper }))
                         }
                         val ids = favorites.mapNotNull { fav ->
@@ -237,21 +287,15 @@ fun FavoritesScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Selection mode state — derived from selectedIds to prevent desync.
-    // Saveable: a wallpaper change relaunches the activity (dynamic-color
-    // overlay swap), and plain remember would vaporize selection/filter UI.
     var selectedIds by rememberSaveable { mutableStateOf(emptySet<String>()) }
     val selectionMode = selectedIds.isNotEmpty()
     var pendingRemove by remember { mutableStateOf<List<Wallpaper>?>(null) }
-    // Collection dialogs.
     var showPicker by rememberSaveable { mutableStateOf(false) }
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var menuCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     var renameCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     var deleteCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
 
-    // Sync shared top bar state (lives outside SharedTransitionLayout).
-    // Select-all operates on the visible (possibly collection-filtered) list.
     val visibleIds = displayedFavorites.map { it.wallpaper.id }.toSet()
     val allSelected = visibleIds.isNotEmpty() && selectedIds.containsAll(visibleIds)
     topBarState.selectionMode = selectionMode
@@ -289,29 +333,24 @@ fun FavoritesScreen(
                 .padding(top = topInset + KraftSpacing.Spacing20, bottom = KraftSpacing.Spacing20),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing20),
         ) {
-            // Wallpaper rotation — moved here from Settings. Always visible,
-            // even when empty, so you can set it up before adding anything.
             com.wallkraft.app.presentation.settings.SettingsRotationSection(
                 settings = rotation,
                 collections = rotationCollections,
                 rotateWorking = rotateRequestId != null,
                 rotateDone = rotateSucceeded,
                 onSchedule = { schedule ->
-                    scope.launch { container.rotation.setSchedule(schedule) }
+                    scope.launch { rotationStore.setSchedule(schedule) }
                         com.wallkraft.app.data.rotation.RotationScheduler.apply(context, schedule)
                     },
-                    onMode = { mode -> scope.launch { container.rotation.setMode(mode) } },
-                    onTarget = { target -> scope.launch { container.rotation.setTarget(target) } },
-                    onSource = { id -> scope.launch { container.rotation.setSourceCollection(id) } },
+                    onMode = { mode -> scope.launch { rotationStore.setMode(mode) } },
+                    onTarget = { target -> scope.launch { rotationStore.setTarget(target) } },
+                    onSource = { id -> scope.launch { rotationStore.setSourceCollection(id) } },
                     onRotateNow = {
                         if (rotateRequestId == null) {
                             rotateRequestId = com.wallkraft.app.data.rotation.RotationScheduler.rotateNow(context).toString()
                         }
                     },
                 )
-                // Collections + divider + grid share tight 8dp rhythm
-                // (divider 8 above/below), while outer gap Rotation → this
-                // group stays 20dp like Settings. Inner Column owns the 8.
                 androidx.compose.foundation.layout.Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
@@ -328,10 +367,6 @@ fun FavoritesScreen(
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
                     )
-                    // Offline status header: hidden in selection mode and when
-                    // everything visible is saved. Shows progress while downloading.
-                    // An active filter with nothing displayable gets an empty state
-                    // (with a way out) instead of a dead blank grid.
                     val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
                     val progress = repairProgress
                     if (favorites.isEmpty()) {
@@ -353,9 +388,6 @@ fun FavoritesScreen(
                             modifier = Modifier.weight(1f),
                         )
                     } else {
-                        // Offline header — only when not in selection and there is
-                        // something to show (missing or downloading). Grid is always
-                        // below it, even when everything is already offline.
                         if (!selectionMode && (visibleMissing > 0 || progress != null)) {
                         if (progress != null) {
                             val (done, total) = progress
@@ -444,7 +476,6 @@ fun FavoritesScreen(
     }
     }
 
-    // Remove confirmation dialog
     pendingRemove?.let { wallpapersToRemove ->
         val count = wallpapersToRemove.size
         AlertDialog(
@@ -481,9 +512,6 @@ fun FavoritesScreen(
                     onClick = {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         val removedIds = wallpapersToRemove.mapTo(mutableSetOf()) { it.id }
-                        // Unfavoriting cascades: membership rows vanish with the
-                        // favorite. Count affected collections BEFORE removal so
-                        // the user is told — never a silent strip.
                         val stripped = collections.count { entry ->
                             entry.items.any { it in removedIds }
                         }
@@ -517,8 +545,6 @@ fun FavoritesScreen(
         )
     }
 
-    // Add-to-collection picker (selection mode only — clearing the selection
-    // closes it).
     if (showPicker && selectionMode) {
         AddToCollectionDialog(
             collections = collections,
@@ -528,8 +554,6 @@ fun FavoritesScreen(
                     collectionsVm.setMember(collectionId, wallpaperId, member)
                 }
             },
-            // Creating from the picker checks the new collection for the
-            // current selection right away — no create-then-hunt.
             onCreate = { name ->
                 val targets = selectedIds.toList()
                 collectionsVm.create(name) { id ->
@@ -538,15 +562,11 @@ fun FavoritesScreen(
             },
             onDismiss = {
                 showPicker = false
-                // Done — exit selection so the grid returns to normal.
-                // Previously this only hid the dialog, leaving the
-                // selection active and the top bar stuck in select mode.
                 selectedIds = emptySet()
             },
         )
     }
 
-    // New collection, from the strip.
     if (showCreateDialog) {
         CollectionNameDialog(
             title = stringResource(R.string.new_collection),
@@ -560,7 +580,6 @@ fun FavoritesScreen(
         )
     }
 
-    // Long-press menu on a collection card.
     val menuEntry = menuCollectionId?.let { id ->
         collections.firstOrNull { it.id == id }
     }
@@ -579,7 +598,6 @@ fun FavoritesScreen(
         )
     }
 
-    // Rename.
     val renameEntry = renameCollectionId?.let { id ->
         collections.firstOrNull { it.id == id }
     }
@@ -589,8 +607,6 @@ fun FavoritesScreen(
             current = renameEntry.name,
             onDismiss = { renameCollectionId = null },
             onSave = { name ->
-                // Duplicate names stay open with a notice instead of
-                // closing silently (or crashing, as before).
                 collectionsVm.rename(renameEntry.id, name) { ok ->
                     if (ok) {
                         renameCollectionId = null
@@ -606,7 +622,6 @@ fun FavoritesScreen(
         )
     }
 
-    // Delete (members cascade; the wallpapers stay in Favorites).
     val deleteEntry = deleteCollectionId?.let { id ->
         collections.firstOrNull { it.id == id }
     }
@@ -615,12 +630,9 @@ fun FavoritesScreen(
             name = deleteEntry.name,
             onDismiss = { deleteCollectionId = null },
             onConfirm = {
-                // Snapshot members first: delete cascades the rows away.
                 val restoreName = deleteEntry.name
                 val restoreMembers = deleteEntry.items
                 collectionsVm.delete(deleteEntry.id)
-                // Leaving an active filter on a deleted collection shows a
-                // dead empty grid — drop back to All immediately.
                 if (activeCollectionId == deleteEntry.id) activeCollectionId = null
                 deleteCollectionId = null
                 scope.launch {
