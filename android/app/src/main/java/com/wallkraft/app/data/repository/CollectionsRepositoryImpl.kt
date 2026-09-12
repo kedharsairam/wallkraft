@@ -6,15 +6,17 @@ import android.util.Log
 import com.wallkraft.app.data.db.CollectionDao
 import com.wallkraft.app.data.db.CollectionEntity
 import com.wallkraft.app.data.db.CollectionItemEntity
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
+import com.wallkraft.app.domain.model.toDomain
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class CollectionsRepositoryImpl(
     private val dao: CollectionDao,
 ) : CollectionsRepository {
 
-    override fun observeAll(): Flow<List<CollectionWithItems>> = dao.observeAll()
+    override fun observeAll(): Flow<List<Collection>> = dao.observeAll().map { list -> list.map { it.toDomain() } }
 
     override suspend fun create(name: String): Long {
         val cleaned = name.trim()

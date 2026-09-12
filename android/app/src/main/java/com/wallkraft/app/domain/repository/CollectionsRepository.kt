@@ -1,6 +1,6 @@
 package com.wallkraft.app.domain.repository
 
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
  * creating a duplicate resolves to the existing collection.
  */
 interface CollectionsRepository {
-    fun observeAll(): Flow<List<CollectionWithItems>>
+    fun observeAll(): Flow<List<Collection>>
 
     /**
      * Creates a collection. Returns the id, or the existing id when [name]

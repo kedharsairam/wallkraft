@@ -1,8 +1,6 @@
 package com.wallkraft.app.presentation.favorites
 
-import com.wallkraft.app.data.db.CollectionEntity
-import com.wallkraft.app.data.db.CollectionItemEntity
-import com.wallkraft.app.data.db.CollectionWithItems
+import com.wallkraft.app.domain.model.Collection
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,7 +55,7 @@ class CollectionsViewModelTest {
         advanceUntilIdle()
 
         assertTrue(created > 0)
-        assertEquals(listOf("Beach"), vm.collections.value.map { it.collection.name })
+        assertEquals(listOf("Beach"), vm.collections.value.map { it.name })
 
         vm.delete(created)
         advanceUntilIdle()
@@ -79,7 +77,7 @@ class CollectionsViewModelTest {
 
         vm.setMember(id, "w1", true)
         advanceUntilIdle()
-        assertEquals(listOf("w1"), vm.collections.value.single().items.map { it.wallpaperId })
+        assertEquals(listOf("w1"), vm.collections.value.single().items)
 
         vm.setMember(id, "w1", false)
         advanceUntilIdle()
@@ -108,7 +106,7 @@ class CollectionsViewModelTest {
         assertEquals(false, ok)
         assertEquals(
             listOf("Beach", "Dunes"),
-            vm.collections.value.map { it.collection.name }.sorted(),
+            vm.collections.value.map { it.name }.sorted(),
         )
         job.cancel()
     }
@@ -128,26 +126,28 @@ class CollectionsViewModelTest {
         advanceUntilIdle()
 
         assertEquals(true, ok)
-        assertEquals(listOf("Coast"), vm.collections.value.map { it.collection.name })
+        assertEquals(listOf("Coast"), vm.collections.value.map { it.name })
         job.cancel()
     }
 
     private class FakeCollectionsRepository : CollectionsRepository {
         private val collections = mutableMapOf<Long, String>()
-        private val items = mutableSetOf<CollectionItemEntity>()
+        private val items = mutableSetOf<com.wallkraft.app.data.db.CollectionItemEntity>()
         private var nextId = 1L
-        private val _all = MutableStateFlow<List<CollectionWithItems>>(emptyList())
+        private val _all = MutableStateFlow<List<Collection>>(emptyList())
 
         private fun emit() {
             _all.value = collections.map { (id, name) ->
-                CollectionWithItems(
-                    CollectionEntity(id, name, 1000L),
-                    items.filter { it.collectionId == id },
+                Collection(
+                    id = id,
+                    name = name,
+                    createdAt = 1000L,
+                    items = items.filter { it.collectionId == id }.map { it.wallpaperId },
                 )
             }
         }
 
-        override fun observeAll(): Flow<List<CollectionWithItems>> = _all
+        override fun observeAll(): Flow<List<Collection>> = _all
 
         override suspend fun create(name: String): Long {
             val cleaned = name.trim()
@@ -177,7 +177,7 @@ class CollectionsViewModelTest {
         }
 
         override suspend fun addTo(collectionId: Long, wallpaperId: String) {
-            items += CollectionItemEntity(collectionId, wallpaperId)
+            items += com.wallkraft.app.data.db.CollectionItemEntity(collectionId, wallpaperId)
             emit()
         }
 
