@@ -2,6 +2,8 @@
 agp = "8.9.1"
 kotlin = "2.1.0"
 ksp = "2.1.0-1.0.29"
+hilt = "2.52"
+hilt-navigation-compose = "1.2.0"
 compose-bom = "2025.04.00"
 core-ktx = "1.15.0"
 lifecycle = "2.8.7"
@@ -52,6 +54,9 @@ espresso = { group = "androidx.test.espresso", name = "espresso-core", version.r
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -59,3 +64,4 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

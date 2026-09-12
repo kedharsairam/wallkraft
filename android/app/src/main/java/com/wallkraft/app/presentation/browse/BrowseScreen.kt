@@ -34,13 +34,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.wallkraft.app.AppContainer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,7 +53,6 @@ import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.DownloadedFiles
-import com.wallkraft.app.util.toUserMessage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Warning
 
@@ -75,18 +72,11 @@ fun BrowseScreen(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     searchState: BrowseSearchState = BrowseSearchState(),
 ) {
-    val viewModel: BrowseViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer {
-                BrowseViewModel(
-                    repository = container.wallpaperRepository,
-                    settingsRepository = container.settings,
-                    errorMessage = { e -> e.toUserMessage(container.resources) },
-                    initialQuery = initialQuery,
-                )
-            }
-        },
-    )
+    // Hilt pilot: BrowseViewModel is provided by Hilt. Nav argument "query" is read
+    // via SavedStateHandle inside the ViewModel, so we no longer pass initialQuery
+    // or container resources into a manual factory. Container is still used for
+    // settings/history/download state (remaining screens migrate next).
+    val viewModel: BrowseViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
     // The Browse tab hoists its grid state (so it survives tab switches); a
     // tag-as-browse entry passes null and gets its own state, so scrolling a

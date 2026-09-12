@@ -12,7 +12,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.wallkraft.app.core.design.KraftConstants
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     /**
      * Debug-only slow-frame watcher. Logs frames slower than ~2 vsyncs so

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 // Release signing credentials. key.properties is gitignored and only exists on
@@ -141,6 +142,11 @@ dependencies {
 
     // Background work (wallpaper rotation schedule)
     implementation(libs.work.runtime.ktx)
+
+    // Hilt (pilot: Browse only, rest still via AppContainer)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
 
     // Tests
     testImplementation(libs.junit)
