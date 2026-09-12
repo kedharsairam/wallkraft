@@ -1,6 +1,6 @@
 # Visual & Interaction Audit — WallKraft
 
-Every issue follows Apple HIG as the design DNA. Same rigor as the code audit.
+Every issue follows Kraft design as the design DNA. Same rigor as the code audit.
 
 **Status**: `pending` = not started, `in_progress` = fixing, `completed` = fixed, `cancelled` = deferred
 
@@ -52,7 +52,7 @@ Every issue follows Apple HIG as the design DNA. Same rigor as the code audit.
 | V-30 | SearchFilterBar | Filter panel FlowRow `spacedBy(6.dp)` — same 6dp grid break | High | completed |
 | V-31 | SearchFilterBar | Filter panel `padding(horizontal=16, vertical=12)` — vertical should be 16dp | Low | completed |
 | V-32 | WallpaperCropDialog | Bottom panel `padding(Spacing16)` — correct | Low | cancelled |
-| V-33 | DetailPanelContent | Drag handle `size(36.dp, 5.dp)` — 36dp width is non-standard, should be 40dp (Apple grabber standard) | Medium | completed |
+| V-33 | DetailPanelContent | Drag handle `size(36.dp, 5.dp)` — 36dp width is non-standard, should be 40dp (Kraft grabber standard) | Medium | completed |
 
 ## Element Sizing (Touch Targets & Icons)
 

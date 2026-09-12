@@ -4,7 +4,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 
 /**
- * Apple HIG haptics table — one helper, no more universal LongPress.
+ * Haptics table — one helper, no more universal LongPress.
  * Maps Kraft intent → Compose HapticFeedbackType. DESIGN.md §5
  * selectionChanged -> TextHandleMove (light), button -> TextHandleMove,
  * destructive -> LongPress (medium), sheet snap -> LongPress

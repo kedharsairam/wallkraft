@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.view.accessibility.AccessibilityManager
 
 /**
- * Apple-grade Reduce Motion: when user disables animations (Animator duration scale 0
+ * Kraft-grade Reduce Motion: when user disables animations (Animator duration scale 0
  * or Accessibility Reduce Motion), all non-essential motion collapses to opacity/snap.
  * DESIGN.md §5 "Respect reduced motion" — keep opacity and blur, drop spring/scale.
  */

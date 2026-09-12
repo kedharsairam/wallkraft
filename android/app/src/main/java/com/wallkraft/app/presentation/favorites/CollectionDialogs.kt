@@ -67,7 +67,7 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 
 /**
- * Apple-polished collection sheets — matching the liquid-glass top/bottom bars.
+ * polished collection sheets — matching the liquid-glass top/bottom bars.
  *
  * Old: centered Dialog + Surface + Checkbox + AlertDialog.
  * New: bottom sheets with grabber (2.5dp), Hero 22dp corners, 8px rhythm,

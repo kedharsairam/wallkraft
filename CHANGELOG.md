@@ -68,8 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Collection add/clear** � the add-to-collection picker now correctly clears selection on Done, exiting selection mode.
 - **Remove from collection** � when a collection filter is active, the top bar trash now correctly strips the selected wallpapers from that collection only (stays in Favorites) via FolderDelete ? now unified as single red trash handling both cases; shows Remove from collection description when in a collection.
 - **API key handling** � Browse now works for SFW/Sketchy even with an invalid API key; the X-API-Key header is only sent when piKeyValid is true, so a wrong key no longer blocks SFW.
-- **Left/right 8dp uniformity, divider 8/8, grid 8** � Favorites and Settings now use uniform 8dp outer with correct inner insets, divider 8 top/bottom, grid 8 gutters, and Apple header typography (WALLPAPER ROTATION/COLLECTIONS as labelSmall caps).
-- **Settings top bar 20dp, Settings outer 24/20** � KraftTopBar title at 20, outer vertical 24?20, header?collections 16, etc. � tightened to Apple 8pt rhythm.
+- **Left/right 8dp uniformity, divider 8/8, grid 8** � Favorites and Settings now use uniform 8dp outer with correct inner insets, divider 8 top/bottom, grid 8 gutters, and section header typography (WALLPAPER ROTATION/COLLECTIONS as labelSmall caps).
+- **Settings top bar 20dp, Settings outer 24/20** � KraftTopBar title at 20, outer vertical 24?20, header?collections 16, etc. � tightened to 8dp rhythm.
 
 ## [1.19.4] - 2026-09-10
 
@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Detail bar bleeding** — the bottom glass pill no longer shows on the detail screen; the route check now correctly hides the bar for true full-bleed detail.
-- **Top bar glass parity** — `KraftTopBar` and `SearchFilterBar` now use the exact Apple 4-layer stack as the bottom pill (`Black 0.22 → White 0.22 → #3A3A3C 0.45 → #2C2C2E 0.15`), no hairline divider, so top and bottom read as one material.
+- **Top bar glass parity** — `KraftTopBar` and `SearchFilterBar` now use the exact 4-layer stack as the bottom pill (`Black 0.22 → White 0.22 → #3A3A3C 0.45 → #2C2C2E 0.15`), no hairline divider, so top and bottom read as one material.
 - **Liquid-glass shader stability** — the bottom pill's AGSL engine now clears stale elements immediately when hidden and disables the render effect at zero elements, preventing the frost ghost that lingered on detail.
 
 ### Changed
@@ -89,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.19.2] - 2026-09-09
 
 ### Added
-- **Liquid-glass tab bar** — floating capsule with live frost, lens character, rim light and shadow rendered from the content behind it (vendored AGSL engine, API 33+ with automatic fallback). Apple-measured geometry: compact pill, full capsule corners, semibold-everywhere labels, capsule selection bubble.
+- **Liquid-glass tab bar** — floating capsule with live frost, lens character, rim light and shadow rendered from the content behind it (vendored AGSL engine, API 33+ with automatic fallback). measured geometry: compact pill, full capsule corners, semibold-everywhere labels, capsule selection bubble.
 - **Hourly rotation** — Off / Hourly / Daily / Weekly ladder. Schedules snap to clock boundaries (top of hour, midnight, Monday morning) via self-perpetuating chained work instead of rolling timers; upgrade migration and force-stop recovery built in. One-shot welcome card explains the timing.
 - **Rotate-now feedback** — the button spins while the run works, shows check + Applied on success, snackbar only on failure.
 - **Collection undo** — deleting a collection offers one-tap restore with members. Duplicate names are refused with a notice instead of crashing; picker create auto-checks the new collection; overflow menu affordance on cards.
@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API key status text** — simplified to show just the validity label without the key prefix.
 
 ### Removed
-- **Apple references** — all "Apple HIG" mentions removed from codebase comments.
+- **References** — all "Kraft design" mentions removed from codebase comments.
 
 ## [1.16.0] - 2026-09-04
 
@@ -287,7 +287,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tab bar icon alignment** — icons shifted down 4dp (top 12 / bottom 4 padding) for better vertical centering with labels.
 - **Legacy color aliases** — `AccentPink`, `AccentIndigo` etc. now reference Aurora palette directly instead of allocating new `Color` objects via `get()`.
 - **SearchFilterBar spacing** — hardcoded `14.dp` replaced with `KraftSpacing.Spacing16` token; broken indentation fixed.
-- **Design token comments** — "iOS" and "Apple HIG" references removed from codebase; neutral design language throughout.
+- **Design token comments** — "iOS" and "Kraft design" references removed from codebase; neutral design language throughout.
 
 ### Fixed
 - **Detail screen z-order** — shared element was rendering above chrome (back button, action bar, bottom panel). Fixed using `renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)` on all chrome elements within `SharedTransitionScope` context.
@@ -314,7 +314,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fully qualified enum references** — `WallpaperRepositoryImpl` now uses imported `Purity.SFW` instead of full path.
 - **Fully qualified imports in BrowseScreen** — 8 inline fully qualified references replaced with proper top-level imports.
 - **No-op padding** — removed `.padding(horizontal = 0.dp)` from tab bar.
-- **All references to "Apple" removed** — 26 comment references across 8 files replaced with neutral design language.
+- **All references to "Kraft" removed** — 26 comment references across 8 files replaced with neutral design language.
 
 ### Removed
 - **Dead code** — `GlassPill` composable, `isDownloaded()`, `GlassBlurPx`, `FavoriteDao.getById()` (all previously unused).
@@ -450,7 +450,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.2] - 2026-08-11
 
 ### Added
-- **Apple-style crop dialog redesign** — the Set-wallpaper dialog now uses a clean translucent panel (no blur): a hard-edged bottom sheet with rounded top corners that extends behind the gesture nav bar, a thin top scrim for status-bar legibility, a close button on a dark circle top-left, and an Apple-style segmented control (white pill with black text) for the home / lock / both position picker.
+- **Crop dialog redesign** — the Set-wallpaper dialog now uses a clean translucent panel (no blur): a hard-edged bottom sheet with rounded top corners that extends behind the gesture nav bar, a thin top scrim for status-bar legibility, a close button on a dark circle top-left, and an segmented control (white pill with black text) for the home / lock / both position picker.
 
 ### Changed
 - **Set-as-wallpaper reuses Coil's in-flight full-res load** — the manual OkHttp download fallback is gone. When the full-res isn't cached yet, the app now issues a Coil request identical to the detail screen's (same data, decoded at original size, on the shared loader), so Coil joins an already-running download instead of starting a second one. Data saver still defers the full-res until you zoom, set, or share — the explicit Set action downloads on demand as before.
