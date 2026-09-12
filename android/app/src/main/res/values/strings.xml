@@ -252,13 +252,13 @@
     <string name="buy_me_a_coffee_description">If you enjoy WallKraft, buy me a coffee:</string>
 
     <!-- Welcome (first launch) -->
-    <string name="welcome_title_browse">Browse Wallhaven</string>
-    <string name="welcome_body_browse">Infinite wallpapers, filters, colors and sorting — all private, no trackers.</string>
-    <string name="welcome_title_organize">Organize &amp; Rotate</string>
-    <string name="welcome_body_organize">Save favorites offline, make collections, auto-rotate on schedule.</string>
-    <string name="welcome_title_private">Private by default</string>
-    <string name="welcome_body_private">No accounts, no analytics. Your API key and favorites stay on your device.</string>
-    <string name="next">Next</string>
-    <string name="skip">Skip</string>
-    <string name="get_started">Get Started</string>
+    <string name="welcome_title_browse" translatable="false">Browse Wallhaven</string>
+    <string name="welcome_body_browse" translatable="false">Infinite wallpapers, filters, colors and sorting — all private, no trackers.</string>
+    <string name="welcome_title_organize" translatable="false">Organize &amp; Rotate</string>
+    <string name="welcome_body_organize" translatable="false">Save favorites offline, make collections, auto-rotate on schedule.</string>
+    <string name="welcome_title_private" translatable="false">Private by default</string>
+    <string name="welcome_body_private" translatable="false">No accounts, no analytics. Your API key and favorites stay on your device.</string>
+    <string name="next" translatable="false">Next</string>
+    <string name="skip" translatable="false">Skip</string>
+    <string name="get_started" translatable="false">Get Started</string>
 </resources>
