@@ -109,7 +109,7 @@ fun ColorFilterRow(
         // phone shows one full row. Small phones get ~36dp targets — below
         // the 44dp ideal, but that's the single-line tradeoff Kedhar chose.
         Row(
-            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
             modifier = Modifier.fillMaxWidth(),
         ) {
             FilterColorGroups.forEach { group ->
@@ -118,7 +118,7 @@ fun ColorFilterRow(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(28.dp),
+                        .height(KraftSpacing.TouchTarget),
                 ) {
                     ColorDot(
                         hex = group.defaultHex,
@@ -156,8 +156,8 @@ fun ColorFilterRow(
             // 8dp like the label gap above — color-touching gaps breathe more.
             Spacer(Modifier.height(KraftSpacing.Spacing8))
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
-                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+                verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 expanded.shades.forEach { hex ->
@@ -168,7 +168,7 @@ fun ColorFilterRow(
                         selected = shadeSelected,
                         modifier = Modifier.size(
                             width = KraftSpacing.Spacing40,
-                            height = 26.dp,
+                            height = 32.dp,
                         ),
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
