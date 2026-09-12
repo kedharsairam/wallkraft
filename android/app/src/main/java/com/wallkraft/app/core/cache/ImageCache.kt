@@ -18,8 +18,14 @@ import okio.Path.Companion.toOkioPath
  * Sizes are tuned for a wallpaper app: full-res images are several MB, so the
  * disk cache is generous (512 MB) to support offline favorites and instant
  * re-visits without eating the device's storage.
+ *
+ * Hilt migration: previously an `object`. Now an injectable `@Singleton` class
+ * provided via [com.wallkraft.app.di.AppModule].
  */
-object ImageCache {
+@javax.inject.Singleton
+class ImageCache @javax.inject.Inject constructor(
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context,
+) {
 
     @Volatile
     private var disk: DiskCache? = null
@@ -28,7 +34,7 @@ object ImageCache {
     private var memory: MemoryCache? = null
 
     /** Shared disk cache, built once with the application context. */
-    fun diskCache(context: Context): DiskCache {
+    fun diskCache(): DiskCache {
         disk?.let { return it }
         synchronized(this) {
             if (disk == null) {
@@ -42,7 +48,7 @@ object ImageCache {
     }
 
     /** Shared memory cache: 25% of the app's memory budget, reused by all loaders. */
-    fun memoryCache(context: Context): MemoryCache {
+    fun memoryCache(): MemoryCache {
         memory?.let { return it }
         synchronized(this) {
             if (memory == null) {
@@ -52,5 +58,29 @@ object ImageCache {
             }
             return memory!!
         }
+    }
+
+    // Static fallback for legacy call sites that still use `ImageCache.memoryCache(context)`
+    // during the transition (WallKraftApp, GridImageLoader fallback). Once all callers
+    // are Hilt-injected this fallback can be removed.
+    companion object {
+        @Volatile
+        private var fallback: ImageCache? = null
+
+        private fun fallbackInstance(context: Context): ImageCache {
+            fallback?.let { return it }
+            synchronized(this) {
+                if (fallback == null) {
+                    fallback = ImageCache(context.applicationContext)
+                }
+                return fallback!!
+            }
+        }
+
+        @JvmStatic
+        fun diskCache(context: Context): DiskCache = fallbackInstance(context).diskCache()
+
+        @JvmStatic
+        fun memoryCache(context: Context): MemoryCache = fallbackInstance(context).memoryCache()
     }
 }

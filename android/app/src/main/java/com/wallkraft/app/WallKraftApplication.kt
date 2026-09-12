@@ -2,7 +2,11 @@ package com.wallkraft.app
 
 import android.app.Application
 import android.os.Process
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,7 +27,19 @@ class WallKraftApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         installCrashHandler()
-        com.wallkraft.app.data.api.RateLimitState.attachScope(applicationScope)
+        // RateLimitState is now a Hilt singleton; bind the app scope via EntryPoint
+        // to avoid field injection on Application (which triggers Kotlin metadata
+        // version issues with Hilt 2.52 + Kotlin 2.1.0).
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                this,
+                RateLimitStateEntryPoint::class.java,
+            )
+            entryPoint.rateLimitState().attachScope(applicationScope)
+        }
+        // GridImageLoader now has Hilt singleton support but keep static init for
+        // transition — its companion will delegate to the Hilt instance when available
+        // and create a fallback otherwise (so startup before Hilt injection still works).
         com.wallkraft.app.core.cache.GridImageLoader.init(this)
         container = AppContainer(this)
         realignRotationSchedule()
@@ -87,4 +103,10 @@ class WallKraftApplication : Application() {
             }
         }
     }
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface RateLimitStateEntryPoint {
+    fun rateLimitState(): com.wallkraft.app.data.api.RateLimitState
 }

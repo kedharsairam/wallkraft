@@ -62,8 +62,14 @@ class AppContainer(context: Context) {
             .build()
     }
 
+    // Hilt now owns RateLimitState; AppContainer keeps a local instance for transition
+    // so legacy manual DI still works (duplicate state is cheap, files are shared).
+    private val rateLimitState: com.wallkraft.app.data.api.RateLimitState by lazy {
+        com.wallkraft.app.data.api.RateLimitState()
+    }
+
     private val wallhavenApi: WallhavenApi by lazy {
-        WallhavenApi(okHttpClient, json, settings)
+        WallhavenApi(okHttpClient, json, settings, rateLimitState)
     }
 
     /** Expose API for key validation in Settings. */
