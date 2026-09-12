@@ -42,13 +42,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -81,17 +79,10 @@ fun FavoritesScreen(
     offlineRepair: FavoriteOfflineRepair? = null,
     autoRepairOffline: Boolean = true,
 ) {
-    val viewModel: FavoritesViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer { FavoritesViewModel(container.favoritesRepository) }
-        },
-    )
+    // Hilt: VMs are provided by the graph; container remains for rotation/offline/images during transition.
+    val viewModel: FavoritesViewModel = hiltViewModel()
     val favorites by viewModel.favorites.collectAsState()
-    val collectionsVm: CollectionsViewModel = viewModel(
-        factory = viewModelFactory {
-            initializer { CollectionsViewModel(container.collectionsRepository) }
-        },
-    )
+    val collectionsVm: CollectionsViewModel = hiltViewModel()
     val collections by collectionsVm.collections.collectAsState()
     // Active collection filter; cleared automatically if deleted.
     var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }

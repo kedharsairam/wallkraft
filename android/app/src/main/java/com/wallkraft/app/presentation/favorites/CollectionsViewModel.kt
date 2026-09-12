@@ -4,12 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.domain.model.Collection
 import com.wallkraft.app.domain.repository.CollectionsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class CollectionsViewModel(
+@HiltViewModel
+class CollectionsViewModel @Inject constructor(
     private val collectionsRepository: CollectionsRepository,
 ) : ViewModel() {
 
