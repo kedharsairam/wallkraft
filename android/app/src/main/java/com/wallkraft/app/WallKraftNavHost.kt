@@ -86,6 +86,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
@@ -94,6 +95,8 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.core.utils.rememberReduceMotion
+import com.wallkraft.app.data.prefs.RotationStore
+import com.wallkraft.app.di.AppDependenciesViewModel
 import com.wallkraft.app.presentation.browse.BrowseScreen
 import com.wallkraft.app.presentation.browse.BrowseSearchState
 import com.wallkraft.app.presentation.components.RotationTimingWelcome
@@ -126,7 +129,6 @@ private data class Tab(
     val unselectedIcon: ImageVector,
 )
 
-// Outlined = default state, Filled = selected state — standard tab bar convention.
 private val tabs = listOf(
     Tab(Routes.BROWSE, R.string.tab_browse, Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
     Tab(Routes.FAVORITES, R.string.tab_favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
@@ -135,7 +137,21 @@ private val tabs = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
+fun WallKraftNavHost() {
+    val deps: AppDependenciesViewModel = hiltViewModel()
+    WallKraftNavHostImpl(rotationStore = deps.rotationStore)
+}
+
+@Deprecated("Use Hilt version — container will be removed")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Composable
 fun WallKraftNavHost(container: AppContainer) {
+    WallKraftNavHostImpl(rotationStore = container.rotation)
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@Composable
+private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -152,14 +168,9 @@ fun WallKraftNavHost(container: AppContainer) {
     val isFavorites = currentDestination?.route == Routes.FAVORITES
     val isSettings = currentDestination?.route == Routes.SETTINGS
 
-    // Shared state holders — outside SharedTransitionLayout so the top bar
-    // is never eclipsed by the shared element overlay.
     val browseSearchState = remember { BrowseSearchState() }
     val favoritesTopBarState = remember { FavoritesTopBarState() }
 
-    // The outer top bar height. Computed once and shared with the tab
-    // screens so their content starts exactly below the bar. Constant
-    // across routes, so no layout ever shifts during transitions.
     val density = LocalDensity.current
     val reduceMotion = rememberReduceMotion()
     val topInset = WindowInsets.statusBars
@@ -167,13 +178,11 @@ fun WallKraftNavHost(container: AppContainer) {
         .calculateTopPadding() + KraftSpacing.Spacing8 +
         KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + KraftSpacing.BorderWidth
 
-    // One-shot timing welcome: fresh installs and upgraders alike learn the
-    // boundary behavior once. Initial true = never flash before load.
-    val timingSeen by container.rotation.timingWelcomeSeen.collectAsState(initial = true)
+    val timingSeen by rotationStore.timingWelcomeSeen.collectAsState(initial = true)
     val hostScope = rememberCoroutineScope()
     if (!timingSeen) {
         RotationTimingWelcome(
-            onDone = { hostScope.launch { container.rotation.markTimingWelcomeSeen() } },
+            onDone = { hostScope.launch { rotationStore.markTimingWelcomeSeen() } },
         )
     }
 
@@ -181,23 +190,8 @@ fun WallKraftNavHost(container: AppContainer) {
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {},
-        // No outer placeholder — glass top now owns the height. Keeping the
-        // old Box(heightIn) would double-stack at y=0..topInset with the
-        // GlassBox and with inner screens' contentPadding.
-        bottomBar = {
-            // Empty: the floating glass capsule below overlays full-bleed
-            // content instead of reserving a slab. innerPadding.bottom drops
-            // to zero, so grids flow behind the pill (blurred through it).
-        },
+        bottomBar = {},
     ) { innerPadding ->
-        // Full-screen on every screen — never padded here, so this layout
-        // never shifts. Each tab screen reserves the topInset space inside
-        // its own inner Scaffold; Detail reserves nothing (full-bleed).
-        // NOTE: innerPadding is deliberately NOT applied here. Scaffold lays
-        // content full-area behind the bars; each tab screen already offsets
-        // itself by topInset internally. Applying it here double-offsets and
-        // opens a bar-height black band under the top bar. (navBarPadding
-        // below still reads the bottom inset, now zero with no bottom slot.)
         GlassContainerWithHidden(
             modifier = Modifier.fillMaxSize(),
             hidden = isDetail,
@@ -222,7 +216,6 @@ fun WallKraftNavHost(container: AppContainer) {
                     val query = entry.arguments?.getString("query").orEmpty()
                     val title = entry.arguments?.getString("title").orEmpty()
                     BrowseScreen(
-                        container = container,
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                         gridState = if (query.isBlank()) browseGridState else null,
                         navBarPadding = innerPadding.calculateBottomPadding(),
@@ -240,7 +233,6 @@ fun WallKraftNavHost(container: AppContainer) {
                     exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
                 ) {
                     FavoritesScreen(
-                        container = container,
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
                         gridState = favoritesGridState,
                         navBarPadding = innerPadding.calculateBottomPadding(),
@@ -256,7 +248,6 @@ fun WallKraftNavHost(container: AppContainer) {
                     exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
                 ) {
                     SettingsScreen(
-                        container = container,
                         navBarPadding = innerPadding.calculateBottomPadding(),
                         topInset = topInset,
                     )
@@ -268,18 +259,12 @@ fun WallKraftNavHost(container: AppContainer) {
                         navArgument("thumb") { type = NavType.StringType; defaultValue = "" },
                         navArgument("path") { type = NavType.StringType; defaultValue = "" },
                     ),
-                    // Apple-style: no hero morph, same fade+scale at any stack
-                    // depth. Open zooms in gently (delight), every back is the
-                    // same quick fade (predictable) — never a reverse morph.
-                    // Purity borders stay on the tiles (no shared overlay), so
-                    // the full-screen border flight is gone by construction.
                     enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.96f) },
                     exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
                     popEnterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
                     popExitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
                 ) { entry ->
                     DetailScreen(
-                        container = container,
                         wallpaperId = entry.arguments?.getString("id").orEmpty(),
                         previewThumb = entry.arguments?.getString("thumb").orEmpty(),
                         previewPath = entry.arguments?.getString("path").orEmpty(),
@@ -289,9 +274,6 @@ fun WallKraftNavHost(container: AppContainer) {
                             navController.navigate(Routes.browse("@$username", title = username))
                         },
                         navBarPadding = 0.dp,
-                        // No shared-element scopes: hero morph disabled. The
-                        // grid/detail sharedElement builders no-op on null and
-                        // render plain crossfading content instead.
                         sharedTransitionScope = null,
                         animatedVisibilityScope = null,
                     )
@@ -299,16 +281,8 @@ fun WallKraftNavHost(container: AppContainer) {
             }
             }
             },
-            // Hidden on Detail — uses the same isDetail derived from
-            // currentDestination so the pill and top bar agree and both
-            // recompose together when the destination changes.
             glassContent = {
                 if (!isDetail) {
-                    // ── Top bar — solid opaque (only bottom pill stays frosted).
-                    // Background is a sibling *behind* the bar, not a parent —
-                    // so the filter/suggestion dropdowns (offset below the bar)
-                    // are not clipped by the background's fixed height. Previous
-                    // parent approach clipped the panel at the frost's bottom edge.
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
@@ -449,14 +423,6 @@ fun WallKraftNavHost(container: AppContainer) {
     }
 }
 
-/**
- * Floating tab capsule: the AGSL shader behind this Row paints strong frost,
- * gentle lens character, rim light and shadow from the live content (see
- * components/glass, vendored Apache-2.0 engine). This Row only draws tabs —
- * no fills, no border, no shadow of its own, or they'd double the shader.
- * Apple-ported bits that stay: compact ~280dp capsule, semibold-everywhere
- * type, capsule selection bubble.
- */
 private val GlassShape = CircleShape
 
 @Composable
@@ -466,10 +432,6 @@ private fun GlassTabBar(
     onTabClick: (Tab) -> Unit,
 ) {
     Row(
-        // fillMaxWidth (never fillMaxSize — that measures fullscreen and the
-        // frost would cover the screen). Width comes from the GlassBox.
-        // Apple 4-layer stack, literal greys — identical light/dark like
-        // their bar, net ~82% opaque.
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = KraftConstants.GlassTabOuterAlpha), GlassShape)
@@ -496,13 +458,6 @@ private fun GlassTabBar(
     }
 }
 
-/**
- * Single tab item, Apple rules: 10sp labels, SEMIBOLD in both states (their
- * kit uses ~590 for selected AND unselected — state reads by COLOR, never
- * weight), 25dp icon. Selected tab sits in a full-capsule bubble with a
- * white-50 overlay (their Selection + FFFFFF@50% recipe). Light selection
- * tick + spring press scale.
- */
 @Composable
 private fun HigTabItem(
     tab: Tab,

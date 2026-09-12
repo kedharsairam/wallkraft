@@ -23,8 +23,9 @@ class MainActivity : ComponentActivity() {
      */
     private val frameListener =
         Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
+            if (!BuildConfig.DEBUG) return@OnFrameMetricsAvailableListener
             val totalMs = metrics.getMetric(FrameMetrics.TOTAL_DURATION) / 1_000_000
-            if (totalMs > KraftConstants.SlowFrameThresholdMs && BuildConfig.DEBUG) {
+            if (totalMs > KraftConstants.SlowFrameThresholdMs) {
                 Log.w("WallKraftPerf", "slow frame ${totalMs}ms")
             }
         }
@@ -33,13 +34,12 @@ class MainActivity : ComponentActivity() {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val container = (application as WallKraftApplication).container
 
         // Dark mode always — paint window background black before content draws.
         window.decorView.setBackgroundColor(Color.BLACK)
 
         setContent {
-            WallKraftApp(container)
+            WallKraftApp()
         }
     }
 

@@ -8,6 +8,9 @@ import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.data.db.WallKraftDatabase
 import com.wallkraft.app.data.prefs.SettingsStore
+import com.wallkraft.app.data.prefs.RotationCropStore
+import com.wallkraft.app.data.prefs.RotationStore
+import com.wallkraft.app.data.prefs.SearchHistoryStore
 import com.wallkraft.app.data.repository.CollectionsRepositoryImpl
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
 import com.wallkraft.app.data.repository.WallpaperRepositoryImpl
@@ -32,10 +35,9 @@ import java.util.concurrent.TimeUnit
 /**
  * Hilt module — singleton graph for WallKraft.
  *
- * Pilot: Browse only via Hilt; the rest of the app still uses [com.wallkraft.app.AppContainer]
- * for a small blast radius. Over time, remaining screens/VMs will migrate and the manual
- * container will be removed. Keeping both alive is intentional for the transition (duplicate
- * Room/OkHttp instances are cheap and share the same files).
+ * All screens now use Hilt via [com.wallkraft.app.AppContainer] deprecated.
+ * The manual container is retained in [com.wallkraft.app.WallKraftApplication]
+ * for startup migration only; UI layer is fully Hilt-owned.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -118,6 +120,21 @@ object AppModule {
         directory = File(context.filesDir, "favorites"),
         client = client,
     )
+
+    @Provides @Singleton
+    fun provideSearchHistoryStore(
+        @ApplicationContext context: Context,
+    ): SearchHistoryStore = SearchHistoryStore(context)
+
+    @Provides @Singleton
+    fun provideRotationStore(
+        @ApplicationContext context: Context,
+    ): RotationStore = RotationStore(context)
+
+    @Provides @Singleton
+    fun provideRotationCropStore(
+        @ApplicationContext context: Context,
+    ): RotationCropStore = RotationCropStore(context)
 
     @Provides @Singleton
     fun provideElapsedClock(): ElapsedClock =

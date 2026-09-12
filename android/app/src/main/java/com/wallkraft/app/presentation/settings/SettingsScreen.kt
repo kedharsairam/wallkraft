@@ -61,13 +61,27 @@ import java.util.UUID
  */
 @Composable
 fun SettingsScreen(
-    container: AppContainer,
     navBarPadding: Dp = 0.dp,
-    // Height of the outer top bar (KraftTopBar). Reserved here so the content
-    // starts exactly below the bar. Constant — never shifts.
     topInset: Dp = 0.dp,
 ) {
-    // Hilt: SettingsViewModel is provided by the graph; container remains for cache size etc. during transition.
+    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset)
+}
+
+@Deprecated("Use Hilt version — container will be removed")
+@Composable
+fun SettingsScreen(
+    container: AppContainer,
+    navBarPadding: Dp = 0.dp,
+    topInset: Dp = 0.dp,
+) {
+    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset)
+}
+
+@Composable
+private fun SettingsScreenImpl(
+    navBarPadding: Dp = 0.dp,
+    topInset: Dp = 0.dp,
+) {
     val viewModel: SettingsViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
@@ -84,8 +98,6 @@ fun SettingsScreen(
     var cacheSizeText by remember { mutableStateOf("—") }
     val githubUrl = stringResource(R.string.github_url)
 
-    // Compute cache size — refresh on every ON_START so returning from
-    // detail screen (where a download may have happened) shows current size.
     fun refreshCacheSize() {
         scope.launch(Dispatchers.IO) {
             val cacheDir = context.cacheDir
@@ -124,8 +136,6 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(bottom = innerPadding.calculateBottomPadding())
                 .verticalScroll(rememberScrollState())
-                // Full-bleed behind frosted top; top padding reserves topInset so
-                // Default Filters sits below frost at rest but scrolls behind it.
                 .padding(horizontal = KraftSpacing.Spacing8)
                 .padding(top = topInset + KraftSpacing.Spacing20, bottom = KraftSpacing.Spacing20),
             verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing20),
@@ -159,9 +169,6 @@ fun SettingsScreen(
                 githubUrl = githubUrl,
                 onPrivacyClick = { showPrivacyDialog = true },
                 onShareCrashLogClick = {
-                    // Local-only: the newest crash log is handed to the system
-                    // share sheet. Nothing is transmitted by the app itself —
-                    // the user chooses where it goes, per incident.
                     val log = CrashLogs.latestCrashLog(context)
                     if (log == null) {
                         scope.launch { snackbarHostState.showSnackbar(noCrashLogsMsg) }
@@ -180,10 +187,6 @@ fun SettingsScreen(
                     }
                 },
             )
-            // End clearance INSIDE the scroll (not column padding, which
-            // would shrink the viewport and strand the pill over void): the
-            // About card scrolls clear of the floating pill, content still
-            // flows behind it mid-scroll.
             Spacer(Modifier.height(KraftSpacing.GlassBarReserve))
         }
     }
@@ -210,7 +213,6 @@ fun SettingsScreen(
                     File(context.cacheDir, "search_cache").deleteRecursively()
                     File(context.cacheDir, "coil").deleteRecursively()
                     File(context.cacheDir, "image_cache").deleteRecursively()
-                    // Update UI on main thread first, then show snackbar.
                     withContext(Dispatchers.Main) {
                         cacheSizeText = formatBytes(0)
                         snackbarHostState.showSnackbar(cacheClearedMsg)

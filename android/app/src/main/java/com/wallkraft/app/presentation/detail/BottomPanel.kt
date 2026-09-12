@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
@@ -129,6 +131,7 @@ internal fun BottomPanel(
                 .zIndex(2f)
                 .graphicsLayer { alpha = chromeAlpha * (if (isZoomed) 0f else 1f) }
                 .height(with(density) { currentHeightPx.toDp() })
+                .shadow(KraftConstants.DialogElevation, RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
                 .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
