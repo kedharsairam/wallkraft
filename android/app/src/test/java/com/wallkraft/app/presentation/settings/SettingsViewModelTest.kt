@@ -1,5 +1,6 @@
 package com.wallkraft.app.presentation.settings
 
+import com.wallkraft.app.data.api.RateLimitState
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Orientation
@@ -29,7 +30,12 @@ class SettingsViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        fakeApi = WallhavenApi(OkHttpClient(), kotlinx.serialization.json.Json {}, FakeSettingsRepository())
+        fakeApi = WallhavenApi(
+            OkHttpClient(),
+            kotlinx.serialization.json.Json {},
+            FakeSettingsRepository(),
+            RateLimitState(),
+        )
     }
 
     @After

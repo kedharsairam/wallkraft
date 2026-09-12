@@ -35,11 +35,15 @@ private data class WallpaperEnvelope(
  * Reads the API key from [SettingsRepository] on every request so key changes
  * (via Settings) take effect immediately without a restart. Throws
  * [WallpaperError.RateLimited] when the limit is reached.
+ *
+ * Hilt: [RateLimitState] is now injected so tests can provide a fake and the
+ * singleton is owned by the graph.
  */
-class WallhavenApi(
+class WallhavenApi @javax.inject.Inject constructor(
     private val client: OkHttpClient,
     private val json: Json,
     private val settings: SettingsRepository,
+    private val rateLimitState: RateLimitState,
 ) {
     private val baseUrl = "https://wallhaven.cc/api/v1"
 
@@ -50,7 +54,7 @@ class WallhavenApi(
     }
 
     private fun checkRateLimit() {
-        if (RateLimitState.limited.value) throw WallpaperError.RateLimited
+        if (rateLimitState.limited.value) throw WallpaperError.RateLimited
     }
 
     suspend fun search(filters: WallhavenFilters, page: Int): WallpaperResponse {
@@ -88,7 +92,7 @@ class WallhavenApi(
         return execute<WallpaperEnvelope>(url.toString()).data
     }
 
-    fun observeRateLimited(): Flow<Boolean> = RateLimitState.limited
+    fun observeRateLimited(): Flow<Boolean> = rateLimitState.limited
 
     /**
      * Validates the API key by making a lightweight search request.
@@ -197,6 +201,6 @@ class WallhavenApi(
     private fun backoffMillis(attempt: Int): Long = KraftConstants.RetryBackoffBaseMs * (1 shl attempt)
 
     private fun parseRateLimit(remaining: String?) {
-        remaining?.toIntOrNull()?.let { RateLimitState.update(it) }
+        remaining?.toIntOrNull()?.let { rateLimitState.update(it) }
     }
 }

@@ -21,9 +21,16 @@ import kotlinx.coroutines.launch
  * fresh request can succeed and re-read the header. Without this, a single
  * 429 would leave the app permanently "limited" until process restart,
  * because every retry fails fast before it can fetch a new header.
+ *
+ * Hilt migration: previously an `object` (global singleton). Now an injectable
+ * `@Singleton` class so the graph owns its lifecycle. `attachScope` is retained
+ * for [com.wallkraft.app.WallKraftApplication] to bind the process scope.
  */
-object RateLimitState {
-    private const val COOLDOWN_MS = KraftConstants.RateLimitCooldownMs
+@javax.inject.Singleton
+class RateLimitState @javax.inject.Inject constructor() {
+    private companion object {
+        const val COOLDOWN_MS = KraftConstants.RateLimitCooldownMs
+    }
 
     // Uses applicationScope when available to avoid leaking a process-wide scope;
     // falls back to a default scope for unit tests where Application is not present.

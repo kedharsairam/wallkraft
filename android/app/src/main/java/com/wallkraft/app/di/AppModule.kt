@@ -65,7 +65,8 @@ object AppModule {
         client: OkHttpClient,
         json: Json,
         settings: SettingsRepository,
-    ): WallhavenApi = WallhavenApi(client, json, settings)
+        rateLimitState: com.wallkraft.app.data.api.RateLimitState,
+    ): WallhavenApi = WallhavenApi(client, json, settings, rateLimitState)
 
     @Provides @Singleton
     fun provideSearchResponseCache(
