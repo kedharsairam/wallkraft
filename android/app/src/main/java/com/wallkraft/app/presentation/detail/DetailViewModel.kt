@@ -1,17 +1,19 @@
 package com.wallkraft.app.presentation.detail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.domain.model.Thumbs
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
-import com.wallkraft.app.util.toUserMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 data class DetailUiState(
@@ -29,14 +31,47 @@ data class DetailUiState(
     val isDetailLoaded: Boolean = false,
 )
 
-class DetailViewModel(
-    private val id: String,
+/**
+ * Detail screen VM — Hilt pilot.
+ * Nav args "id", "thumb", "path" are read via [SavedStateHandle] so the Screen
+ * no longer needs to pass them manually. A secondary constructor is retained for
+ * unit tests (plain lambda + explicit id/thumbs without needing Hilt/SavedStateHandle).
+ */
+@HiltViewModel
+class DetailViewModel @Inject constructor(
     private val wallpaperRepository: WallpaperRepository,
     private val favoritesRepository: FavoritesRepository,
-    private val errorMessage: (Throwable) -> String,
-    previewThumb: String? = null,
-    previewPath: String? = null,
+    private val errorMessage: @JvmSuppressWildcards (Throwable) -> String,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    private val id: String = savedStateHandle.get<String>("id") ?: ""
+    private val previewThumb: String? = savedStateHandle.get<String>("thumb")?.takeIf { it.isNotBlank() }
+    private val previewPath: String? = savedStateHandle.get<String>("path")?.takeIf { it.isNotBlank() }
+
+    /**
+     * Secondary constructor for unit tests — lets tests pass a plain lambda and
+     * an explicit id/thumbs without needing a SavedStateHandle or Android resources.
+     */
+    constructor(
+        id: String,
+        wallpaperRepository: WallpaperRepository,
+        favoritesRepository: FavoritesRepository,
+        errorMessage: (Throwable) -> String,
+        previewThumb: String? = null,
+        previewPath: String? = null,
+    ) : this(
+        wallpaperRepository = wallpaperRepository,
+        favoritesRepository = favoritesRepository,
+        errorMessage = errorMessage,
+        savedStateHandle = SavedStateHandle(
+            mapOf(
+                "id" to id,
+                "thumb" to (previewThumb ?: ""),
+                "path" to (previewPath ?: ""),
+            ),
+        ),
+    )
 
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
