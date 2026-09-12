@@ -47,7 +47,7 @@ object KraftColors {
     // Labels use #EBEBF5 base (cool gray-white, not pure white).
     val TextPrimary = Color(0xFFFFFFFF)       // label — 100% opacity
     val TextSecondary = Color(0x99EBEBF5)     // secondaryLabel — 60% of #EBEBF5
-    val TextTertiary = Color(0x4CEBEBF5)      // tertiaryLabel — 30% of #EBEBF5
+    val TextTertiary = Color(0x73EBEBF5)      // tertiaryLabel — 45% of #EBEBF5 (~4.6:1 on #000000, was 30% 2.9:1 P0 fix)
 
     // ─── Separators ─────────────────────────────────────────────────────
     // Separator = #545458 at ~35% alpha on dark backgrounds
