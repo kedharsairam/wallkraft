@@ -1,7 +1,7 @@
 # WallKraft — Audit Tracking
 
 **Created:** September 2, 2026
-**Standard:** Apple-level quality across every dimension
+**Standard:** Kraft-level quality across every dimension
 **Total Issues:** 50
 
 ## Status Legend

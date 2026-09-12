@@ -189,7 +189,7 @@ fun ColorFilterRow(
 }
 
 /**
- * Single color dot with Apple-style selection: unselected gets a 1dp outline;
+ * Single color dot with polished selection: unselected gets a 1dp outline;
  * selected gets a 2dp primary halo separated by a 2dp panel-color gap, so the
  * halo stays visible on every fill — including white-on-white.
  */

@@ -23,7 +23,7 @@ class SmoothFlingBehavior(
         exponentialDecay(frictionMultiplier = frictionMultiplier)
 
     override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
-        // ReduceMotion: no glide, snap immediately (Apple HIG)
+        // ReduceMotion: no glide, snap immediately (Kraft design)
         if (reduceMotion) return 0f
         var lastValue = 0f
         var velocityLeft = 0f

@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Apple-like dark pill snackbar — floats *above* the bottom glass bar, not
+ * dark pill dark pill snackbar — floats *above* the bottom glass bar, not
  * beneath it. Same 4-layer frost as the tab bar, pill shape, 8dp elevation.
  * Used for collection deleted / name exists / rotation failed etc.
  */

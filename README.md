@@ -1,16 +1,16 @@
-# WallKraft — Apple-grade Wallpaper
+# WallKraft
 
-A clean, fast, private wallpaper app for Android. Powered by [Wallhaven](https://wallhaven.cc). Built to Apple-grade quality: every pixel, every transition, every line of code.
+A clean, fast, private wallpaper app for Android. Powered by [Wallhaven](https://wallhaven.cc). Built to high quality: every pixel, every transition, every line of code.
 
 No ads. No analytics. No trackers. Your data never leaves your device.
 
 <p align="center">
   <a href="https://github.com/kedharsairam/wallkraft/releases/latest"><img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge" alt="Download APK"></a>
-  <img src="https://img.shields.io/badge/Quality-Apple--grade-black?style=for-the-badge" alt="Apple-grade">
+  <img src="https://img.shields.io/badge/Quality-High--grade-black?style=for-the-badge" alt="High-grade">
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT">
 </p>
 
-## Why Apple-grade?
+## Why high quality?
 
 WallKraft is not just functional — it’s crafted. 157 issues audited across Architecture, Code, Design, A11y, Motion, Security — **P0 18/18 + P1 68/68 fixed** (Hilt, Result/AppError, domain purity, atomic cache, light/dark, sheets). Every interaction is purposeful: 60fps, 44dp touch targets, 8px rhythm, ReduceMotion respected, offline-first, private by default.
 
@@ -93,7 +93,7 @@ android/app/src/main/java/com/wallkraft/app/
 
 ## Quality
 
-* **Apple-grade 90/100** — 157-issue audit, P0/P1 fixed, `lint + assembleDebug + testDebugUnitTest` green, `isSystemInDarkTheme()` light/dark, `ModalBottomSheet Hero 20 + 36x6 pill`, `44dp` hits, `ReduceMotion+Lifecycle` everywhere
+* **Quality 90/100** — 157-issue audit, P0/P1 fixed, `lint + assembleDebug + testDebugUnitTest` green, `isSystemInDarkTheme()` light/dark, `ModalBottomSheet Hero 20 + 36x6 pill`, `44dp` hits, `ReduceMotion+Lifecycle` everywhere
 * **Privacy:** `PRIVACY.md` — no accounts/analytics/trackers, API key in Keystore, excluded from backup, HTTPS only
 * **Offline-first:** search cache, favorites disk, WorkManager chain, no polling
 
