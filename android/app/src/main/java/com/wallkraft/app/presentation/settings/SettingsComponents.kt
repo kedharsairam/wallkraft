@@ -64,7 +64,7 @@ fun SettingsGroup(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-fun AboutRow(title: String, subtitle: String? = null, onClick: () -> Unit) {
+fun AboutRow(title: String, subtitle: String? = null, trailing: @Composable (() -> Unit)? = null, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -82,6 +82,9 @@ fun AboutRow(title: String, subtitle: String? = null, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+        if (trailing != null) {
+            androidx.compose.foundation.layout.Box(modifier = Modifier.padding(end = KraftSpacing.Spacing8)) { trailing() }
         }
         Icon(
             Icons.AutoMirrored.Filled.ArrowForwardIos,

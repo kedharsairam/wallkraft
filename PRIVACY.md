@@ -20,11 +20,12 @@ WallKraft is a privacy-first wallpaper browsing app. Here's what you need to kno
 
 ## Network usage
 
-WallKraft connects only to the Wallhaven API to fetch wallpapers. No data is sent to any other server.
+WallKraft connects only to the Wallhaven API to fetch wallpapers, and to api.github.com only when you tap Settings → About → Check for updates (version number only, no personal data). No data is sent to any other server.
 
 ## Third-party services
 
 - **Wallhaven API** — Used to browse and search wallpapers. Subject to [Wallhaven's Terms](https://wallhaven.cc/terms).
+- **GitHub API** — Used only for manual update check (latest release tag + APK size). No token, no device id.
 
 ## Changes
 

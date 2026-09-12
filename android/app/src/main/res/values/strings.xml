@@ -251,6 +251,13 @@
     <string name="buy_me_a_coffee_title">Support</string>
     <string name="buy_me_a_coffee_description">If you enjoy WallKraft, buy me a coffee:</string>
 
+    <!-- Update check (manual only, no auto) -->
+    <string name="check_for_updates" translatable="false">Check for updates</string>
+    <string name="update_available_title" translatable="false">Update available</string>
+    <string name="update_up_to_date" translatable="false">Up to date</string>
+    <string name="update_check_failed" translatable="false">Check failed. Try again.</string>
+    <string name="later" translatable="false">Later</string>
+
     <!-- Welcome (first launch) -->
     <string name="welcome_title_browse" translatable="false">Browse Wallhaven</string>
     <string name="welcome_body_browse" translatable="false">Infinite wallpapers, filters, colors and sorting — all private, no trackers.</string>

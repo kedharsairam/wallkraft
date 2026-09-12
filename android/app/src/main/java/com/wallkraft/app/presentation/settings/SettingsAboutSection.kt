@@ -16,6 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -37,6 +40,8 @@ fun SettingsAboutSection(
     githubUrl: String,
     onPrivacyClick: () -> Unit,
     onShareCrashLogClick: () -> Unit,
+    updateState: UpdateUiState = UpdateUiState.Idle,
+    onCheckUpdates: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -73,6 +78,27 @@ fun SettingsAboutSection(
             text = stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(vertical = KraftSpacing.Spacing12),
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        AboutRow(
+            title = stringResource(R.string.check_for_updates),
+            trailing = {
+                when (updateState) {
+                    is UpdateUiState.Checking -> androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        strokeWidth = 2.dp,
+                    )
+                    is UpdateUiState.Available -> Box(
+                        modifier = Modifier.size(8.dp).clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                    )
+                    else -> Spacer(modifier = Modifier.size(8.dp))
+                }
+            },
+            onClick = {
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onCheckUpdates()
+            },
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         AboutRow(
