@@ -368,7 +368,12 @@ internal fun DetailContent(
                     .statusBarsPadding(),
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = KraftSpacing.Spacing12, vertical = KraftSpacing.Spacing12),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = KraftSpacing.Spacing12,
+                            vertical = KraftSpacing.Spacing12,
+                        ),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,

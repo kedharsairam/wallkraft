@@ -111,9 +111,18 @@ fun AddToCollectionDialog(
         },
     ) {
         Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.add_to_collection), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.add_to_collection),
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.done))
+                    }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
                 BasicTextField(
@@ -130,16 +139,38 @@ fun AddToCollectionDialog(
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                         .padding(horizontal = KraftSpacing.Spacing16),
                     decorationBox = { inner ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Icon(Icons.Outlined.Search, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(KraftIconSize.Small))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(
+                                Icons.Outlined.Search,
+                                null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(KraftIconSize.Small),
+                            )
                             Spacer(Modifier.width(KraftSpacing.Spacing8))
                             Box(Modifier.weight(1f)) {
-                                if (filter.isEmpty()) Text(stringResource(R.string.search_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (filter.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.search_hint),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 inner()
                             }
                             if (filter.isNotEmpty()) {
-                                IconButton(onClick = { filter = "" }, modifier = Modifier.size(KraftSpacing.TouchTarget)) {
-                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.search_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                                IconButton(
+                                    onClick = { filter = "" },
+                                    modifier = Modifier.size(KraftSpacing.TouchTarget),
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.search_clear),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp),
+                                    )
                                 }
                             }
                         }
@@ -152,44 +183,94 @@ fun AddToCollectionDialog(
                 ) {
                     items(filtered, key = { it.id }) { entry ->
                         val members = entry.items.toSet()
-                        val allMembers = selectedIds.isNotEmpty() && selectedIds.all { it in members }
+                        val allMembers = selectedIds.isNotEmpty() &&
+                            selectedIds.all { it in members }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(KraftRadius.Standard))
-                                .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onToggle(entry.id, !allMembers) }
-                                .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing12),
+                                .clickable {
+                                    haptic.performHapticFeedback(
+                                        HapticFeedbackType.LongPress,
+                                    )
+                                    onToggle(entry.id, !allMembers)
+                                }
+                                .padding(
+                                    horizontal = KraftSpacing.Spacing8,
+                                    vertical = KraftSpacing.Spacing12,
+                                ),
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(entry.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(pluralStringResource(R.plurals.collection_item_count, entry.items.size, entry.items.size), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    entry.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    pluralStringResource(
+                                        R.plurals.collection_item_count,
+                                        entry.items.size,
+                                        entry.items.size,
+                                    ),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
                             }
                             Icon(
-                                imageVector = if (allMembers) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                                imageVector = if (allMembers) {
+                                    Icons.Filled.CheckCircle
+                                } else {
+                                    Icons.Outlined.Circle
+                                },
                                 contentDescription = null,
-                                tint = if (allMembers) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = if (allMembers) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                                 modifier = Modifier.size(KraftIconSize.Medium),
                             )
                         }
                     }
                     if (filtered.isEmpty() && filter.isNotBlank()) {
                         item {
-                            Text(stringResource(R.string.no_results_title), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = KraftSpacing.Spacing16, horizontal = KraftSpacing.Spacing8))
+                            Text(
+                                stringResource(R.string.no_results_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(
+                                    vertical = KraftSpacing.Spacing16,
+                                    horizontal = KraftSpacing.Spacing8,
+                                ),
+                            )
                         }
                     }
                 }
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Filled.Add, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(KraftIconSize.Medium))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(KraftIconSize.Medium),
+                    )
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     BasicTextField(
                         value = newName,
-                        onValueChange = { if (it.length <= KraftConstants.CollectionNameMaxLength) newName = it },
+                        onValueChange = {
+                            if (it.length <= KraftConstants.CollectionNameMaxLength) newName = it
+                        },
                         singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         modifier = Modifier
@@ -199,14 +280,32 @@ fun AddToCollectionDialog(
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                             .padding(horizontal = KraftSpacing.Spacing12),
                         decorationBox = { inner ->
-                            Box(contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth()) {
-                                if (newName.isEmpty()) Text(stringResource(R.string.collection_name_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Box(
+                                contentAlignment = Alignment.CenterStart,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                if (newName.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.collection_name_hint),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 inner()
                             }
                         },
                     )
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
-                    TextButton(onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onCreate(newName.trim()); newName = "" }, enabled = newName.trim().isNotEmpty()) { Text(stringResource(R.string.create)) }
+                    TextButton(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onCreate(newName.trim())
+                            newName = ""
+                        },
+                        enabled = newName.trim().isNotEmpty(),
+                    ) {
+                        Text(stringResource(R.string.create))
+                    }
                 }
             }
         }
@@ -253,32 +352,68 @@ fun CollectionMenuDialog(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onRename() }
-                        .padding(horizontal = KraftSpacing.Spacing20, vertical = KraftSpacing.Spacing16),
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onRename()
+                        }
+                        .padding(
+                            horizontal = KraftSpacing.Spacing20,
+                            vertical = KraftSpacing.Spacing16,
+                        ),
                 ) {
-                    Icon(Icons.Outlined.Edit, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(KraftIconSize.Medium))
+                    Icon(
+                        Icons.Outlined.Edit,
+                        null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(KraftIconSize.Medium),
+                    )
                     Spacer(Modifier.width(KraftSpacing.Spacing12))
-                    Text(stringResource(R.string.rename), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.rename),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onDelete() }
-                        .padding(horizontal = KraftSpacing.Spacing20, vertical = KraftSpacing.Spacing16),
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onDelete()
+                        }
+                        .padding(
+                            horizontal = KraftSpacing.Spacing20,
+                            vertical = KraftSpacing.Spacing16,
+                        ),
                 ) {
-                    Icon(Icons.Outlined.Delete, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(KraftIconSize.Medium))
+                    Icon(
+                        Icons.Outlined.Delete,
+                        null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(KraftIconSize.Medium),
+                    )
                     Spacer(Modifier.width(KraftSpacing.Spacing12))
-                    Text(stringResource(R.string.delete), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        stringResource(R.string.delete),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth().clickable { onDismiss() }.padding(vertical = KraftSpacing.Spacing12),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onDismiss() }
+                        .padding(vertical = KraftSpacing.Spacing12),
                 ) {
-                    Text(stringResource(R.string.cancel), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        stringResource(R.string.cancel),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -332,14 +467,31 @@ fun CollectionNameDialog(
                         .padding(horizontal = KraftSpacing.Spacing16)
                         .focusRequester(focusRequester),
                     decorationBox = { inner ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
                             Box(Modifier.weight(1f)) {
-                                if (text.isEmpty()) Text(stringResource(R.string.collection_name_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (text.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.collection_name_hint),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
                                 inner()
                             }
                             if (text.isNotEmpty()) {
-                                IconButton(onClick = { text = "" }, modifier = Modifier.size(KraftSpacing.TouchTarget)) {
-                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.search_clear), tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+                                IconButton(
+                                    onClick = { text = "" },
+                                    modifier = Modifier.size(KraftSpacing.TouchTarget),
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Close,
+                                        contentDescription = stringResource(R.string.search_clear),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp),
+                                    )
                                 }
                             }
                         }
@@ -349,17 +501,31 @@ fun CollectionNameDialog(
                 Text(
                     text = "${text.trim().length}/${KraftConstants.CollectionNameMaxLength}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (text.length >= KraftConstants.CollectionNameMaxLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (text.length >= KraftConstants.CollectionNameMaxLength) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     modifier = Modifier.align(Alignment.End),
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.cancel))
+                    }
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     TextButton(
-                        onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onSave(text.trim()) },
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onSave(text.trim())
+                        },
                         enabled = text.trim().isNotEmpty(),
-                    ) { Text(stringResource(confirmLabel)) }
+                    ) {
+                        Text(stringResource(confirmLabel))
+                    }
                 }
             }
         }
@@ -405,15 +571,35 @@ fun DeleteCollectionDialog(
         },
     ) {
         Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
-                Text(stringResource(R.string.delete_collection_title, name), style = MaterialTheme.typography.titleLarge)
+                Text(
+                    stringResource(R.string.delete_collection_title, name),
+                    style = MaterialTheme.typography.titleLarge,
+                )
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
-                Text(stringResource(R.string.delete_collection_message), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.delete_collection_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Spacer(Modifier.height(KraftSpacing.Spacing20))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.cancel))
+                    }
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
-                    TextButton(onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onConfirm() }) {
-                        Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                    TextButton(
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onConfirm()
+                        },
+                    ) {
+                        Text(
+                            stringResource(R.string.delete),
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
                 }
             }

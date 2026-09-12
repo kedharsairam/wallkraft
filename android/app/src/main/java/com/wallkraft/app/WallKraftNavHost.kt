@@ -210,8 +210,14 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                         navArgument("query") { type = NavType.StringType; defaultValue = "" },
                         navArgument("title") { type = NavType.StringType; defaultValue = "" },
                     ),
-                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
-                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
+                    enterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220))
+                    },
+                    exitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(220))
+                    },
                 ) { entry ->
                     val query = entry.arguments?.getString("query").orEmpty()
                     val title = entry.arguments?.getString("title").orEmpty()
@@ -229,8 +235,14 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                 }
                 composable(
                     Routes.FAVORITES,
-                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
-                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
+                    enterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220))
+                    },
+                    exitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(220))
+                    },
                 ) {
                     FavoritesScreen(
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
@@ -244,8 +256,14 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                 }
                 composable(
                     Routes.SETTINGS,
-                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
-                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(220)) },
+                    enterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220))
+                    },
+                    exitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(220))
+                    },
                 ) {
                     SettingsScreen(
                         navBarPadding = innerPadding.calculateBottomPadding(),
@@ -259,10 +277,26 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                         navArgument("thumb") { type = NavType.StringType; defaultValue = "" },
                         navArgument("path") { type = NavType.StringType; defaultValue = "" },
                     ),
-                    enterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.96f) },
-                    exitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
-                    popEnterTransition = { if (reduceMotion) androidx.compose.animation.EnterTransition.None else fadeIn(tween(220)) },
-                    popExitTransition = { if (reduceMotion) androidx.compose.animation.ExitTransition.None else fadeOut(tween(180)) },
+                    enterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220)) +
+                            androidx.compose.animation.scaleIn(
+                                tween(220),
+                                initialScale = 0.96f,
+                            )
+                    },
+                    exitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(180))
+                    },
+                    popEnterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220))
+                    },
+                    popExitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(180))
+                    },
                 ) { entry ->
                     DetailScreen(
                         wallpaperId = entry.arguments?.getString("id").orEmpty(),
@@ -333,39 +367,65 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                                     actions = {
                                         AnimatedVisibility(
                                             visible = favoritesTopBarState.selectionMode,
-                                            enter = if (reduceMotion) fadeIn(tween(220)) else fadeIn(tween(220)) + androidx.compose.animation.scaleIn(tween(220), initialScale = 0.8f),
-                                            exit = if (reduceMotion) fadeOut(tween(180)) else fadeOut(tween(180)) + androidx.compose.animation.scaleOut(tween(180), targetScale = 0.8f),
+                                            enter = if (reduceMotion) fadeIn(tween(220))
+                                            else fadeIn(tween(220)) +
+                                                androidx.compose.animation.scaleIn(
+                                                    tween(220),
+                                                    initialScale = 0.8f,
+                                                ),
+                                            exit = if (reduceMotion) fadeOut(tween(180))
+                                            else fadeOut(tween(180)) +
+                                                androidx.compose.animation.scaleOut(
+                                                    tween(180),
+                                                    targetScale = 0.8f,
+                                                ),
                                         ) {
                                             Row {
                                                 val haptic = LocalHapticFeedback.current
                                                 TextButton(
                                                     onClick = {
-                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        haptic.performHapticFeedback(
+                                                            androidx.compose.ui.hapticfeedback
+                                                                .HapticFeedbackType.LongPress,
+                                                        )
                                                         favoritesTopBarState.onToggleSelectAll()
                                                     },
                                                 ) {
                                                     Text(
                                                         stringResource(
-                                                            if (favoritesTopBarState.allVisibleSelected) R.string.deselect_all else R.string.select_all,
+                                                            if (favoritesTopBarState.allVisibleSelected) {
+                                                                R.string.deselect_all
+                                                            } else {
+                                                                R.string.select_all
+                                                            },
                                                         ),
                                                     )
                                                 }
                                                 IconButton(
                                                     onClick = {
-                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        haptic.performHapticFeedback(
+                                                            androidx.compose.ui.hapticfeedback
+                                                                .HapticFeedbackType.LongPress,
+                                                        )
                                                         favoritesTopBarState.onAddToCollection()
                                                     },
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Filled.CreateNewFolder,
-                                                        contentDescription = stringResource(R.string.add_to_collection),
+                                                        contentDescription = stringResource(
+                                                            R.string.add_to_collection,
+                                                        ),
                                                     )
                                                 }
                                                 IconButton(
                                                     onClick = {
-                                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                                        haptic.performHapticFeedback(
+                                                            androidx.compose.ui.hapticfeedback
+                                                                .HapticFeedbackType.LongPress,
+                                                        )
                                                         if (favoritesTopBarState.isInCollection) {
-                                                            favoritesTopBarState.onRemoveFromCollection?.invoke()
+                                                            favoritesTopBarState
+                                                                .onRemoveFromCollection?.invoke()
                                                         } else {
                                                             favoritesTopBarState.onDeleteSelected()
                                                         }
@@ -373,7 +433,15 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                                                 ) {
                                                     Icon(
                                                         imageVector = Icons.Outlined.Delete,
-                                                        contentDescription = if (favoritesTopBarState.isInCollection) stringResource(R.string.remove_from_collection) else stringResource(R.string.delete),
+                                                        contentDescription = if (
+                                                            favoritesTopBarState.isInCollection
+                                                        ) {
+                                                            stringResource(
+                                                                R.string.remove_from_collection,
+                                                            )
+                                                        } else {
+                                                            stringResource(R.string.delete)
+                                                        },
                                                         tint = MaterialTheme.colorScheme.error,
                                                     )
                                                 }

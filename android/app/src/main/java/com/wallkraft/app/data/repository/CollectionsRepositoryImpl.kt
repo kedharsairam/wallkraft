@@ -6,8 +6,8 @@ import android.util.Log
 import com.wallkraft.app.data.db.CollectionDao
 import com.wallkraft.app.data.db.CollectionEntity
 import com.wallkraft.app.data.db.CollectionItemEntity
+import com.wallkraft.app.data.mappers.toDomain
 import com.wallkraft.app.domain.model.Collection
-import com.wallkraft.app.domain.model.toDomain
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

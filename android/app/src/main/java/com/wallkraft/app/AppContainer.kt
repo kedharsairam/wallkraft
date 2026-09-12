@@ -25,9 +25,12 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 /**
- * Manual dependency container. Keeps wiring explicit and lightweight —
- * no DI framework, per the Kraft principle of simplicity.
+ * Manual dependency container — now a thin delegating wrapper over Hilt.
+ * Production UI uses Hilt directly; this remains for tests and the deprecated
+ * Screen overloads. When Hilt is available it delegates to the Hilt graph to
+ * avoid duplicate OkHttp/Room/RateLimit state (dual graph).
  */
+@Deprecated("Use Hilt EntryPoint directly — kept for tests/deprecated Screen overloads")
 class AppContainer(context: Context) {
 
     private val appContext = context.applicationContext
