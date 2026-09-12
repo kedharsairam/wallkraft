@@ -253,4 +253,10 @@ object KraftConstants {
     const val GlassTabInnerAlpha = 0.22f
     const val GlassTabMidAlpha = 0.45f
     const val GlassTabHighlightAlpha = 0.15f
+    const val CollectionNameMaxLength = 40
+
+    // -- Elevation / Depth (DESIGN Depth2 y4 blur12 alpha0.2) --
+    // Dialogs and panels map to Depth2; keep explicit so 16dp shadows don't drift.
+    val DialogElevation = 12.dp // Depth2 per DESIGN
+    val PanelElevation = 16.dp // Depth3 per DESIGN — filter dropdowns
 }

@@ -29,7 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
@@ -202,7 +205,11 @@ private fun ColorDot(
 ) {
     val shape = RoundedCornerShape(KraftRadius.Small)
     val fill = Color(("FF" + hex).toLong(16))
-    val gesture = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
+    val gesture = Modifier.combinedClickable(
+        onClick = onClick,
+        onLongClick = onLongClick,
+        role = Role.Button,
+    )
     if (selected) {
         // Halo sandwich: primary → panel gap → fill. The gap is what saves
         // white (ffffff fill, a white halo would melt without the gap).
@@ -211,7 +218,11 @@ private fun ColorDot(
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(2.dp)
-                .semantics { contentDescription = contentDesc }
+                .semantics(mergeDescendants = true) {
+                    contentDescription = contentDesc
+                    role = Role.RadioButton
+                    this.selected = true
+                }
                 .then(gesture),
         ) {
             Box(
@@ -235,7 +246,11 @@ private fun ColorDot(
             modifier = modifier
                 .clip(shape)
                 .background(fill)
-                .semantics { contentDescription = contentDesc }
+                .semantics(mergeDescendants = true) {
+                    contentDescription = contentDesc
+                    role = Role.RadioButton
+                    this.selected = false
+                }
                 .then(gesture),
         )
     }

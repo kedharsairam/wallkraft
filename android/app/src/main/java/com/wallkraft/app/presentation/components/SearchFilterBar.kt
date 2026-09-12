@@ -108,17 +108,17 @@ private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bot
 /**
  * Clean search + filter bar.
  *
- * **Idle** — pill search bar ("Search" placeholder or query text, total count
+ * **Idle** ï¿½ pill search bar ("Search" placeholder or query text, total count
  *           on the right like "5.1k") + grey rounded filter button.
- *           No magnifier icon in the bar — the count owns the right edge.
- * **Focused** — count hides (typing needs the space), search bar shrinks, a
+ *           No magnifier icon in the bar ï¿½ the count owns the right edge.
+ * **Focused** ï¿½ count hides (typing needs the space), search bar shrinks, a
  *               blue magnifying-glass circle slides in between the bar and
  *               the filter button. Suggestions dropdown appears below.
- * **Loading / unknown** — totalResults = 0, so no count is shown (never a
- *           stale total — ViewModel resets to 0 on every new search).
- * **Empty / error** — same: no count, hint or query text only.
- * **Filter open** — focus is cleared on open, so the count stays visible.
- * **Long query + count** — query scrolls horizontally (singleLine), count is
+ * **Loading / unknown** ï¿½ totalResults = 0, so no count is shown (never a
+ *           stale total ï¿½ ViewModel resets to 0 on every new search).
+ * **Empty / error** ï¿½ same: no count, hint or query text only.
+ * **Filter open** ï¿½ focus is cleared on open, so the count stays visible.
+ * **Long query + count** ï¿½ query scrolls horizontally (singleLine), count is
  *           fixed-width short (max ~4 chars via formatCount) with 8dp gap,
  *           never wraps or pushes the bar taller.
  */
@@ -131,12 +131,12 @@ fun SearchFilterBar(
     filters: WallhavenFilters,
     onFiltersChange: (WallhavenFilters) -> Unit,
     modifier: Modifier = Modifier,
-    /** Total result count for the current listing — shown at the bar's right edge (0 = unknown). */
+    /** Total result count for the current listing ï¿½ shown at the bar's right edge (0 = unknown). */
     totalResults: Int = 0,
     onDismiss: (() -> Unit)? = null,
     hasApiKey: Boolean = false,
     // Suggestion source: explicit search history only (typed + submitted).
-    // Nothing auto-collected — no session tags, no tapped tags.
+    // Nothing auto-collected ï¿½ no session tags, no tapped tags.
     history: List<String> = emptyList(),
     onClearHistory: () -> Unit = {},
 ) {
@@ -149,8 +149,8 @@ fun SearchFilterBar(
     var barHeight by remember { mutableIntStateOf(0) }
 
     // Dismiss filter panel when search bar loses focus (e.g. user taps
-    // outside on the browse area). Only fires on focus LOSS — not on focus
-    // gain — so tapping the filter button while the search bar is focused
+    // outside on the browse area). Only fires on focus LOSS ï¿½ not on focus
+    // gain ï¿½ so tapping the filter button while the search bar is focused
     // doesn't race with the toggle.
     LaunchedEffect(isFocused) {
         if (!isFocused && showFilters) {
@@ -163,7 +163,7 @@ fun SearchFilterBar(
         if (!showFilters) onDismiss?.invoke()
     }
 
-    // Draft filters — staged inside the panel, only committed on Apply.
+    // Draft filters ï¿½ staged inside the panel, only committed on Apply.
     var draftFilters by remember { mutableStateOf(filters) }
     androidx.compose.runtime.LaunchedEffect(showFilters) {
         if (showFilters) draftFilters = filters
@@ -235,13 +235,13 @@ fun SearchFilterBar(
                                 }
                                 innerTextField()
                             }
-                            // Result count — idle only, known total only. Hidden while
+                            // Result count ï¿½ idle only, known total only. Hidden while
                             // focused (typing context), while loading, and on
                             // empty/error states. Decorative: the grid itself
                             // carries the info for screen readers.
                             // Fixed short width (formatCount max ~4 chars like
                             // "5.1k" / "1.2m"), 8dp gap so a long query never
-                            // collides — query scrolls, count stays pinned.
+                            // collides ï¿½ query scrolls, count stays pinned.
                             if (!isFocused && totalResults > 0) {
                                 Spacer(Modifier.width(KraftSpacing.Spacing8))
                                 Text(
@@ -316,7 +316,7 @@ fun SearchFilterBar(
                 }
             }
 
-            // No divider — matches bottom pill (no hairline, just frost stack)
+            // No divider ï¿½ matches bottom pill (no hairline, just frost stack)
         }
 
         // -- Filter panel (drops down from below the bar) ----------------
@@ -349,7 +349,7 @@ fun SearchFilterBar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(16.dp, PanelShape)
+                    .shadow(KraftConstants.PanelElevation, PanelShape) // Depth3 per DESIGN â€” filter dropdown
                     .clip(PanelShape)
                     .background(MaterialTheme.colorScheme.surfaceBright)
                     .pointerInput(Unit) {
@@ -507,7 +507,7 @@ fun SearchFilterBar(
                     }
                 }
 
-                // -- Top range — only for Toplist (like wallhaven.cc) -----
+                // -- Top range ï¿½ only for Toplist (like wallhaven.cc) -----
                 AnimatedVisibility(
                     visible = draftFilters.sorting == Sorting.Toplist,
                     enter = expandVertically(tween(250)) + fadeIn(tween(250)),
@@ -577,7 +577,7 @@ fun SearchFilterBar(
         // -- Suggestions dropdown (explicit history only) --------------
         // Same overlay pattern as the filter panel: zero reported height so
         // the bar never shifts, positioned below the measured bar. Shown only
-        // while the field is focused and the filter panel is closed — focus
+        // while the field is focused and the filter panel is closed ï¿½ focus
         // loss hides it automatically, so no dismiss handling is needed.
         // Empty query with no history shows nothing.
         val trimmedQuery = query.trim()
@@ -617,7 +617,7 @@ fun SearchFilterBar(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .shadow(16.dp, PanelShape)
+                    .shadow(KraftConstants.PanelElevation, PanelShape) // Depth3 per DESIGN â€” suggestions dropdown
                     .clip(PanelShape)
                     .background(MaterialTheme.colorScheme.surfaceBright)
                     .verticalScroll(rememberScrollState())

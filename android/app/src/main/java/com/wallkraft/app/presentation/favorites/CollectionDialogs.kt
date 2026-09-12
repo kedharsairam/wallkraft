@@ -98,7 +98,7 @@ fun AddToCollectionDialog(
             shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
+            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
         ) {
             Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
@@ -177,7 +177,7 @@ fun AddToCollectionDialog(
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     BasicTextField(
                         value = newName,
-                        onValueChange = { if (it.length <= 40) newName = it },
+                        onValueChange = { if (it.length <= KraftConstants.CollectionNameMaxLength) newName = it },
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -218,7 +218,7 @@ fun CollectionMenuDialog(
             shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
+            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
         ) {
             Column(modifier = Modifier.padding(vertical = KraftSpacing.Spacing8)) {
                 Text(
@@ -269,7 +269,7 @@ fun CollectionMenuDialog(
 // ── Rename / New — polished alert (kept as dialog for focus, but Kraft-styled) ─
 
 @Composable
-fun RenameCollectionDialog(
+fun CollectionNameDialog(
     title: String,
     current: String,
     onDismiss: () -> Unit,
@@ -285,14 +285,14 @@ fun RenameCollectionDialog(
             shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
+            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
         ) {
             Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
                 BasicTextField(
                     value = text,
-                    onValueChange = { if (it.length <= 40) text = it },
+                    onValueChange = { if (it.length <= KraftConstants.CollectionNameMaxLength) text = it },
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -319,9 +319,9 @@ fun RenameCollectionDialog(
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing4))
                 Text(
-                    text = "${text.trim().length}/40",
+                    text = "${text.trim().length}/${KraftConstants.CollectionNameMaxLength}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (text.length >= 40) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (text.length >= KraftConstants.CollectionNameMaxLength) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.align(Alignment.End),
                 )
                 Spacer(Modifier.height(KraftSpacing.Spacing12))
@@ -338,6 +338,21 @@ fun RenameCollectionDialog(
     }
 }
 
+// Backward-compat alias — FavoritesScreen previously used RenameCollectionDialog.
+// New code should call CollectionNameDialog directly.
+@Composable
+@Deprecated(
+    "Renamed to CollectionNameDialog",
+    ReplaceWith("CollectionNameDialog(title, current, onDismiss, onSave, confirmLabel)"),
+)
+fun RenameCollectionDialog(
+    title: String,
+    current: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+    @StringRes confirmLabel: Int = R.string.rename,
+) = CollectionNameDialog(title, current, onDismiss, onSave, confirmLabel)
+
 @Composable
 fun DeleteCollectionDialog(
     name: String,
@@ -350,7 +365,7 @@ fun DeleteCollectionDialog(
             shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 0.dp,
-            shadowElevation = 16.dp,
+            shadowElevation = KraftConstants.DialogElevation, // Depth2 per DESIGN
         ) {
             Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
                 Text(stringResource(R.string.delete_collection_title, name), style = MaterialTheme.typography.titleLarge)

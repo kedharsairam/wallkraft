@@ -26,11 +26,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.launch
 import kotlin.math.min
@@ -65,6 +67,7 @@ internal fun BottomPanel(
     chromeAlpha: Float = 1f,
 ) {
     val density = LocalDensity.current
+    val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     // Settled height, animated between collapsed and expanded.
     val panelHeight = remember(wallpaper.id) { Animatable(0f) }
@@ -211,6 +214,7 @@ internal fun BottomPanel(
                                     targetValue = if (settleExpanded) maxPanelHeightPx else collapsedHeightPx,
                                     animationSpec = SharedElementSpringFloat,
                                 )
+                                KraftHaptics.sheetSnap(haptic)
                             }
                             dragOffsetPx = 0f
                         },
