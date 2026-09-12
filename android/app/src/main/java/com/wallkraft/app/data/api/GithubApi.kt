@@ -14,6 +14,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.File
 import java.io.IOException
 import java.net.SocketTimeoutException
 import javax.inject.Inject
@@ -88,6 +89,56 @@ class GithubApi @Inject constructor(
                             notes = release.body,
                         ),
                     )
+                }
+            } catch (_: SocketTimeoutException) {
+                Result.Failure(AppError.NetworkError.Timeout)
+            } catch (_: IOException) {
+                Result.Failure(AppError.NetworkError.NoConnection)
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Result.Failure(AppError.Unknown(message = e.message))
+            }
+        }
+
+    /** Downloads APK to [destFile] atomically (tmp→rename). Returns downloaded bytes. */
+    suspend fun downloadTo(url: String, destFile: File, onProgress: (Long, Long) -> Unit = { _, _ -> }): Result<Long> =
+        withContext(Dispatchers.IO) {
+            try {
+                if (!url.startsWith("https://github.com/")) {
+                    return@withContext Result.Failure(AppError.DataError.Validation("Bad URL"))
+                }
+                val request = Request.Builder()
+                    .url(url)
+                    .header("Accept", "application/octet-stream")
+                    .header("User-Agent", "WallKraft/${BuildConfig.VERSION_NAME}")
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { resp ->
+                    if (resp.code !in 200..299) {
+                        return@withContext Result.Failure(AppError.NetworkError.ServerError(resp.code, "Download $resp"))
+                    }
+                    val body = resp.body ?: return@withContext Result.Failure(AppError.DataError.Parse())
+                    val total = body.contentLength()
+                    destFile.parentFile?.mkdirs()
+                    val tmp = File(destFile.parentFile, "${destFile.name}.tmp")
+                    var read = 0L
+                    body.byteStream().use { input ->
+                        tmp.outputStream().use { output ->
+                            val buf = ByteArray(64 * 1024)
+                            while (true) {
+                                val n = input.read(buf)
+                                if (n < 0) break
+                                output.write(buf, 0, n)
+                                read += n
+                                onProgress(read, total)
+                            }
+                        }
+                    }
+                    if (!tmp.renameTo(destFile)) {
+                        tmp.copyTo(destFile, overwrite = true)
+                        tmp.delete()
+                    }
+                    Result.Success(read)
                 }
             } catch (_: SocketTimeoutException) {
                 Result.Failure(AppError.NetworkError.Timeout)

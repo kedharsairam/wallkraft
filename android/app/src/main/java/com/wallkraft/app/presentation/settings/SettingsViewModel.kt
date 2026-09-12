@@ -191,6 +191,38 @@ class SettingsViewModel @Inject constructor(
         _updateState.value = UpdateUiState.Idle
     }
 
+    sealed interface DownloadUiState {
+        data object Idle : DownloadUiState
+        data class Downloading(val read: Long, val total: Long) : DownloadUiState
+        data class Downloaded(val file: java.io.File) : DownloadUiState
+        data class Error(val message: String) : DownloadUiState
+    }
+
+    private val _downloadState = MutableStateFlow<DownloadUiState>(DownloadUiState.Idle)
+    val downloadState: StateFlow<DownloadUiState> = _downloadState.asStateFlow()
+    private var downloadJob: kotlinx.coroutines.Job? = null
+
+    fun downloadUpdate(info: com.wallkraft.app.domain.model.AppUpdateInfo, destDir: java.io.File) {
+        downloadJob?.cancel()
+        downloadJob = viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            _downloadState.value = DownloadUiState.Downloading(0, info.sizeBytes)
+            val dest = java.io.File(destDir, "wallkraft-${info.version}.apk")
+            // Clean old apks first (bounded cache)
+            destDir.listFiles()?.forEach { if (it.name != dest.name) it.delete() }
+            when (val r = githubApi.downloadTo(info.apkUrl, dest, { read, total ->
+                _downloadState.value = DownloadUiState.Downloading(read, total)
+            })) {
+                is Result.Success -> _downloadState.value = DownloadUiState.Downloaded(dest)
+                is Result.Failure -> _downloadState.value = DownloadUiState.Error(errorMessage(r.error))
+            }
+        }
+    }
+
+    fun clearDownloadState() {
+        downloadJob?.cancel()
+        _downloadState.value = DownloadUiState.Idle
+    }
+
     override fun onCleared() {
         // If the user typed and navigated away inside the 500ms debounce
         // window, the pending write was cancelled. Flush the latest value on
