@@ -7,9 +7,14 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 insert_final_newline = true
+max_line_length = 120
 
+# Kotlin uses 4 spaces per official Kotlin code style (kotlin.code.style=official
+# in android/gradle.properties). This is an intentional exception to the 2-space
+# default for other files.
 [*.{kt,kts}]
 indent_size = 4
+max_line_length = 120
 
 [*.{xml,json,yml,yaml}]
 indent_size = 2

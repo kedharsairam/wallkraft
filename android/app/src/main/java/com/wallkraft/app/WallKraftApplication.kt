@@ -18,8 +18,8 @@ import java.io.StringWriter
 
 @HiltAndroidApp
 class WallKraftApplication : Application() {
-    lateinit var container: AppContainer
-        private set
+    @Deprecated("Use Hilt — kept for tests only, lazy to avoid dual graph in production")
+    val container by lazy { AppContainer(this) }
 
     /** Application-scoped coroutine scope for non-UI work (e.g. RateLimit cooldown). */
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -41,7 +41,8 @@ class WallKraftApplication : Application() {
         // transition — its companion will delegate to the Hilt instance when available
         // and create a fallback otherwise (so startup before Hilt injection still works).
         com.wallkraft.app.core.cache.GridImageLoader.init(this)
-        container = AppContainer(this)
+        // AppContainer is deprecated — production UI uses Hilt directly, no dual graph.
+        // container is lazy and only created for deprecated Screen overloads/tests.
         realignRotationSchedule()
     }
 
@@ -63,7 +64,11 @@ class WallKraftApplication : Application() {
             runCatching {
                 val manager = androidx.work.WorkManager.getInstance(this@WallKraftApplication)
                 manager.cancelUniqueWork(com.wallkraft.app.data.rotation.RotationScheduler.UNIQUE_PERIODIC)
-                val schedule = container.rotation.current().schedule
+                val rotationEntryPoint = EntryPointAccessors.fromApplication(
+                    this@WallKraftApplication,
+                    RotationStoreEntryPoint::class.java,
+                )
+                val schedule = rotationEntryPoint.rotationStore().current().schedule
                 if (schedule == com.wallkraft.app.domain.model.RotationSchedule.OFF) return@launch
                 val live = manager.getWorkInfosForUniqueWorkFlow(com.wallkraft.app.data.rotation.RotationScheduler.UNIQUE_CHAIN)
                     .first()
@@ -109,4 +114,10 @@ class WallKraftApplication : Application() {
 @InstallIn(SingletonComponent::class)
 interface RateLimitStateEntryPoint {
     fun rateLimitState(): com.wallkraft.app.data.api.RateLimitState
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface RotationStoreEntryPoint {
+    fun rotationStore(): com.wallkraft.app.data.prefs.RotationStore
 }
