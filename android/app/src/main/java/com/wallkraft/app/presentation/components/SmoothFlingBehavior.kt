@@ -16,12 +16,15 @@ import androidx.compose.foundation.gestures.ScrollScope
  */
 class SmoothFlingBehavior(
     private val frictionMultiplier: Float = 0.6f,
+    private val reduceMotion: Boolean = false,
 ) : FlingBehavior {
 
     private val decay: DecayAnimationSpec<Float> =
         exponentialDecay(frictionMultiplier = frictionMultiplier)
 
     override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+        // ReduceMotion: no glide, snap immediately (Apple HIG)
+        if (reduceMotion) return 0f
         var lastValue = 0f
         var velocityLeft = 0f
         val animatable = Animatable(0f)

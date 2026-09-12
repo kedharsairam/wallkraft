@@ -176,7 +176,7 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
     val topInset = WindowInsets.statusBars
         .asPaddingValues(density)
         .calculateTopPadding() + KraftSpacing.Spacing8 +
-        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8 + KraftSpacing.BorderWidth
+        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8
 
     val timingSeen by rotationStore.timingWelcomeSeen.collectAsState(initial = true)
     val hostScope = rememberCoroutineScope()

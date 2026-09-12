@@ -81,8 +81,9 @@ fun WallpaperGrid(
 
     val context = LocalContext.current
     val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
+    val reduceMotion = com.wallkraft.app.core.utils.rememberReduceMotion()
 
-    val flingBehavior = remember(gridState) { SmoothFlingBehavior() }
+    val flingBehavior = remember(gridState, reduceMotion) { SmoothFlingBehavior(reduceMotion = reduceMotion) }
 
     LaunchedEffect(gridState) {
         snapshotFlow {

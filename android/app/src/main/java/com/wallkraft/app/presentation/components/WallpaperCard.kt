@@ -113,7 +113,7 @@ fun WallpaperCard(
             // ratio. Never the full-resolution `path` — that stays on the
             // detail screen. Null (no thumbs at all) shows the placeholder.
             model = wallpaper.thumbnail,
-            contentDescription = wallpaper.resolution,
+            contentDescription = "${wallpaper.category} ${wallpaper.purity} ${wallpaper.resolution} wallpaper",
             // ContentScale.Fit matches the detail screen so the shared element
             // transition renders identical content on both sides. The tile's
             // aspect ratio already matches the image's true ratio, so Fit
