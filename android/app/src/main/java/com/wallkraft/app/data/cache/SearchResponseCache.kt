@@ -50,10 +50,20 @@ class SearchResponseCache(
         withContext(Dispatchers.IO) {
             runCatching {
                 directory.mkdirs()
-                fileFor(filters, page).writeText(json.encodeToString(WallpaperResponse.serializer(), response))
+                val dest = fileFor(filters, page)
+                val tmp = File(dest.parentFile, "${dest.name}.tmp")
+                tmp.writeText(json.encodeToString(WallpaperResponse.serializer(), response))
+                // Atomic replace — crash mid-write leaves dest intact.
+                if (!tmp.renameTo(dest)) {
+                    tmp.copyTo(dest, overwrite = true)
+                    tmp.delete()
+                }
                 evictIfNeeded()
             }.onFailure { e ->
-                android.util.Log.w("SearchResponseCache", "Failed to cache search response", e)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q || true) {
+                    // Only log in debug — no PII, just cache hash.
+                    if (com.wallkraft.app.BuildConfig.DEBUG) android.util.Log.w("SearchResponseCache", "Failed to cache search response", e)
+                }
             }
         }
 
@@ -73,10 +83,9 @@ class SearchResponseCache(
     }
 
     private fun WallhavenFilters.signature(): String =
-        // v2: v1 cached responses stored total = page size (24) due to the
-        // repository overwriting meta.total — bump forces a fresh fetch with
-        // the correct server total.
-        "v2|${categories.map { it.name }.sorted()}|${sorting.value}|${orientation.value}|$query|${purity.toPurityParam()}|$colors"
+        // v3: v2 omitted topRange — Month/Week with same query shared file.
+        // Bump + include topRange so toplist ranges don't collide.
+        "v3|${categories.map { it.name }.sorted()}|${sorting.value}|${topRange.value}|${orientation.value}|$query|${purity.toPurityParam()}|$colors"
 
     private companion object {
         const val MAX_ENTRIES = KraftConstants.SearchCacheMaxEntries

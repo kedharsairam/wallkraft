@@ -88,7 +88,8 @@ class AppContainer(context: Context) {
                 WallKraftDatabase.MIGRATION_2_3,
                 WallKraftDatabase.MIGRATION_3_4,
             )
-            .fallbackToDestructiveMigrationOnDowngrade()
+            // Downgrade must not wipe user favorites/collections silently (P0).
+            // Room will throw on downgrade instead — safe for sideloads.
             .build()
     }
 
