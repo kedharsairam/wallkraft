@@ -617,8 +617,8 @@ private fun decodeBounded(file: File): Bitmap? {
     BitmapFactory.decodeFile(file.absolutePath, bounds)
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
     var sample = 1
-    while (bounds.outWidth / (sample * 2) >= MAX_DECODE_DIM ||
-        bounds.outHeight / (sample * 2) >= MAX_DECODE_DIM
+    while (bounds.outWidth / sample >= MAX_DECODE_DIM ||
+        bounds.outHeight / sample >= MAX_DECODE_DIM
     ) {
         sample *= 2
     }
