@@ -52,7 +52,7 @@ jobs:
             ${{ runner.os }}-android-build-
 
       - name: Run unit tests
-        run: ./gradlew test --no-daemon
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon

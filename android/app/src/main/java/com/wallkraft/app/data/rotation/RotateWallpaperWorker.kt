@@ -52,8 +52,7 @@ class RotateWallpaperWorker(
             RotationScheduler.chainNext(applicationContext, settings.schedule)
         }
 
-        val favorites = favoritesRepository.observeAll().first()
-            .map { it.wallpaper }
+        val favorites = favoritesRepository.observeWallpapers().first()
         val pool = if (settings.sourceCollectionId != null) {
             val memberIds = collectionsRepository.observeAll().first()
                 .firstOrNull { it.id == settings.sourceCollectionId }

@@ -3,8 +3,10 @@ package com.wallkraft.app.presentation.browse
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -48,7 +53,6 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.components.EmptyState
-import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.GridAppendFooter
 import com.wallkraft.app.presentation.components.PaginationErrorFooter
 import com.wallkraft.app.presentation.components.RateLimitBanner
@@ -57,6 +61,8 @@ import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.DownloadedFiles
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.Warning
 
 @OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
@@ -192,6 +198,36 @@ private fun BrowseScreenImpl(
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
                 }
+                if (uiState.error != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = KraftSpacing.Spacing16)
+                            .background(
+                                MaterialTheme.colorScheme.errorContainer,
+                                shape = MaterialTheme.shapes.medium,
+                            )
+                            .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.ErrorOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        Text(
+                            text = uiState.error ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = viewModel::retry) {
+                            Text(stringResource(R.string.error_retry))
+                        }
+                    }
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
                 PullToRefreshBox(
                     isRefreshing = uiState.isRefreshing,
                     onRefresh = {
@@ -203,7 +239,6 @@ private fun BrowseScreenImpl(
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
                         uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"
-                        uiState.error != null && uiState.wallpapers.isEmpty() -> "error"
                         uiState.wallpapers.isEmpty() -> "empty"
                         else -> "grid"
                     }
@@ -226,18 +261,14 @@ private fun BrowseScreenImpl(
                                 onAction = viewModel::retry,
                                 modifier = Modifier,
                             )
-                            "error" -> ErrorState(
-                                message = uiState.error ?: "",
-                                onRetry = viewModel::retry,
-                                modifier = Modifier,
-                            )
                             "empty" -> EmptyState(
-                                title = stringResource(R.string.no_results_title),
+                                title = stringResource(R.string.no_results_found),
                                 message = if (uiState.filters.query.isBlank()) {
-                                    stringResource(R.string.no_results_hint_filters)
+                                    stringResource(R.string.no_results_search_hint)
                                 } else {
-                                    stringResource(R.string.no_results_hint_query, uiState.filters.query)
+                                    stringResource(R.string.no_results_search_hint)
                                 },
+                                icon = Icons.Outlined.SearchOff,
                                 modifier = Modifier,
                             )
                             else -> WallpaperGrid(

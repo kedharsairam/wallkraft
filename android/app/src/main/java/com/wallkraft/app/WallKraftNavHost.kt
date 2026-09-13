@@ -181,6 +181,14 @@ private fun WallKraftNavHostImpl(rotationStore: RotationSettingsStore) {
                 ) {
                     FavoritesScreen(
                         onOpenWallpaper = { w -> navController.navigate(Routes.detail(w.id, w.thumbnail, w.path)) },
+                        onNavigateToBrowse = {
+                            navController.navigate(Routes.browse()) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                            }
+                        },
                         gridState = favoritesGridState,
                         navBarPadding = innerPadding.calculateBottomPadding(),
                         topInset = topInset,

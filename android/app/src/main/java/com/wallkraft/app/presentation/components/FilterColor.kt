@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -35,6 +37,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -118,7 +121,9 @@ fun ColorFilterRow(
             FilterColorGroups.forEach { group ->
                 val active = selectedHex in group.shades
                 val name = stringResource(group.nameRes)
-                Box(
+                val abbreviation = name.take(2)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
                         .height(KraftSpacing.TouchTarget),
@@ -127,19 +132,16 @@ fun ColorFilterRow(
                         hex = group.defaultHex,
                         contentDesc = name,
                         selected = active,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .size(KraftSpacing.TouchTarget)
+                            .weight(1f),
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (active) {
-                                // Clearing also collapses — nothing to show shades for.
                                 onSelect("")
                                 expandedKey = null
                             } else {
                                 onSelect(group.defaultHex)
-                                // Slide an already-open strip to this family
-                                // (same one-row height — zero shift). A closed
-                                // strip stays closed: tap selects, long-press
-                                // discloses. No jump on either path.
                                 if (expandedKey != null) expandedKey = group.defaultHex
                             }
                         },
@@ -147,6 +149,13 @@ fun ColorFilterRow(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             expandedKey = if (expandedKey == group.defaultHex) null else group.defaultHex
                         },
+                    )
+                    Text(
+                        text = abbreviation,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = if (active) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
                     )
                 }
             }
