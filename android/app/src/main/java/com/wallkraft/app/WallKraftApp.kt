@@ -39,31 +39,3 @@ fun WallKraftApp() {
         WallKraftNavHost()
     }
 }
-
-@Deprecated("Use Hilt version — container will be removed")
-@Composable
-fun WallKraftApp(container: AppContainer) {
-    setSingletonImageLoaderFactory { context ->
-        ImageLoader.Builder(context)
-            .crossfade(true)
-            .memoryCache { ImageCache.memoryCache(context) }
-            .diskCache { ImageCache.diskCache(context) }
-            .apply { if (BuildConfig.DEBUG) logger(DebugLogger()) }
-            .build()
-    }
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            WindowInsetsControllerCompat(window, view).apply {
-                isAppearanceLightStatusBars = false
-                isAppearanceLightNavigationBars = false
-            }
-        }
-    }
-
-    KraftTheme {
-        WallKraftNavHost(container)
-    }
-}

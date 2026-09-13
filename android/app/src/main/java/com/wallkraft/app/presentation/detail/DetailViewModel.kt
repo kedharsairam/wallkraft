@@ -5,9 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
+import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Thumbs
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.FavoritesRepository
+import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -43,6 +46,9 @@ data class DetailUiState(
 class DetailViewModel @Inject constructor(
     private val wallpaperRepository: WallpaperRepository,
     private val favoritesRepository: FavoritesRepository,
+    val settingsRepository: SettingsRepository,
+    val favoriteImageStore: OfflineImageStore,
+    val rotationCropStore: CropStore,
     private val errorMessage: @JvmSuppressWildcards (AppError) -> String,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -59,12 +65,18 @@ class DetailViewModel @Inject constructor(
         id: String,
         wallpaperRepository: WallpaperRepository,
         favoritesRepository: FavoritesRepository,
+        settingsRepository: SettingsRepository,
+        favoriteImageStore: OfflineImageStore,
+        rotationCropStore: CropStore,
         errorMessage: (AppError) -> String,
         previewThumb: String? = null,
         previewPath: String? = null,
     ) : this(
         wallpaperRepository = wallpaperRepository,
         favoritesRepository = favoritesRepository,
+        settingsRepository = settingsRepository,
+        favoriteImageStore = favoriteImageStore,
+        rotationCropStore = rotationCropStore,
         errorMessage = errorMessage,
         savedStateHandle = SavedStateHandle(
             mapOf(

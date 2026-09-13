@@ -8,55 +8,68 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import android.content.Context
-import com.wallkraft.app.AppContainer
 import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.domain.model.Wallpaper
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import javax.inject.Inject
+import com.wallkraft.app.domain.repository.CollectionsRepository
+import com.wallkraft.app.domain.repository.FavoritesRepository
 
 /**
- * Collections end-to-end on a real container with a fake offline store:
+ * Collections end-to-end with a fake offline store:
  * create from the picker, toggle membership, count flows back to the strip.
  * No network anywhere (offline repair disabled, empty thumbnails).
  */
+@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class CollectionsPickerTest {
 
-    @get:Rule
+    @get:Rule(order = 0)
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
     val compose = createComposeRule()
+
+    @Inject lateinit var favoritesRepository: FavoritesRepository
+    @Inject lateinit var collectionsRepository: CollectionsRepository
 
     private class FakeStore : OfflineImageStore {
         override fun fileFor(id: String): File? = File(id)
         override suspend fun save(wallpaper: Wallpaper): Boolean = true
     }
 
+    @Before
+    fun setUp() {
+        hiltRule.inject()
+    }
+
     @OptIn(ExperimentalSharedTransitionApi::class)
     @Test
     fun create_toggle_and_count_round_trip() {
-        val container = AppContainer(ApplicationProvider.getApplicationContext<Context>())
         runBlocking {
-            container.favoritesRepository.observeAll().first().forEach { favorite ->
-                container.favoritesRepository.remove(favorite.wallpaper.id)
+            favoritesRepository.observeAll().first().forEach { favorite ->
+                favoritesRepository.remove(favorite.wallpaper.id)
             }
-            container.favoritesRepository.add(Wallpaper(id = "t1"))
-            container.favoritesRepository.add(Wallpaper(id = "t2"))
+            favoritesRepository.add(Wallpaper(id = "t1"))
+            favoritesRepository.add(Wallpaper(id = "t2"))
         }
         val topBarState = FavoritesTopBarState()
 
         compose.setContent {
             KraftTheme {
                 FavoritesScreen(
-                    container = container,
                     onOpenWallpaper = {},
                     gridState = rememberLazyStaggeredGridState(),
                     offlineRepair = FavoriteOfflineRepair(FakeStore()),
@@ -89,7 +102,7 @@ class CollectionsPickerTest {
 
         // And to the database itself.
         val memberIds = runBlocking {
-            container.collectionsRepository.observeIdsFor("t1").first()
+            collectionsRepository.observeIdsFor("t1").first()
         }
         assertEquals(1, memberIds.size)
     }

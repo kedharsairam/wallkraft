@@ -39,7 +39,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
-import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.data.prefs.RotationSettings
@@ -61,16 +60,6 @@ import java.util.UUID
  */
 @Composable
 fun SettingsScreen(
-    navBarPadding: Dp = 0.dp,
-    topInset: Dp = 0.dp,
-) {
-    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset)
-}
-
-@Deprecated("Use Hilt version — container will be removed")
-@Composable
-fun SettingsScreen(
-    container: AppContainer,
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
 ) {

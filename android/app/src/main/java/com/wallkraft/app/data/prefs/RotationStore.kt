@@ -19,10 +19,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
-private val Context.rotationDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "rotation",
-)
-
 /** Rotation settings snapshot. */
 data class RotationSettings(
     val schedule: RotationSchedule = RotationSchedule.OFF,
@@ -34,13 +30,29 @@ data class RotationSettings(
     val lastIndex: Int = -1,
 )
 
+interface RotationSettingsStore {
+    val settings: Flow<RotationSettings>
+    val timingWelcomeSeen: Flow<Boolean>
+    suspend fun current(): RotationSettings
+    suspend fun setSchedule(schedule: RotationSchedule)
+    suspend fun setMode(mode: RotationMode)
+    suspend fun setTarget(target: RotationTarget)
+    suspend fun setSourceCollection(id: Long?)
+    suspend fun setLastIndex(index: Int)
+    suspend fun markTimingWelcomeSeen()
+}
+
+private val Context.rotationDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "rotation",
+)
+
 /**
  * Wallpaper rotation settings + cursor.
  *
  * A dedicated DataStore file (not AppSettings) so schedule writes never
  * re-emit the settings flow.
  */
-class RotationStore(private val context: Context) {
+class RotationStore(private val context: Context) : RotationSettingsStore {
 
     private object Keys {
         val SCHEDULE = stringPreferencesKey("schedule")
@@ -51,7 +63,7 @@ class RotationStore(private val context: Context) {
         val TIMING_WELCOME_SEEN = booleanPreferencesKey("timing_welcome_seen")
     }
 
-    val settings: Flow<RotationSettings> = context.rotationDataStore.data
+    override val settings: Flow<RotationSettings> = context.rotationDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
@@ -71,39 +83,39 @@ class RotationStore(private val context: Context) {
             )
         }
 
-    suspend fun current(): RotationSettings = settings.first()
+    override suspend fun current(): RotationSettings = settings.first()
 
-    suspend fun setSchedule(schedule: RotationSchedule) {
+    override suspend fun setSchedule(schedule: RotationSchedule) {
         context.rotationDataStore.edit { it[Keys.SCHEDULE] = schedule.name }
     }
 
-    suspend fun setMode(mode: RotationMode) {
+    override suspend fun setMode(mode: RotationMode) {
         context.rotationDataStore.edit { it[Keys.MODE] = mode.name }
     }
 
-    suspend fun setTarget(target: RotationTarget) {
+    override suspend fun setTarget(target: RotationTarget) {
         context.rotationDataStore.edit { it[Keys.TARGET] = target.name }
     }
 
-    suspend fun setSourceCollection(id: Long?) {
+    override suspend fun setSourceCollection(id: Long?) {
         context.rotationDataStore.edit { prefs ->
             if (id == null) prefs.remove(Keys.SOURCE_COLLECTION)
             else prefs[Keys.SOURCE_COLLECTION] = id
         }
     }
 
-    suspend fun setLastIndex(index: Int) {
+    override suspend fun setLastIndex(index: Int) {
         context.rotationDataStore.edit { it[Keys.LAST_INDEX] = index }
     }
 
     /** One-shot welcome card for boundary timing. False for fresh installs too. */
-    val timingWelcomeSeen: Flow<Boolean> = context.rotationDataStore.data
+    override val timingWelcomeSeen: Flow<Boolean> = context.rotationDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { prefs -> prefs[Keys.TIMING_WELCOME_SEEN] ?: false }
 
-    suspend fun markTimingWelcomeSeen() {
+    override suspend fun markTimingWelcomeSeen() {
         context.rotationDataStore.edit { it[Keys.TIMING_WELCOME_SEEN] = true }
     }
 }

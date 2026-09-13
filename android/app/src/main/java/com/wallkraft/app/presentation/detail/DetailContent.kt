@@ -69,9 +69,8 @@ import androidx.compose.ui.unit.dp
 
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
-import com.wallkraft.app.data.cache.FavoriteImageStore
+import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
@@ -107,7 +106,7 @@ import com.wallkraft.app.core.utils.rememberReduceMotion
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun DetailContent(
-    favoriteImageStore: FavoriteImageStore,
+    favoriteImageStore: OfflineImageStore,
     wallpaper: Wallpaper,
     isFavorite: Boolean,
     isUploaderDeleted: Boolean,
@@ -494,47 +493,4 @@ internal fun DetailContent(
         )
         } // end chrome zIndex box
     }
-}
-
-@Deprecated("Use FavoriteImageStore version")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class, ExperimentalLayoutApi::class)
-@Composable
-internal fun DetailContent(
-    container: AppContainer,
-    wallpaper: Wallpaper,
-    isFavorite: Boolean,
-    isUploaderDeleted: Boolean,
-    imageModel: Any,
-    backgroundAlpha: Float = 1f,
-    onToggleFavorite: () -> Unit,
-    onDownload: () -> Unit,
-    onSetWallpaper: () -> Unit,
-    onBack: () -> Unit,
-    onTagClick: (String) -> Unit,
-    onUploaderClick: (String) -> Unit,
-    navBarPadding: androidx.compose.ui.unit.Dp,
-    modifier: Modifier = Modifier,
-    sharedElementModifier: Modifier = Modifier,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null,
-    sharedTransitionScope: SharedTransitionScope? = null,
-) {
-    DetailContent(
-        favoriteImageStore = container.favoriteImageStore,
-        wallpaper = wallpaper,
-        isFavorite = isFavorite,
-        isUploaderDeleted = isUploaderDeleted,
-        imageModel = imageModel,
-        backgroundAlpha = backgroundAlpha,
-        onToggleFavorite = onToggleFavorite,
-        onDownload = onDownload,
-        onSetWallpaper = onSetWallpaper,
-        onBack = onBack,
-        onTagClick = onTagClick,
-        onUploaderClick = onUploaderClick,
-        navBarPadding = navBarPadding,
-        modifier = modifier,
-        sharedElementModifier = sharedElementModifier,
-        animatedVisibilityScope = animatedVisibilityScope,
-        sharedTransitionScope = sharedTransitionScope,
-    )
 }

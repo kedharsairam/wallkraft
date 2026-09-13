@@ -327,6 +327,63 @@ fun GlassContainerWithHidden(
     }
 }
 
+/**
+ * Packs glass element data into shader uniforms.
+ * Shared by [GlassContainerWithShader] and [GlassContainerWithShaderHidden].
+ */
+@SuppressLint("NewApi")
+private fun applyGlassUniforms(
+    shader: RuntimeShader,
+    elements: List<GlassElement>,
+    effectiveCount: Int,
+) {
+    shader.setIntUniform("elementsCount", effectiveCount)
+
+    val maxElements = 10
+    val positions = FloatArray(maxElements * 2)
+    val sizes = FloatArray(maxElements * 2)
+    val scales = FloatArray(maxElements)
+    val radii = FloatArray(maxElements)
+    val elevations = FloatArray(maxElements)
+    val centerDistortions = FloatArray(maxElements)
+    val tints = FloatArray(maxElements * 4)
+    val darkness = FloatArray(maxElements)
+    val warpEdges = FloatArray(maxElements)
+    val blurs = FloatArray(maxElements)
+
+    for (i in 0 until effectiveCount) {
+        val element = elements[i]
+        positions[i * 2] = element.position.x
+        positions[i * 2 + 1] = element.position.y
+        sizes[i * 2] = element.size.width
+        sizes[i * 2 + 1] = element.size.height
+        scales[i] = element.scale
+        radii[i] = element.cornerRadius
+        elevations[i] = element.elevation
+        centerDistortions[i] = element.centerDistortion
+
+        tints[i * 4] = element.tint.red
+        tints[i * 4 + 1] = element.tint.green
+        tints[i * 4 + 2] = element.tint.blue
+        tints[i * 4 + 3] = element.tint.alpha
+
+        darkness[i] = element.darkness
+        warpEdges[i] = element.warpEdges
+        blurs[i] = element.blur
+    }
+
+    shader.setFloatUniform("glassPositions", positions)
+    shader.setFloatUniform("glassSizes", sizes)
+    shader.setFloatUniform("glassScales", scales)
+    shader.setFloatUniform("cornerRadii", radii)
+    shader.setFloatUniform("elevations", elevations)
+    shader.setFloatUniform("centerDistortions", centerDistortions)
+    shader.setFloatUniform("glassTints", tints)
+    shader.setFloatUniform("glassDarkness", darkness)
+    shader.setFloatUniform("glassWarpEdges", warpEdges)
+    shader.setFloatUniform("glassBlurs", blurs)
+}
+
 @SuppressLint("NewApi") // Version check is performed in GlassContainer
 @Composable
 private fun GlassContainerWithShader(
@@ -358,53 +415,9 @@ private fun GlassContainerWithShader(
                 val a = glassScope.updateCounter
 
                 val elements = glassScope.elements
+                val effectiveCount = minOf(elements.size, 10)
 
-                val maxElements = 10
-                val positions = FloatArray(maxElements * 2)
-                val sizes = FloatArray(maxElements * 2)
-                val scales = FloatArray(maxElements)
-                val radii = FloatArray(maxElements)
-                val elevations = FloatArray(maxElements)
-                val centerDistortions = FloatArray(maxElements)
-                val tints = FloatArray(maxElements * 4)
-                val darkness = FloatArray(maxElements)
-                val warpEdges = FloatArray(maxElements)
-                val blurs = FloatArray(maxElements)
-
-                val elementsCount = minOf(elements.size, maxElements)
-                shader.setIntUniform("elementsCount", elementsCount)
-
-                for (i in 0 until elementsCount) {
-                    val element = elements[i]
-                    positions[i * 2] = element.position.x
-                    positions[i * 2 + 1] = element.position.y
-                    sizes[i * 2] = element.size.width
-                    sizes[i * 2 + 1] = element.size.height
-                    scales[i] = element.scale
-                    radii[i] = element.cornerRadius
-                    elevations[i] = element.elevation
-                    centerDistortions[i] = element.centerDistortion
-
-                    tints[i * 4] = element.tint.red
-                    tints[i * 4 + 1] = element.tint.green
-                    tints[i * 4 + 2] = element.tint.blue
-                    tints[i * 4 + 3] = element.tint.alpha
-
-                    darkness[i] = element.darkness
-                    warpEdges[i] = element.warpEdges
-                    blurs[i] = element.blur
-                }
-
-                shader.setFloatUniform("glassPositions", positions)
-                shader.setFloatUniform("glassSizes", sizes)
-                shader.setFloatUniform("glassScales", scales)
-                shader.setFloatUniform("cornerRadii", radii)
-                shader.setFloatUniform("elevations", elevations)
-                shader.setFloatUniform("centerDistortions", centerDistortions)
-                shader.setFloatUniform("glassTints", tints)
-                shader.setFloatUniform("glassDarkness", darkness)
-                shader.setFloatUniform("glassWarpEdges", warpEdges)
-                shader.setFloatUniform("glassBlurs", blurs)
+                applyGlassUniforms(shader, elements, effectiveCount)
 
                 renderEffect = RenderEffect.createRuntimeShaderEffect(
                     shader, "contents",
@@ -469,49 +482,7 @@ private fun GlassContainerWithShaderHidden(
                 val effectiveCount = if (hidden) 0 else minOf(glassScope.elements.size, 10)
                 val elements = if (hidden) emptyList() else glassScope.elements
 
-                val maxElements = 10
-                val positions = FloatArray(maxElements * 2)
-                val sizes = FloatArray(maxElements * 2)
-                val scales = FloatArray(maxElements)
-                val radii = FloatArray(maxElements)
-                val elevations = FloatArray(maxElements)
-                val centerDistortions = FloatArray(maxElements)
-                val tints = FloatArray(maxElements * 4)
-                val darkness = FloatArray(maxElements)
-                val warpEdges = FloatArray(maxElements)
-                val blurs = FloatArray(maxElements)
-
-                shader.setIntUniform("elementsCount", effectiveCount)
-
-                for (i in 0 until effectiveCount) {
-                    val element = elements[i]
-                    positions[i * 2] = element.position.x
-                    positions[i * 2 + 1] = element.position.y
-                    sizes[i * 2] = element.size.width
-                    sizes[i * 2 + 1] = element.size.height
-                    scales[i] = element.scale
-                    radii[i] = element.cornerRadius
-                    elevations[i] = element.elevation
-                    centerDistortions[i] = element.centerDistortion
-                    tints[i * 4] = element.tint.red
-                    tints[i * 4 + 1] = element.tint.green
-                    tints[i * 4 + 2] = element.tint.blue
-                    tints[i * 4 + 3] = element.tint.alpha
-                    darkness[i] = element.darkness
-                    warpEdges[i] = element.warpEdges
-                    blurs[i] = element.blur
-                }
-
-                shader.setFloatUniform("glassPositions", positions)
-                shader.setFloatUniform("glassSizes", sizes)
-                shader.setFloatUniform("glassScales", scales)
-                shader.setFloatUniform("cornerRadii", radii)
-                shader.setFloatUniform("elevations", elevations)
-                shader.setFloatUniform("centerDistortions", centerDistortions)
-                shader.setFloatUniform("glassTints", tints)
-                shader.setFloatUniform("glassDarkness", darkness)
-                shader.setFloatUniform("glassWarpEdges", warpEdges)
-                shader.setFloatUniform("glassBlurs", blurs)
+                applyGlassUniforms(shader, elements, effectiveCount)
 
                 if (effectiveCount == 0) {
                     renderEffect = null

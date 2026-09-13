@@ -19,9 +19,6 @@ import java.io.StringWriter
 
 @HiltAndroidApp
 class WallKraftApplication : Application() {
-    @Deprecated("Use Hilt — kept for tests only, lazy to avoid dual graph in production")
-    val container by lazy { AppContainer(this) }
-
     /** Application-scoped coroutine scope for non-UI work (e.g. RateLimit cooldown). */
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -42,8 +39,6 @@ class WallKraftApplication : Application() {
         // transition — its companion will delegate to the Hilt instance when available
         // and create a fallback otherwise (so startup before Hilt injection still works).
         com.wallkraft.app.core.cache.GridImageLoader.init(this)
-        // AppContainer is deprecated — production UI uses Hilt directly, no dual graph.
-        // container is lazy and only created for deprecated Screen overloads/tests.
         realignRotationSchedule()
     }
 
@@ -122,5 +117,15 @@ interface RateLimitStateEntryPoint {
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface RotationStoreEntryPoint {
-    fun rotationStore(): com.wallkraft.app.data.prefs.RotationStore
+    fun rotationStore(): com.wallkraft.app.data.prefs.RotationSettingsStore
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WorkerEntryPoint {
+    fun rotationStore(): com.wallkraft.app.data.prefs.RotationSettingsStore
+    fun favoritesRepository(): com.wallkraft.app.domain.repository.FavoritesRepository
+    fun collectionsRepository(): com.wallkraft.app.domain.repository.CollectionsRepository
+    fun favoriteImageStore(): com.wallkraft.app.data.cache.OfflineImageStore
+    fun rotationCropStore(): com.wallkraft.app.data.prefs.CropStore
 }

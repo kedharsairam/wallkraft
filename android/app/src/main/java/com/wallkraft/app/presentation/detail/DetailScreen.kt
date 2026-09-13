@@ -28,12 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
-import com.wallkraft.app.data.cache.FavoriteImageStore
-import com.wallkraft.app.data.prefs.RotationCropStore
-import com.wallkraft.app.di.AppDependenciesViewModel
+import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.presentation.components.ErrorState
@@ -60,42 +58,11 @@ fun DetailScreen(
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
 ) {
-    val deps: AppDependenciesViewModel = hiltViewModel()
+    val viewModel: DetailViewModel = hiltViewModel()
     DetailScreenImpl(
-        settingsRepository = deps.settingsRepository,
-        favoriteImageStore = deps.favoriteImageStore,
-        rotationCropStore = deps.rotationCropStore,
-        wallpaperId = wallpaperId,
-        onBack = onBack,
-        onTagClick = onTagClick,
-        onUploaderClick = onUploaderClick,
-        navBarPadding = navBarPadding,
-        previewThumb = previewThumb,
-        previewPath = previewPath,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = animatedVisibilityScope,
-    )
-}
-
-@Deprecated("Use Hilt version — container will be removed")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
-@Composable
-fun DetailScreen(
-    container: AppContainer,
-    wallpaperId: String,
-    onBack: () -> Unit,
-    onTagClick: (String) -> Unit = {},
-    onUploaderClick: (String) -> Unit = {},
-    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
-    previewThumb: String = "",
-    previewPath: String = "",
-    sharedTransitionScope: SharedTransitionScope? = null,
-    animatedVisibilityScope: AnimatedVisibilityScope? = null,
-) {
-    DetailScreenImpl(
-        settingsRepository = container.settings,
-        favoriteImageStore = container.favoriteImageStore,
-        rotationCropStore = container.rotationCrops,
+        settingsRepository = viewModel.settingsRepository,
+        favoriteImageStore = viewModel.favoriteImageStore,
+        rotationCropStore = viewModel.rotationCropStore,
         wallpaperId = wallpaperId,
         onBack = onBack,
         onTagClick = onTagClick,
@@ -112,8 +79,8 @@ fun DetailScreen(
 @Composable
 private fun DetailScreenImpl(
     settingsRepository: SettingsRepository,
-    favoriteImageStore: FavoriteImageStore,
-    rotationCropStore: RotationCropStore,
+    favoriteImageStore: OfflineImageStore,
+    rotationCropStore: CropStore,
     wallpaperId: String,
     onBack: () -> Unit,
     onTagClick: (String) -> Unit = {},

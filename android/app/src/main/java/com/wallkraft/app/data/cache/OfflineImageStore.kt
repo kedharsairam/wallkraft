@@ -16,4 +16,7 @@ interface OfflineImageStore {
 
     /** Downloads the full-res image for [wallpaper]. True on success. */
     suspend fun save(wallpaper: Wallpaper): Boolean
+
+    /** Deletes the local copy for [id]. */
+    fun delete(id: String)
 }

@@ -15,6 +15,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
+interface CropStore {
+    val crops: Flow<Map<String, CropRect>>
+    suspend fun current(): Map<String, CropRect>
+    suspend fun save(id: String, rect: CropRect)
+}
+
 private val Context.rotationCropsDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "rotation_crops",
 )
@@ -25,21 +31,21 @@ private val Context.rotationCropsDataStore: DataStore<Preferences> by preference
  * RotationFraming). A dedicated DataStore file; corrupt payloads decode
  * to empty and are overwritten on the next save.
  */
-class RotationCropStore(private val context: Context) {
+class RotationCropStore(private val context: Context) : CropStore {
 
     private object Keys {
         val CROPS = stringPreferencesKey("crops")
     }
 
-    val crops: Flow<Map<String, CropRect>> = context.rotationCropsDataStore.data
+    override val crops: Flow<Map<String, CropRect>> = context.rotationCropsDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { prefs -> RotationCrops.decode(prefs[Keys.CROPS].orEmpty()) }
 
-    suspend fun current(): Map<String, CropRect> = crops.first()
+    override suspend fun current(): Map<String, CropRect> = crops.first()
 
-    suspend fun save(id: String, rect: CropRect) {
+    override suspend fun save(id: String, rect: CropRect) {
         if (!rect.isValid()) return
         context.rotationCropsDataStore.edit { prefs ->
             val updated = RotationCrops.decode(prefs[Keys.CROPS].orEmpty()) + (id to rect)
