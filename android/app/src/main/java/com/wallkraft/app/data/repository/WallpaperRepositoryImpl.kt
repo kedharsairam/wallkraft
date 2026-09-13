@@ -2,7 +2,7 @@ package com.wallkraft.app.data.repository
 
 import android.util.LruCache
 import com.wallkraft.app.core.utils.Result
-import com.wallkraft.app.data.api.WallhavenApi
+import com.wallkraft.app.data.api.WallhavenApiSource
 import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
@@ -12,7 +12,7 @@ import com.wallkraft.app.domain.repository.WallpaperRepository
 import kotlinx.coroutines.flow.Flow
 
 class WallpaperRepositoryImpl(
-    private val api: WallhavenApi,
+    private val api: WallhavenApiSource,
     private val searchCache: SearchResponseCache,
 ) : WallpaperRepository {
 

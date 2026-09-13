@@ -26,6 +26,14 @@ import okhttp3.Request
 import java.io.IOException
 import java.net.SocketTimeoutException
 
+/** Minimal interface for testability — allows fakes in unit tests. */
+interface WallhavenApiSource {
+    suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse>
+    suspend fun wallpaper(id: String): Result<Wallpaper>
+    suspend fun validateApiKey(key: String): Boolean
+    fun observeRateLimited(): Flow<Boolean>
+}
+
 @Serializable
 private data class WallpaperEnvelope(
     @SerialName("data") val data: Wallpaper,
@@ -46,7 +54,7 @@ class WallhavenApi @javax.inject.Inject constructor(
     private val json: Json,
     private val settings: SettingsRepository,
     private val rateLimitState: RateLimitState,
-) {
+) : WallhavenApiSource {
     private val baseUrl = "https://wallhaven.cc/api/v1"
 
     /** Max automatic retries for transient failures (network / 5xx). */
@@ -55,7 +63,7 @@ class WallhavenApi @javax.inject.Inject constructor(
         const val TAG = "WallKraftPerf"
     }
 
-    suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> {
+    override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> {
         if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("search")
@@ -81,7 +89,7 @@ class WallhavenApi @javax.inject.Inject constructor(
         return execute(url.toString())
     }
 
-    suspend fun wallpaper(id: String): Result<Wallpaper> {
+    override suspend fun wallpaper(id: String): Result<Wallpaper> {
         if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("w")
@@ -93,14 +101,14 @@ class WallhavenApi @javax.inject.Inject constructor(
         }
     }
 
-    fun observeRateLimited(): Flow<Boolean> = rateLimitState.limited
+    override fun observeRateLimited(): Flow<Boolean> = rateLimitState.limited
 
     /**
      * Validates the API key by making a lightweight search request.
      * Uses the X-API-Key header (same auth method as actual search requests).
      * Checks response code: 200 = valid, 401 = invalid.
      */
-    suspend fun validateApiKey(key: String): Boolean {
+    override suspend fun validateApiKey(key: String): Boolean {
         val trimmed = key.trim()
         if (trimmed.isBlank()) return false
         return withContext(Dispatchers.IO) {

@@ -244,12 +244,13 @@ class SettingsViewModel @Inject constructor(
                     }
                 } finally {
                     _isValidating.value = false
-                    // Cancel the scope after the flush completes so it doesn't leak.
-                    appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
                 }
             }
-        } else {
-            appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
         }
+        // Cancel appScope after launching the flush — the flush coroutine
+        // is now running and will complete independently. Cancelling here
+        // (instead of in the flush's finally) avoids a race where the debounce
+        // collection on the same scope gets killed mid-flight.
+        appScope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
     }
 }

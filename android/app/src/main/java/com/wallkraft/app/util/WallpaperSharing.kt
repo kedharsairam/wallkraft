@@ -2,6 +2,7 @@ package com.wallkraft.app.util
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import coil3.imageLoader
@@ -22,12 +23,16 @@ import java.io.File
  */
 object WallpaperSharing {
 
+    private const val TAG = "WallpaperSharing"
+
     fun openInBrowser(context: Context, wallpaper: Wallpaper) {
-        runCatching {
+        try {
             context.startActivity(
                 Intent(Intent.ACTION_VIEW, wallpaper.url.toUri())
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
+        } catch (e: Exception) {
+            Log.w(TAG, "No browser available to open ${wallpaper.url}", e)
         }
     }
 
@@ -91,7 +96,11 @@ object WallpaperSharing {
             val dir = File(context.cacheDir, "shared").apply { mkdirs() }
             val named = File(dir, "${wallpaper.id}.$ext")
             if (!named.exists() || named.length() == 0L) {
-                runCatching { local.copyTo(named, overwrite = true) }
+                try {
+                    local.copyTo(named, overwrite = true)
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to copy local file for sharing", e)
+                }
             }
             return named.takeIf { it.exists() && it.length() > 0 } ?: local
         }
@@ -110,10 +119,10 @@ object WallpaperSharing {
     private suspend fun coilCachedFile(context: Context, wallpaper: Wallpaper): File? =
         withContext(Dispatchers.IO) {
             if (wallpaper.path.isBlank()) return@withContext null
-            runCatching {
+            try {
                 val snapshot = context.imageLoader.diskCache
                     ?.openSnapshot(wallpaper.path)
-                    ?: return@runCatching null
+                    ?: return@withContext null
                 snapshot.use { snap ->
                     val data = snap.data.toFile()
                     if (!data.exists() || data.length() == 0L) return@use null
@@ -124,7 +133,10 @@ object WallpaperSharing {
                     }
                     file.takeIf { it.exists() && it.length() > 0 }
                 }
-            }.getOrNull()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to read Coil disk cache for ${wallpaper.id}", e)
+                null
+            }
         }
 
     /** The file extension for [wallpaper]'s image, from its URL (defaults to jpg). */
@@ -145,7 +157,7 @@ object WallpaperSharing {
     private suspend fun coilFetchToCache(context: Context, wallpaper: Wallpaper): File? =
         withContext(Dispatchers.IO) {
             if (wallpaper.path.isBlank()) return@withContext null
-            runCatching {
+            try {
                 val request = ImageRequest.Builder(context)
                     .data(wallpaper.path)
                     .size(Size.ORIGINAL)
@@ -154,7 +166,10 @@ object WallpaperSharing {
                     .build()
                 context.imageLoader.execute(request)
                 coilCachedFile(context, wallpaper)
-            }.getOrNull()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to fetch image for sharing: ${wallpaper.id}", e)
+                null
+            }
         }
 
     /**

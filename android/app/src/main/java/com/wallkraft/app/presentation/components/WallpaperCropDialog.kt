@@ -13,6 +13,7 @@ import android.view.View
 import android.view.WindowManager
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -56,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,6 +91,7 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.domain.model.WallpaperPosition
 import com.wallkraft.app.domain.model.CropRect
 import kotlinx.coroutines.Dispatchers
@@ -132,6 +135,7 @@ fun WallpaperCropDialog(
     var zoom by remember { mutableFloatStateOf(1f) }
     var panX by remember { mutableFloatStateOf(0f) }
     var panY by remember { mutableFloatStateOf(0f) }
+    val reduceMotion = rememberReduceMotion()
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
     // Applying state: true while the wallpaper is being set (spinner shown).
@@ -140,6 +144,12 @@ fun WallpaperCropDialog(
     var showPositionPicker by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val setFailedMsg = stringResource(R.string.wallpaper_set_failed)
+
+    // When position picker is open, back dismisses the picker (not the dialog).
+    BackHandler(enabled = showPositionPicker) {
+        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+        showPositionPicker = false
+    }
 
     // The dialog window extends behind the navigation bar but does not dispatch
     // the nav-bar inset to its content (navigationBarsPadding() reads 0 here).
@@ -504,7 +514,7 @@ fun WallpaperCropDialog(
                 LaunchedEffect(Unit) { successEntered = true }
                 val successScale by animateFloatAsState(
                     targetValue = if (successEntered) 1f else 0.5f,
-                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+                    animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.6f, stiffness = 300f),
                     label = "successScale",
                 )
                 Box(

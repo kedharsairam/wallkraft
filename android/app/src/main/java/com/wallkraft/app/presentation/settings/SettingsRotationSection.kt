@@ -2,6 +2,7 @@ package com.wallkraft.app.presentation.settings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -62,6 +63,7 @@ import com.wallkraft.app.domain.model.RotationSchedule
 import com.wallkraft.app.domain.model.RotationTarget
 import com.wallkraft.app.presentation.components.chipColors
 import com.wallkraft.app.presentation.components.FilterSectionLabel
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /**
  * Wallpaper rotation section — schedule, style, target screen, source, and
@@ -84,6 +86,7 @@ fun SettingsRotationSection(
     rotateDone: Boolean = false,
 ) {
     val haptic = LocalHapticFeedback.current
+    val reduceMotion = rememberReduceMotion()
     var showSource by remember { mutableStateOf(false) }
     val sourceName = collections.firstOrNull { it.id == settings.sourceCollectionId }
         ?.name ?: stringResource(R.string.rotation_all_favorites)
@@ -129,8 +132,8 @@ fun SettingsRotationSection(
 
         AnimatedVisibility(
             visible = expanded,
-            enter = expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
-            exit = shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
+            enter = if (reduceMotion) fadeIn(tween(0)) else expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
+            exit = if (reduceMotion) fadeOut(tween(0)) else shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
         ) {
             Column {
         // Schedule

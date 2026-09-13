@@ -7,6 +7,8 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -83,6 +85,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /**
  * A single full-bleed surface in the Instagram-reels style. The wallpaper
@@ -124,6 +127,7 @@ internal fun DetailContent(
     sharedTransitionScope: SharedTransitionScope? = null,
 ) {
     val context = LocalContext.current
+    val reduceMotion = rememberReduceMotion()
     var isZoomed by remember { mutableStateOf(false) }
     var isSharing by remember { mutableStateOf(false) }
     val contentScope = rememberCoroutineScope()
@@ -136,7 +140,7 @@ internal fun DetailContent(
     LaunchedEffect(Unit) { chromeVisible = true }
     val chromeAlpha by animateFloatAsState(
         targetValue = if (chromeVisible) 1f else 0f,
-        animationSpec = SharedElementSpringFloat,
+        animationSpec = if (reduceMotion) snap() else SharedElementSpringFloat,
         label = "chromeAlpha",
     )
 
@@ -230,8 +234,10 @@ internal fun DetailContent(
 
         AnimatedVisibility(
             visible = fullResRequested && !fullResLoaded && !isZoomed,
-            enter = androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
-            exit = androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
+            enter = if (reduceMotion) androidx.compose.animation.fadeIn(tween(0))
+                else androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = if (reduceMotion) androidx.compose.animation.fadeOut(tween(0))
+                else androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier.align(Alignment.TopCenter).fillMaxWidth(),
         ) {
             LinearProgressIndicator(
@@ -243,8 +249,10 @@ internal fun DetailContent(
 
         AnimatedVisibility(
             visible = isZoomed && fullResRequested && !fullResLoaded,
-            enter = androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
-            exit = androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
+            enter = if (reduceMotion) androidx.compose.animation.fadeIn(tween(0))
+                else androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = if (reduceMotion) androidx.compose.animation.fadeOut(tween(0))
+                else androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = KraftSpacing.Spacing24),
         ) {
             Surface(

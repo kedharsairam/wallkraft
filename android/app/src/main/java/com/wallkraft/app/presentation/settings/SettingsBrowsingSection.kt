@@ -2,6 +2,7 @@ package com.wallkraft.app.presentation.settings
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -54,6 +55,7 @@ import com.wallkraft.app.presentation.components.FilterSectionLabel
 import com.wallkraft.app.presentation.components.purityNsfwChipColors
 import com.wallkraft.app.presentation.components.puritySfwChipColors
 import com.wallkraft.app.presentation.components.puritySketchyChipColors
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.util.displayName
 
 /**
@@ -74,6 +76,7 @@ fun SettingsBrowsingSection(
     onOrientation: (Orientation) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
+    val reduceMotion = rememberReduceMotion()
     SettingsGroup(title = stringResource(R.string.browsing_title)) {
         // Pre-resolve display names for summary text
         val catGeneral = stringResource(R.string.category_general)
@@ -183,8 +186,8 @@ fun SettingsBrowsingSection(
         // Expanded filters
         AnimatedVisibility(
             visible = expanded,
-            enter = expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
-            exit = shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
+            enter = if (reduceMotion) fadeIn(tween(0)) else expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
+            exit = if (reduceMotion) fadeOut(tween(0)) else shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
         ) {
             Column {
                 // Categories
@@ -305,8 +308,8 @@ fun SettingsBrowsingSection(
                 // Top range — only for Toplist (like wallhaven.cc)
                 AnimatedVisibility(
                     visible = settings.sorting == Sorting.Toplist,
-                    enter = expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
-                    exit = shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
+                    enter = if (reduceMotion) fadeIn(tween(0)) else expandVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeIn(),
+                    exit = if (reduceMotion) fadeOut(tween(0)) else shrinkVertically(spring(dampingRatio = 0.7f, stiffness = 400f)) + fadeOut(),
                 ) {
                     Column {
                         HorizontalDivider(

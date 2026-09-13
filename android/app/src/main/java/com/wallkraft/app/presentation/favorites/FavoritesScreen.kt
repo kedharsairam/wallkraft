@@ -77,7 +77,7 @@ fun FavoritesScreen(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
     offlineRepair: FavoriteOfflineRepair? = null,
-    autoRepairOffline: Boolean = true,
+    autoRepairOffline: Boolean = false,
 ) {
     val deps: AppDependenciesViewModel = hiltViewModel()
     FavoritesScreenImpl(
@@ -110,7 +110,7 @@ fun FavoritesScreen(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
     offlineRepair: FavoriteOfflineRepair? = null,
-    autoRepairOffline: Boolean = true,
+    autoRepairOffline: Boolean = false,
 ) {
     FavoritesScreenImpl(
         settingsRepository = container.settings,
@@ -144,7 +144,7 @@ private fun FavoritesScreenImpl(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
     offlineRepair: FavoriteOfflineRepair? = null,
-    autoRepairOffline: Boolean = true,
+    autoRepairOffline: Boolean = false,
 ) {
     val viewModel: FavoritesViewModel = hiltViewModel()
     val favorites by viewModel.favorites.collectAsState()
@@ -268,10 +268,10 @@ private fun FavoritesScreenImpl(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                downloadedFiles = DownloadedFiles.downloadedFiles(context)
-                    .associateBy { it.wallpaperId }
-                if (autoRepairOffline) {
-                    lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    downloadedFiles = DownloadedFiles.downloadedFiles(context)
+                        .associateBy { it.wallpaperId }
+                    if (autoRepairOffline) {
                         if (!settingsRepository.current().dataSaverMode) {
                             repair.repairAll(repair.missing(favorites.map { it.wallpaper }))
                         }

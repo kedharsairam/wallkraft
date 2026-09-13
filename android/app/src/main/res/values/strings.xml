@@ -268,4 +268,5 @@
     <string name="next" translatable="false">Next</string>
     <string name="skip" translatable="false">Skip</string>
     <string name="get_started" translatable="false">Get Started</string>
+    <string name="welcome_page_indicator" translatable="false">Page %1$d of %2$d</string>
 </resources>
