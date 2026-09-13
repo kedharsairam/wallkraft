@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.6] - 2026-09-13
+
+### Fixed
+- **Detail image loading** — images now always load in the detail view. Previously, data-saver mode blocked image display entirely (only thumbnail shown). Data saver now only affects grid prefetching.
+- **Large image decode** — detail view decodes at 4096px max (via `MaxDecodeDim`) instead of full original. Fixes OOM/silent failures on 4800x2700+ images. Full-res only decoded when setting wallpaper.
+- **Error visibility** — `ZoomableImage` now has `onError` callback; decode failures are no longer silent.
+
+### Removed
+- Unused `dataSaverEnabled` parameter from `DetailContent` and `DetailScreen`.
+
 ## [2.1.5] - 2026-09-13
 
 ### Fixed
