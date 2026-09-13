@@ -2,6 +2,7 @@ package com.wallkraft.app.presentation.browse
 
 import androidx.lifecycle.SavedStateHandle
 import com.wallkraft.app.core.errors.AppError
+import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import com.wallkraft.app.presentation.common.WallpaperListViewModel
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.update
  * The Browse tab. All pagination, refresh, and filter handling lives in
  * [WallpaperListViewModel]; this subclass only adds the search box.
  *
- * Hilt pilot: this is the first ViewModel migrated off [com.wallkraft.app.AppContainer].
  * The nav argument "query" seeds the search box — the tab passes "" (empty); a tag click
  * passes the tag via [SavedStateHandle] so the SAME screen opens showing that tag's results.
  * The old manual constructor (errorMessage + initialQuery) is retained for unit tests via a
@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.update
 class BrowseViewModel @Inject constructor(
     wallpaperRepository: WallpaperRepository,
     settingsRepository: SettingsRepository,
+    val searchHistoryStore: SearchHistoryRepository,
     errorMessageMapper: @JvmSuppressWildcards (AppError) -> String,
     savedStateHandle: SavedStateHandle,
     clock: ElapsedClock,
@@ -42,12 +43,14 @@ class BrowseViewModel @Inject constructor(
     constructor(
         repository: WallpaperRepository,
         settingsRepository: SettingsRepository,
+        searchHistoryStore: SearchHistoryRepository,
         errorMessage: (AppError) -> String,
         initialQuery: String = "",
         clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },
     ) : this(
         wallpaperRepository = repository,
         settingsRepository = settingsRepository,
+        searchHistoryStore = searchHistoryStore,
         errorMessageMapper = errorMessage,
         savedStateHandle = SavedStateHandle(mapOf("query" to initialQuery)),
         clock = clock,

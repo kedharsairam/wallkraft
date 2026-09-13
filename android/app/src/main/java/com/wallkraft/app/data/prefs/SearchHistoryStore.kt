@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 
+interface SearchHistoryRepository {
+    val history: Flow<List<String>>
+    suspend fun current(): List<String>
+    suspend fun add(query: String)
+    suspend fun clear()
+}
+
 private val Context.searchHistoryDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "search_history",
 )
@@ -25,21 +32,21 @@ private val Context.searchHistoryDataStore: DataStore<Preferences> by preference
  * re-emit the settings flow and recompose settings observers.
  * List logic lives in [SearchHistory] (pure, unit-tested).
  */
-class SearchHistoryStore(private val context: Context) {
+class SearchHistoryStore(private val context: Context) : SearchHistoryRepository {
 
     private object Keys {
         val QUERIES = stringPreferencesKey("queries")
     }
 
-    val history: Flow<List<String>> = context.searchHistoryDataStore.data
+    override val history: Flow<List<String>> = context.searchHistoryDataStore.data
         .catch { exception ->
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { prefs -> SearchHistory.deserialize(prefs[Keys.QUERIES].orEmpty()) }
 
-    suspend fun current(): List<String> = history.first()
+    override suspend fun current(): List<String> = history.first()
 
-    suspend fun add(query: String) {
+    override suspend fun add(query: String) {
         if (query.trim().isEmpty()) return
         context.searchHistoryDataStore.edit { prefs ->
             val updated = SearchHistory.add(
@@ -50,7 +57,7 @@ class SearchHistoryStore(private val context: Context) {
         }
     }
 
-    suspend fun clear() {
+    override suspend fun clear() {
         context.searchHistoryDataStore.edit { prefs ->
             prefs.remove(Keys.QUERIES)
         }

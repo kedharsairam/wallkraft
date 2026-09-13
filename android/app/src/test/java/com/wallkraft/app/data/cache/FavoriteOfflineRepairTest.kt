@@ -23,6 +23,10 @@ class FavoriteOfflineRepairTest {
             localIds += wallpaper.id
             return true
         }
+
+        override fun delete(id: String) {
+            localIds.remove(id)
+        }
     }
 
     private fun wallpaper(id: String) = Wallpaper(id = id, path = "https://example.com/$id.jpg")

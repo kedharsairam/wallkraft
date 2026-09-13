@@ -6,11 +6,15 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.data.api.GithubApi
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.cache.FavoriteImageStore
+import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.cache.SearchResponseCache
 import com.wallkraft.app.data.db.WallKraftDatabase
 import com.wallkraft.app.data.prefs.SettingsStore
+import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.data.prefs.RotationCropStore
+import com.wallkraft.app.data.prefs.RotationSettingsStore
 import com.wallkraft.app.data.prefs.RotationStore
+import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.data.prefs.SearchHistoryStore
 import com.wallkraft.app.data.repository.CollectionsRepositoryImpl
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
@@ -36,9 +40,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Hilt module — singleton graph for WallKraft.
  *
- * All screens now use Hilt via [com.wallkraft.app.AppContainer] deprecated.
- * The manual container is retained in [com.wallkraft.app.WallKraftApplication]
- * for startup migration only; UI layer is fully Hilt-owned.
+ * All screens use Hilt for dependency injection.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -123,7 +125,7 @@ object AppModule {
     fun provideFavoriteImageStore(
         @ApplicationContext context: Context,
         client: OkHttpClient,
-    ): FavoriteImageStore = FavoriteImageStore(
+    ): OfflineImageStore = FavoriteImageStore(
         directory = File(context.filesDir, "favorites"),
         client = client,
     )
@@ -131,17 +133,17 @@ object AppModule {
     @Provides @Singleton
     fun provideSearchHistoryStore(
         @ApplicationContext context: Context,
-    ): SearchHistoryStore = SearchHistoryStore(context)
+    ): SearchHistoryRepository = SearchHistoryStore(context)
 
     @Provides @Singleton
     fun provideRotationStore(
         @ApplicationContext context: Context,
-    ): RotationStore = RotationStore(context)
+    ): RotationSettingsStore = RotationStore(context)
 
     @Provides @Singleton
     fun provideRotationCropStore(
         @ApplicationContext context: Context,
-    ): RotationCropStore = RotationCropStore(context)
+    ): CropStore = RotationCropStore(context)
 
     @Provides @Singleton
     fun provideElapsedClock(): ElapsedClock =

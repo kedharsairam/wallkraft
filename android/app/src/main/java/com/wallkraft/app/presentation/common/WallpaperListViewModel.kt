@@ -52,7 +52,7 @@ data class WallpaperListUiState(
  */
 abstract class WallpaperListViewModel(
     private val repository: WallpaperRepository,
-    settingsRepository: SettingsRepository,
+    val settingsRepository: SettingsRepository,
     private val errorMessage: (AppError) -> String,
     private val initialQuery: String = "",
     private val clock: ElapsedClock = ElapsedClock { android.os.SystemClock.elapsedRealtime() },

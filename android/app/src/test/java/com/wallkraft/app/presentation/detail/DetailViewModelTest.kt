@@ -2,10 +2,15 @@ package com.wallkraft.app.presentation.detail
 
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
+import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.Favorite
+import com.wallkraft.app.domain.model.CropRect
 import com.wallkraft.app.domain.repository.FavoritesRepository
+import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
+import com.wallkraft.app.domain.model.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +27,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
@@ -44,7 +50,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 2560, dimensionY = 1440))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -58,7 +64,7 @@ class DetailViewModelTest {
     fun `load failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -74,7 +80,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertFalse("wp-1" in vm.uiState.value.favoriteIds)
@@ -93,7 +99,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         vm.toggleFavorite(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080))
@@ -110,7 +116,7 @@ class DetailViewModelTest {
             callCount++
             Result.Success(Wallpaper(id = "$id-$callCount", dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         vm.load()
@@ -123,7 +129,7 @@ class DetailViewModelTest {
     @Test
     fun `initial state is loading`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
 
         // Before advancing, should be in loading state
         assertTrue(vm.uiState.value.isLoading)
@@ -138,7 +144,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertTrue("wp-1" in vm.uiState.value.favoriteIds)
@@ -148,7 +154,7 @@ class DetailViewModelTest {
     fun `load failure does not set wallpaper`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "not found")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.wallpaper)
@@ -159,7 +165,7 @@ class DetailViewModelTest {
     fun `isDetailLoaded becomes true after a successful load`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id -> Result.Success(Wallpaper(id = id)) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertTrue(vm.uiState.value.isDetailLoaded)
@@ -169,7 +175,7 @@ class DetailViewModelTest {
     fun `isDetailLoaded stays false when the load fails`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" })
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertFalse(vm.uiState.value.isDetailLoaded)
@@ -180,7 +186,7 @@ class DetailViewModelTest {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Success(Wallpaper(id = it)) }
         val vm = DetailViewModel(
-            "wp-1", repo, FakeFavoritesRepository(), errorMessage = { "error" },
+            "wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" },
             previewThumb = "thumb.jpg", previewPath = "path.jpg",
         )
 
@@ -222,6 +228,34 @@ class DetailViewModelTest {
         override suspend fun remove(id: String) {
             addedIds.remove(id)
             emitFavorites()
+        }
+    }
+
+    private class FakeSettingsRepository : SettingsRepository {
+        private val _settings = MutableStateFlow(AppSettings())
+        override val settings: Flow<AppSettings> = _settings
+        override suspend fun current(): AppSettings = _settings.value
+        override suspend fun update(transform: (AppSettings) -> AppSettings) {
+            _settings.value = transform(_settings.value)
+        }
+    }
+
+    private class FakeFavoriteImageStore : OfflineImageStore {
+        private val files = mutableMapOf<String, File>()
+        override fun fileFor(id: String): File? = files[id]
+        override suspend fun save(wallpaper: Wallpaper): Boolean {
+            files[wallpaper.id] = File("/fake/${wallpaper.id}")
+            return true
+        }
+        override fun delete(id: String) { files.remove(id) }
+    }
+
+    private class FakeRotationCropStore : CropStore {
+        private val _crops = MutableStateFlow<Map<String, CropRect>>(emptyMap())
+        override val crops: Flow<Map<String, CropRect>> = _crops
+        override suspend fun current(): Map<String, CropRect> = _crops.value
+        override suspend fun save(id: String, rect: CropRect) {
+            _crops.value = _crops.value + (id to rect)
         }
     }
 }

@@ -2,6 +2,7 @@ package com.wallkraft.app.presentation.browse
 
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
+import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
@@ -44,7 +45,7 @@ class BrowseViewModelTest {
     @Test
     fun `search sends the query to the API`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         vm.search("cats")
@@ -68,7 +69,7 @@ class BrowseViewModelTest {
                 Result.Success(pageOf(if (filters.query == "new") "new-result" else "other", filters))
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle() // init search is now suspended on the gate
 
         vm.search("new") // cancels the suspended init request, starts a fresh one
@@ -86,7 +87,7 @@ class BrowseViewModelTest {
     fun `search failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.onSearch = { _, _ -> Result.Failure(AppError.Unknown(message = "network")) }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
 
         vm.search("cats")
         advanceUntilIdle()
@@ -106,7 +107,7 @@ class BrowseViewModelTest {
                 ),
             )
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertEquals(1, vm.uiState.value.wallpapers.size)
@@ -129,7 +130,7 @@ class BrowseViewModelTest {
                 ),
             )
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertEquals(1, vm.uiState.value.wallpapers.size)
@@ -156,7 +157,7 @@ class BrowseViewModelTest {
                 Result.Failure(AppError.Unknown(message = "network"))
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
         advanceUntilIdle()
 
         vm.loadNextPage()
@@ -177,7 +178,7 @@ class BrowseViewModelTest {
                 ),
             )
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle()
 
         assertEquals(5085, vm.uiState.value.totalResults)
@@ -207,7 +208,7 @@ class BrowseViewModelTest {
                 )
             }
         }
-        val vm = BrowseViewModel(repo, FakeSettingsRepository(), errorMessage = { "error" })
+        val vm = BrowseViewModel(repo, FakeSettingsRepository(), FakeSearchHistoryStore(), errorMessage = { "error" })
         advanceUntilIdle()
         assertEquals(5085, vm.uiState.value.totalResults)
 
@@ -261,5 +262,15 @@ class BrowseViewModelTest {
         override suspend fun update(transform: (AppSettings) -> AppSettings) {
             _settings.value = transform(_settings.value)
         }
+    }
+
+    private class FakeSearchHistoryStore : SearchHistoryRepository {
+        private val _history = MutableStateFlow<List<String>>(emptyList())
+        override val history: Flow<List<String>> = _history
+        override suspend fun current(): List<String> = _history.value
+        override suspend fun add(query: String) {
+            _history.value = listOf(query) + _history.value.filter { it != query }
+        }
+        override suspend fun clear() { _history.value = emptyList() }
     }
 }

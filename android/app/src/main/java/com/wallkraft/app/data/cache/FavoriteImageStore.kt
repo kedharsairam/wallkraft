@@ -86,7 +86,7 @@ class FavoriteImageStore(
     }
 
     /** Deletes the stored file for [id], if present. */
-    fun delete(id: String) {
+    override fun delete(id: String) {
         File(directory, sanitizeId(id)).delete()
     }
 

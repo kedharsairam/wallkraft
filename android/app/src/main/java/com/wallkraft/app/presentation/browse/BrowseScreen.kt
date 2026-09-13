@@ -39,9 +39,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.wallkraft.app.AppContainer
-import com.wallkraft.app.data.prefs.SearchHistoryStore
-import com.wallkraft.app.di.AppDependenciesViewModel
+import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,40 +72,10 @@ fun BrowseScreen(
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     searchState: BrowseSearchState = BrowseSearchState(),
 ) {
-    val deps: AppDependenciesViewModel = hiltViewModel()
+    val viewModel: BrowseViewModel = hiltViewModel()
     BrowseScreenImpl(
-        settingsRepository = deps.settingsRepository,
-        searchHistoryStore = deps.searchHistoryStore,
-        onOpenWallpaper = onOpenWallpaper,
-        gridState = gridState,
-        navBarPadding = navBarPadding,
-        topInset = topInset,
-        initialQuery = initialQuery,
-        title = title,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = animatedVisibilityScope,
-        searchState = searchState,
-    )
-}
-
-@Deprecated("Use Hilt version — container will be removed", ReplaceWith("BrowseScreen(onOpenWallpaper, gridState, navBarPadding, topInset, initialQuery, title, sharedTransitionScope, animatedVisibilityScope, searchState)"))
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.animation.ExperimentalSharedTransitionApi::class)
-@Composable
-fun BrowseScreen(
-    container: AppContainer,
-    onOpenWallpaper: (Wallpaper) -> Unit,
-    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
-    navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,
-    topInset: androidx.compose.ui.unit.Dp = 0.dp,
-    initialQuery: String = "",
-    title: String = "",
-    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
-    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
-    searchState: BrowseSearchState = BrowseSearchState(),
-) {
-    BrowseScreenImpl(
-        settingsRepository = container.settings,
-        searchHistoryStore = container.searchHistory,
+        settingsRepository = viewModel.settingsRepository,
+        searchHistoryStore = viewModel.searchHistoryStore,
         onOpenWallpaper = onOpenWallpaper,
         gridState = gridState,
         navBarPadding = navBarPadding,
@@ -124,7 +92,7 @@ fun BrowseScreen(
 @Composable
 private fun BrowseScreenImpl(
     settingsRepository: SettingsRepository,
-    searchHistoryStore: SearchHistoryStore,
+    searchHistoryStore: SearchHistoryRepository,
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState? = null,
     navBarPadding: androidx.compose.ui.unit.Dp = 0.dp,

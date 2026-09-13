@@ -50,13 +50,11 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.wallkraft.app.AppContainer
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.data.cache.FavoriteImageStore
+import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
-import com.wallkraft.app.data.prefs.RotationStore
-import com.wallkraft.app.di.AppDependenciesViewModel
+import com.wallkraft.app.data.prefs.RotationSettingsStore
 import com.wallkraft.app.domain.model.Wallpaper
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.wallkraft.app.domain.repository.CollectionsRepository
@@ -79,44 +77,12 @@ fun FavoritesScreen(
     offlineRepair: FavoriteOfflineRepair? = null,
     autoRepairOffline: Boolean = false,
 ) {
-    val deps: AppDependenciesViewModel = hiltViewModel()
+    val viewModel: FavoritesViewModel = hiltViewModel()
     FavoritesScreenImpl(
-        settingsRepository = deps.settingsRepository,
-        rotationStore = deps.rotationStore,
-        collectionsRepository = deps.collectionsRepository,
-        favoriteImageStore = deps.favoriteImageStore,
-        onOpenWallpaper = onOpenWallpaper,
-        gridState = gridState,
-        navBarPadding = navBarPadding,
-        topInset = topInset,
-        sharedTransitionScope = sharedTransitionScope,
-        animatedVisibilityScope = animatedVisibilityScope,
-        topBarState = topBarState,
-        offlineRepair = offlineRepair,
-        autoRepairOffline = autoRepairOffline,
-    )
-}
-
-@Deprecated("Use Hilt version — container will be removed")
-@OptIn(ExperimentalSharedTransitionApi::class)
-@Composable
-fun FavoritesScreen(
-    container: AppContainer,
-    onOpenWallpaper: (Wallpaper) -> Unit,
-    gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
-    navBarPadding: Dp = 0.dp,
-    topInset: Dp = 0.dp,
-    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
-    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
-    topBarState: FavoritesTopBarState = FavoritesTopBarState(),
-    offlineRepair: FavoriteOfflineRepair? = null,
-    autoRepairOffline: Boolean = false,
-) {
-    FavoritesScreenImpl(
-        settingsRepository = container.settings,
-        rotationStore = container.rotation,
-        collectionsRepository = container.collectionsRepository,
-        favoriteImageStore = container.favoriteImageStore,
+        settingsRepository = viewModel.settingsRepository,
+        rotationStore = viewModel.rotationStore,
+        collectionsRepository = viewModel.collectionsRepository,
+        favoriteImageStore = viewModel.favoriteImageStore,
         onOpenWallpaper = onOpenWallpaper,
         gridState = gridState,
         navBarPadding = navBarPadding,
@@ -133,9 +99,9 @@ fun FavoritesScreen(
 @Composable
 private fun FavoritesScreenImpl(
     settingsRepository: SettingsRepository,
-    rotationStore: RotationStore,
+    rotationStore: RotationSettingsStore,
     collectionsRepository: CollectionsRepository,
-    favoriteImageStore: FavoriteImageStore,
+    favoriteImageStore: OfflineImageStore,
     onOpenWallpaper: (Wallpaper) -> Unit,
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,

@@ -30,12 +30,12 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 46
-        versionName = "2.1.6"
+        versionCode = 47
+        versionName = "2.2.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "dagger.hilt.android.testing.HiltTestRunner"
     }
 
     signingConfigs {
@@ -147,7 +147,7 @@ dependencies {
     // Background work (wallpaper rotation schedule)
     implementation(libs.work.runtime.ktx)
 
-    // Hilt (pilot: Browse only, rest still via AppContainer)
+    // Hilt
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
@@ -160,5 +160,7 @@ dependencies {
     androidTestImplementation(libs.espresso)
     androidTestImplementation(libs.room.testing)
     androidTestImplementation(libs.compose.ui.test.junit4)
+    androidTestImplementation(libs.hilt.android.testing)
+    kspAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.compose.ui.test.manifest)
 }
