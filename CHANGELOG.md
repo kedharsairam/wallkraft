@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-09-13
+
+### Fixed
+- **Kraft Principles full compliance** — resolved all 41+ audit violations across 10 principles:
+  - **Accessibility**: ReduceMotion now checks Android 12+ AccessibilityManager API; page dots in WelcomeScreen have TalkBack contentDescription; 15 animation sites across 9 files respect reduce-motion setting.
+  - **Security**: EncryptedApiKeyStore fallback rewritten to in-memory-only (zero trust — API key never stored in plaintext on disk).
+  - **Robustness**: WallpaperDownload and WallpaperSharing error handling rewritten (no silent runCatching); SearchResponseCache and rotation schedule reconciliation now log failures.
+  - **Reliability**: NavHost tag/uploader navigation flattened (no deep stack growth); SettingsViewModel appScope race condition fixed.
+  - **UX**: WallpaperCropDialog BackHandler closes position picker instead of entire dialog; pagination error footer shows retry button.
+  - **Testability**: WallhavenApiSource interface extracted; WallpaperRepositoryImplTest added (8 tests); SearchResponseCache made open for test fakes.
+
 ## [2.1.4] - 2026-09-13
 
 ### Fixed
