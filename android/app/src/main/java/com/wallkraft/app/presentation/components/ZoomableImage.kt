@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.IntSize
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.size.Size
 import com.wallkraft.app.core.design.KraftConstants
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -53,6 +54,7 @@ fun ZoomableImage(
     onTap: () -> Unit = {},
     onZoomChanged: (Float) -> Unit = {},
     onLoaded: () -> Unit = {},
+    onError: (Throwable?) -> Unit = {},
     loadFullRes: Boolean = true,
     zoomLevels: List<Float> = listOf(2.5f, KraftConstants.MaxCropZoom),
     imageWidth: Int = 0,
@@ -169,10 +171,15 @@ fun ZoomableImage(
     }
 
     val context = LocalContext.current
+    // Decode at 4K max — razor-sharp at any phone zoom level (phone screens
+    // are 1080-1440 px, so 4096 provides 3-4× headroom). Decoding the full
+    // 4800×2700 original at view time is wasteful and risks OOM; the full-res
+    // is only needed for wallpaper-setting, which has its own decode pipeline.
     val fullRequest = remember(model) {
         ImageRequest.Builder(context)
             .data(model)
             .crossfade(false)
+            .size(KraftConstants.MaxDecodeDim)
             .build()
     }
 
@@ -214,6 +221,7 @@ fun ZoomableImage(
                     contentDescription = contentDescription,
                     contentScale = ContentScale.Fit,
                     onSuccess = { onLoaded() },
+                    onError = { onError(it.result.throwable) },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
