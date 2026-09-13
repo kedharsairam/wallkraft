@@ -111,7 +111,6 @@ internal fun DetailContent(
     wallpaper: Wallpaper,
     isFavorite: Boolean,
     isUploaderDeleted: Boolean,
-    dataSaverEnabled: Boolean?,
     imageModel: Any,
     backgroundAlpha: Float = 1f,
     onToggleFavorite: () -> Unit,
@@ -212,9 +211,9 @@ internal fun DetailContent(
         }
 
         var fullResLoaded by remember { mutableStateOf(false) }
-        var fullResRequested by remember(imageModel, dataSaverEnabled) {
-            mutableStateOf(dataSaverEnabled == false || imageModel is File)
-        }
+        // Always load the image — Apple never skips showing the photo.
+        // Data saver only affects grid prefetching (BrowseScreen/FavoritesScreen), not viewing.
+        var fullResRequested by remember { mutableStateOf(true) }
 
         ZoomableImage(
             model = imageModel,
@@ -505,7 +504,6 @@ internal fun DetailContent(
     wallpaper: Wallpaper,
     isFavorite: Boolean,
     isUploaderDeleted: Boolean,
-    dataSaverEnabled: Boolean?,
     imageModel: Any,
     backgroundAlpha: Float = 1f,
     onToggleFavorite: () -> Unit,
@@ -525,7 +523,6 @@ internal fun DetailContent(
         wallpaper = wallpaper,
         isFavorite = isFavorite,
         isUploaderDeleted = isUploaderDeleted,
-        dataSaverEnabled = dataSaverEnabled,
         imageModel = imageModel,
         backgroundAlpha = backgroundAlpha,
         onToggleFavorite = onToggleFavorite,

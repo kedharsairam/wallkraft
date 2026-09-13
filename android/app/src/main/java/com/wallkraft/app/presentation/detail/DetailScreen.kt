@@ -133,11 +133,6 @@ private fun DetailScreenImpl(
     val wallpaper = uiState.wallpaper
     var setWallpaperTarget by remember { mutableStateOf<Wallpaper?>(null) }
 
-    var dataSaverEnabled by remember { mutableStateOf<Boolean?>(null) }
-    LaunchedEffect(Unit) {
-        dataSaverEnabled = settingsRepository.current().dataSaverMode
-    }
-
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
 
     val backgroundAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
@@ -180,7 +175,6 @@ private fun DetailScreenImpl(
                         wallpaper = wallpaper,
                         isFavorite = wallpaper.id in uiState.favoriteIds,
                         isUploaderDeleted = uiState.isDetailLoaded && wallpaper.uploaderName.isBlank(),
-                        dataSaverEnabled = dataSaverEnabled,
                         imageModel = favoriteImageStore.fileFor(wallpaper.id) ?: wallpaper.path,
                         backgroundAlpha = backgroundAlpha.value,
                         onToggleFavorite = {

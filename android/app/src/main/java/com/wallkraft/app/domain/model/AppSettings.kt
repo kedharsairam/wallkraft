@@ -7,8 +7,9 @@ package com.wallkraft.app.domain.model
  * initial filters; [apiKey] is an optional Wallhaven account key sent as
  * `X-API-Key` on every request; [apiKeyValid] is true when the key has been
  * validated against the Wallhaven API. [dataSaverMode] defers full-res image
- * downloads until the user actually needs them (zoom / set / share) to save
- * mobile data. Defaults: All categories (111), SFW only.
+ * prefetching in browse/favorites grids to save mobile data. The detail view
+ * always loads the image regardless of this setting — the user should never
+ * have to wait to see a photo. Defaults: All categories (111), SFW only.
  * Matches wallhaven.cc.
  */
 data class AppSettings(
