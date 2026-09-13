@@ -67,9 +67,11 @@ abstract class WallpaperListViewModel(
     }
 
     /**
-     * The single in-flight request. Starting a new first page cancels the
-     * previous one so a slow response for an older query/filter can never
-     * overwrite newer results (last-write-wins race).
+     * The single in-flight request for first-page loads only. Starting a new
+     * first page cancels the previous one so a slow response for an older
+     * query/filter can never overwrite newer results (last-write-wins race).
+     * Page appends are NOT cancelled — the distinctBy { id } dedup handles
+     * duplicates safely, and cancelling during fast scroll drops results.
      */
     private var loadJob: Job? = null
 
@@ -216,7 +218,6 @@ abstract class WallpaperListViewModel(
     fun loadNextPage() {
         val state = _uiState.value
         if (state.isInitialLoading || state.isAppending || !state.hasMore) return
-        loadJob?.cancel()
         loadJob = viewModelScope.launch {
             _uiState.update { it.copy(isAppending = true) }
             try {

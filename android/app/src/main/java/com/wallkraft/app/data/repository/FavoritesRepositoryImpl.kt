@@ -2,6 +2,7 @@ package com.wallkraft.app.data.repository
 
 import com.wallkraft.app.data.db.FavoriteDao
 import com.wallkraft.app.data.db.FavoriteEntity
+import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.Favorite
 import com.wallkraft.app.domain.repository.FavoritesRepository
@@ -12,6 +13,7 @@ import kotlinx.serialization.json.Json
 class FavoritesRepositoryImpl(
     private val dao: FavoriteDao,
     private val json: Json,
+    private val imageStore: OfflineImageStore,
 ) : FavoritesRepository {
 
     override fun observeAll(): Flow<List<Favorite>> =
@@ -33,5 +35,6 @@ class FavoritesRepositoryImpl(
 
     override suspend fun remove(id: String) {
         dao.deleteById(id)
+        imageStore.delete(id)
     }
 }

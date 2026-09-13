@@ -1,6 +1,6 @@
 # WallKraft Architecture
 
-**Status:** Living doc — reflects `fix/arch-p0-domain-purity` branch. Updated 2026-09-12.
+**Status:** Living doc — reflects `fix/arch-p0-domain-purity` branch. Updated 2026-09-14.
 
 ## 1. Layers & Module Boundaries
 

@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -79,35 +81,41 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
     val viewportHeightDp = configuration.screenHeightDp.dp
     val itemCount = maxOf(6, (viewportHeightDp / 280.dp).toInt()) // ~280dp avg tile height
 
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
-        contentPadding = PaddingValues(
-            // Must match WallpaperGrid edges or content jumps on load.
-            // Bottom reserves the glass pill like the grid (same reason).
-            start = KraftSpacing.Spacing16,
-            end = KraftSpacing.Spacing16,
-            top = KraftSpacing.Spacing8,
-            bottom = KraftSpacing.GlassBarReserve,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
-        verticalItemSpacing = KraftSpacing.Spacing8,
-        modifier = modifier.fillMaxSize(),
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .semantics { contentDescription = "Loading wallpapers" }
     ) {
-        items(itemCount) { index ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(placeholderHeights[index % placeholderHeights.size].dp)
-                    .clip(RoundedCornerShape(KraftRadius.Standard))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .background(
-                        Brush.linearGradient(
-                            colors = shimmerColors,
-                            start = Offset(sweepOffset * 400f, 0f),
-                            end = Offset(sweepOffset * 400f + 400f, 0f),
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
+            contentPadding = PaddingValues(
+                // Must match WallpaperGrid edges or content jumps on load.
+                // Bottom reserves the glass pill like the grid (same reason).
+                start = KraftSpacing.Spacing16,
+                end = KraftSpacing.Spacing16,
+                top = KraftSpacing.Spacing8,
+                bottom = KraftSpacing.GlassBarReserve,
+            ),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            verticalItemSpacing = KraftSpacing.Spacing8,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            items(itemCount) { index ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(placeholderHeights[index % placeholderHeights.size].dp)
+                        .clip(RoundedCornerShape(KraftRadius.Standard))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .background(
+                            Brush.linearGradient(
+                                colors = shimmerColors,
+                                start = Offset(sweepOffset * 400f, 0f),
+                                end = Offset(sweepOffset * 400f + 400f, 0f),
+                            ),
                         ),
-                    ),
-            )
+                )
+            }
         }
     }
 }

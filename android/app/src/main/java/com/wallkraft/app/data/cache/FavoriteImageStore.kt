@@ -27,6 +27,7 @@ class FavoriteImageStore(
 ) : OfflineImageStore {
     companion object {
         const val MAX_BYTES: Long = KraftConstants.FavoriteImageMaxBytes
+        private const val MAX_RETRIES = 3
 
         /** Rejects IDs that could escape the target directory. */
         fun sanitizeId(id: String): String {
@@ -36,6 +37,8 @@ class FavoriteImageStore(
             return id
         }
     }
+
+    @Volatile private var cachedTotalBytes: Long = -1L
 
     /** The local file for [id], or null if it hasn't been downloaded. */
     override fun fileFor(id: String): File? {
@@ -56,46 +59,72 @@ class FavoriteImageStore(
         // device is low on storage (avoid filling the disk).
         if (isOverLimit()) evictOldest()
         return withContext(Dispatchers.IO) {
-            try {
-                directory.mkdirs()
-                val request = Request.Builder().url(wallpaper.path).get().build()
-                client.newCall(request).execute().use { response ->
-                    check(response.isSuccessful) { "HTTP ${response.code}" }
-                    val body = response.body ?: return@use false
-                    // Write to a temp file and rename into place only on
-                    // success, so a failed/interrupted download never leaves a
-                    // partial file that `fileFor` would treat as valid.
-                    val tmp = File(directory, "${wallpaper.id}.tmp")
-                    tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
-                    if (!tmp.renameTo(file)) {
-                        tmp.delete()
-                        file.delete()
-                        error("Failed to move downloaded image into place")
+            var attempt = 0
+            while (attempt <= MAX_RETRIES) {
+                try {
+                    directory.mkdirs()
+                    val request = Request.Builder().url(wallpaper.path).get().build()
+                    client.newCall(request).execute().use { response ->
+                        check(response.isSuccessful) { "HTTP ${response.code}" }
+                        val body = response.body ?: return@use false
+                        // Write to a temp file and rename into place only on
+                        // success, so a failed/interrupted download never leaves a
+                        // partial file that `fileFor` would treat as valid.
+                        val tmp = File(directory, "${wallpaper.id}.tmp")
+                        tmp.outputStream().use { out -> body.byteStream().copyTo(out) }
+                        if (!tmp.renameTo(file)) {
+                            tmp.delete()
+                            file.delete()
+                            error("Failed to move downloaded image into place")
+                        }
+                        // Post-save: enforce bound.
+                        if (isOverLimit()) evictOldest()
+                        cachedTotalBytes = -1L
+                        return@withContext true
                     }
-                    // Post-save: enforce bound.
-                    if (isOverLimit()) evictOldest()
-                    true
+                } catch (e: java.net.SocketTimeoutException) {
+                    attempt++
+                    if (attempt > MAX_RETRIES) {
+                        if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id} after $MAX_RETRIES retries", e)
+                        return@withContext false
+                    }
+                    kotlinx.coroutines.delay(1000L * attempt)
+                } catch (e: java.io.IOException) {
+                    attempt++
+                    if (attempt > MAX_RETRIES) {
+                        if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id} after $MAX_RETRIES retries", e)
+                        return@withContext false
+                    }
+                    kotlinx.coroutines.delay(1000L * attempt)
+                } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id}", e)
+                    return@withContext false
                 }
-            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("FavoriteImageStore", "Failed to save favorite image ${wallpaper.id}", e)
-                false
             }
+            return@withContext false
         }
     }
 
     /** Deletes the stored file for [id], if present. */
     override fun delete(id: String) {
         File(directory, sanitizeId(id)).delete()
+        cachedTotalBytes = -1L
     }
 
     /** Total bytes of all favorite images. */
-    fun totalBytes(): Long = directory.listFiles()?.sumOf { it.length() } ?: 0L
+    fun totalBytes(): Long {
+        if (cachedTotalBytes < 0) {
+            cachedTotalBytes = directory.listFiles()?.sumOf { it.length() } ?: 0L
+        }
+        return cachedTotalBytes
+    }
 
     private fun isOverLimit(): Boolean = totalBytes() > MAX_BYTES
 
     private fun evictOldest() {
+        cachedTotalBytes = -1L
         val files = directory.listFiles()?.filter { !it.name.endsWith(".tmp") } ?: return
         // Sort by lastModified (oldest first) — fileFor() touches on read so
         // recently viewed favorites are kept.

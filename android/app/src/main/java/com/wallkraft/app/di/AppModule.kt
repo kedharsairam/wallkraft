@@ -108,13 +108,15 @@ object AppModule {
             WallKraftDatabase.MIGRATION_2_3,
             WallKraftDatabase.MIGRATION_3_4,
         )
+        .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()
 
     @Provides @Singleton
     fun provideFavoritesRepository(
         db: WallKraftDatabase,
         json: Json,
-    ): FavoritesRepository = FavoritesRepositoryImpl(db.favoriteDao(), json)
+        imageStore: OfflineImageStore,
+    ): FavoritesRepository = FavoritesRepositoryImpl(db.favoriteDao(), json, imageStore)
 
     @Provides @Singleton
     fun provideCollectionsRepository(

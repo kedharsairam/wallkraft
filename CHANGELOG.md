@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-14
+
+### Fixed
+- **Favorite image cleanup** — removing a favorite now deletes the cached image (was orphaning files forever)
+- **Favorite image retry** — failed downloads retry up to 3 times with exponential backoff
+- **Favorite offline repair** — repairs now run 4 concurrent downloads instead of sequential
+- **DB corruption recovery** — added `fallbackToDestructiveMigrationOnDowngrade` so app recovers on version downgrade instead of crashing
+- **Empty pool rotation** — "Rotate Now" now shows failure when no candidates exist instead of false success
+- **Glass blur performance** — replaced 11×11 single-pass blur (121 texture fetches) with separable 2-pass Gaussian (~22 fetches)
+- **Glass normalize NaN** — shader guards against zero-vector normalize to prevent NaN propagation
+- **Glass shadow SDF** — hoisted redundant SDF computation to caller (saves ~50% of shadow SDF evaluations)
+- **API < 33 fallback blur** — blur effect now works on Android 12–12L via Compose `blur()` modifier
+
+### Changed
+- **WallpaperCard @Stable** — grid items skip unnecessary recompositions
+- **Grid prefetch with Size** — full-res prefetch now requests correct dimensions (was fetching unbounded)
+- **Pagination spinner a11y** — "Loading more wallpapers" contentDescription for TalkBack
+- **ShimmerGrid a11y** — "Loading wallpapers" semantic container for TalkBack
+- **Uploader a11y** — avatar and deleted-account icons now have contentDescriptions
+- **Crop dialog a11y** — error close icon and success checkmark now have contentDescriptions
+- **CollectionsViewModel** — delete() now logs failures instead of silently swallowing exceptions
+- **DetailScreen download** — checks WallpaperDownload return value and shows error snackbar on failure
+- **WallpaperSharing.openInBrowser** — returns Boolean so callers can show feedback
+- **Favorites grid** — shows both downloaded AND favorites-cached wallpapers in grid badges
+
+### Removed
+- `itemCacheCount` parameter (not available in current Compose version)
+
 ## [2.1.6] - 2026-09-13
 
 ### Fixed

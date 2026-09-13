@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +51,7 @@ import com.wallkraft.app.domain.model.Wallpaper
  * [androidx.compose.animation.SharedTransitionScope] and applied to the image
  * so it can participate in the container-transform shared element transition.
  */
+@Stable
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WallpaperCard(
@@ -126,6 +128,7 @@ fun WallpaperCard(
             // per-tile animations. (The singleton loader crossfades by default,
             // so pass a dedicated no-crossfade loader.)
             imageLoader = gridImageLoader,
+            // TODO: Add shimmer placeholder per-tile (requires shimmer library dependency)
             placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier

@@ -186,6 +186,7 @@
     <!-- Detail -->
     <string name="back">Back</string>
     <string name="downloading">Downloading %1$s…</string>
+    <string name="download_failed" translatable="false">Couldn\'t start download</string>
     <string name="wallpaper_set">Wallpaper set</string>
     <string name="wallpaper_set_failed">Couldn\'t set wallpaper</string>
     <string name="wallpaper_load_failed">Couldn\'t load this wallpaper</string>

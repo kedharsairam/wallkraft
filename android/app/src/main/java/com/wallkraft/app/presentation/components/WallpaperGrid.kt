@@ -31,6 +31,8 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,6 +91,9 @@ fun WallpaperGrid(
     val gridState = state
 
     val context = LocalContext.current
+    val metrics = context.resources.displayMetrics
+    val screenWidth = metrics.widthPixels
+    val screenHeight = metrics.heightPixels
     val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
     val reduceMotion = com.wallkraft.app.core.utils.rememberReduceMotion()
 
@@ -162,7 +167,7 @@ fun WallpaperGrid(
                             val fullUrl = wallpaper.path ?: wallpaper.thumbnail
                             if (fullUrl != null) {
                                 gridImageLoader.enqueue(
-                                    ImageRequest.Builder(context).data(fullUrl).build(),
+                                    ImageRequest.Builder(context).data(fullUrl).size(screenWidth, screenHeight).build(),
                                 )
                             }
                         }
@@ -191,7 +196,11 @@ fun GridAppendFooter() {
             .fillMaxWidth()
             .height(KraftSpacing.Spacing48),
     ) {
-        CircularProgressIndicator(modifier = Modifier.size(KraftIconSize.Large))
+        CircularProgressIndicator(
+            modifier = Modifier
+                .size(KraftIconSize.Large)
+                .semantics { contentDescription = "Loading more wallpapers" },
+        )
     }
 }
 

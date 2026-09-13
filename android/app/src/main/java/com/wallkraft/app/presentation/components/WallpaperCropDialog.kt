@@ -233,7 +233,7 @@ fun WallpaperCropDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.crop_load_failed),
                                 tint = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = KraftConstants.ErrorIconAlpha),
                                 modifier = Modifier.size(KraftIconSize.XLarge),
                             )
@@ -529,7 +529,7 @@ fun WallpaperCropDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.wallpaper_set),
                             tint = Color.White,
                             modifier = Modifier.size(KraftIconSize.XLarge * 1.8f),
                         )

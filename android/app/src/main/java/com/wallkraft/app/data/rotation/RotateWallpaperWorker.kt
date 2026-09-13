@@ -66,7 +66,7 @@ class RotateWallpaperWorker(
         val candidates = RotationPicker.candidates(pool).filter { wallpaper ->
             favoriteImageStore.fileFor(wallpaper.id) != null
         }
-        if (candidates.isEmpty()) return Result.success()
+        if (candidates.isEmpty()) return Result.failure()
 
         val metrics = applicationContext.resources.displayMetrics
         val screen = RotationRender.Screen(metrics.widthPixels, metrics.heightPixels)
