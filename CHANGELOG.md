@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-09-12
+
+### Changed
+- Settings Data section copy — Data Saver and Cache descriptions rewritten concise, benefit-first (Apple-grade copy).
+
 ## [2.1.1] - 2026-09-12
 
 ### Fixed

@@ -83,7 +83,7 @@
     <string name="licenses_url" translatable="false">https://github.com/kedharsairam/wallkraft/blob/master/LICENSE</string>
     <string name="github_avatar_url" translatable="false">https://avatars.githubusercontent.com/u/180870058?v=4</string>
     <string name="data_saver_title">Data saver</string>
-    <string name="data_saver_description">Load full-resolution images only when you zoom, set, or share. Saves mobile data.</string>
+    <string name="data_saver_description">Use less mobile data. Full resolution loads only when you zoom, set, or share.</string>
     <string name="loading_full_resolution">Loading full resolution…</string>
     <string name="default_categories">Default categories</string>
     <string name="default_purity">Default purity</string>
@@ -94,7 +94,7 @@
     <string name="theme_dark">Dark</string>
     <string name="version_format">WallKraft v%1$s</string>
     <string name="cache_title">Cache</string>
-    <string name="cache_description">Temporary files from browsing. Clearing does not remove favorites.</string>
+    <string name="cache_description">Temporary browsing files. Clearing frees space — favorites stay.</string>
     <string name="clear_cache">Clear cache</string>
     <string name="cache_cleared">Cache cleared</string>
     <string name="favorites_storage_format">%1$d wallpapers • %2$s</string>
