@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.IntSize
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.size.Size
 import com.wallkraft.app.core.design.KraftConstants
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
