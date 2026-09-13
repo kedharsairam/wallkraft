@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-09-13
+
+### Fixed
+- **Crop dialog crash on large wallpapers** — `decodeBounded()` inSampleSize loop checked `outWidth / (sample * 2)` instead of `outWidth / sample`, causing full-res decode (~200MB bitmap) for images between 4096–8192px. Fixed condition now correctly downsamples before Canvas draw limit.
+
 ## [2.1.3] - 2026-09-13
 
 ### Changed
