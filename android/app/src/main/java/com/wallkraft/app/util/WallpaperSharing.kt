@@ -25,14 +25,16 @@ object WallpaperSharing {
 
     private const val TAG = "WallpaperSharing"
 
-    fun openInBrowser(context: Context, wallpaper: Wallpaper) {
-        try {
+    fun openInBrowser(context: Context, wallpaper: Wallpaper): Boolean {
+        return try {
             context.startActivity(
                 Intent(Intent.ACTION_VIEW, wallpaper.url.toUri())
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
+            true
         } catch (e: Exception) {
             Log.w(TAG, "No browser available to open ${wallpaper.url}", e)
+            false
         }
     }
 

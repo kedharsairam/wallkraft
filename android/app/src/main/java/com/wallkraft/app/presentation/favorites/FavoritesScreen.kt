@@ -419,7 +419,7 @@ private fun FavoritesScreenImpl(
                 },
                 onLoadMore = {},
                 state = gridState,
-                downloadedIds = downloadedFiles.keys,
+                downloadedIds = downloadedFiles.keys + offlineIds,
                 prefetchFullRes = prefetchFullRes,
                 onLongClick = { wallpaper ->
                     selectedIds = setOf(wallpaper.id)

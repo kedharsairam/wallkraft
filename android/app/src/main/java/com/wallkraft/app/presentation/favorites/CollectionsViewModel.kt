@@ -38,7 +38,15 @@ class CollectionsViewModel @Inject constructor(
     }
 
     fun delete(id: Long) {
-        viewModelScope.launch { collectionsRepository.delete(id) }
+        viewModelScope.launch {
+            try {
+                collectionsRepository.delete(id)
+            } catch (e: Exception) {
+                if (com.wallkraft.app.BuildConfig.DEBUG) {
+                    android.util.Log.e("CollectionsViewModel", "Failed to delete collection $id", e)
+                }
+            }
+        }
     }
 
     /** Undo for delete: recreates the collection and re-adds surviving members. */

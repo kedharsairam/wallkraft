@@ -163,11 +163,17 @@ private fun DetailScreenImpl(
                         },
                         onDownload = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            WallpaperDownload.download(context, wallpaper)
+                            val downloadId = WallpaperDownload.download(context, wallpaper)
                             scope.launch {
-                                snackbarHostState.showSnackbar(
-                                    context.getString(R.string.downloading, wallpaper.resolution),
-                                )
+                                if (downloadId >= 0) {
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(R.string.downloading, wallpaper.resolution),
+                                    )
+                                } else {
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(R.string.download_failed),
+                                    )
+                                }
                             }
                         },
                         onSetWallpaper = { setWallpaperTarget = wallpaper },

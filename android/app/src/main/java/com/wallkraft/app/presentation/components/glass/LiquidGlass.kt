@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -277,6 +278,14 @@ private class GlassScopeFallbackImpl(private val density: Density) : GlassScope 
                     modifier
                 }
             }
+            // Apply blur if available (API 31+)
+            .let { modifier ->
+                if (blur > 0f && android.os.Build.VERSION.SDK_INT >= 31) {
+                    modifier.blur((blur * 20f).dp)
+                } else {
+                    modifier
+                }
+            }
             // Apply scale effect (limited simulation)
             .let { modifier ->
                 if (scale > 0f) {
@@ -394,9 +403,7 @@ private fun GlassContainerWithShader(
     val density = LocalDensity.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember(glassScope.updateCounter) {
-        RuntimeShader(GLASS_DISPLACEMENT_SHADER)
-    }
+    val shader = remember { RuntimeShader(GLASS_DISPLACEMENT_SHADER) }
 
     SideEffect {
         glassScope.cleanupInactiveElements()
@@ -442,9 +449,7 @@ private fun GlassContainerWithShaderHidden(
     val density = LocalDensity.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember(glassScope.updateCounter) {
-        RuntimeShader(GLASS_DISPLACEMENT_SHADER)
-    }
+    val shader = remember { RuntimeShader(GLASS_DISPLACEMENT_SHADER) }
 
     SideEffect {
         if (hidden) {
@@ -564,7 +569,7 @@ private val GLASS_DISPLACEMENT_SHADER = """
         float pullStrength = warpIntensity * 0.8;
         float targetScale = max(0.1, 1.0 - pullStrength);
         float2 pulledCoord = localCoord * targetScale;
-        float2 centerDir = normalize(localCoord);
+        float2 centerDir = length(localCoord) > 0.001 ? normalize(localCoord) : float2(0.0, 1.0);
         float2 radialOffset = centerDir * (warpIntensity * 0.03 * length(localCoord));
         return pulledCoord + radialOffset;
     }
@@ -587,13 +592,12 @@ private val GLASS_DISPLACEMENT_SHADER = """
         return center + (fragCoord - center) / finalScale;
     }
 
-    float getShadowIntensity(float2 localCoord, float2 halfSize, float cornerRadius, float elevation) {
+    float getShadowIntensity(float2 localCoord, float2 halfSize, float cornerRadius, float elevation, float originalSdf) {
         if (elevation <= 0.0) return 0.0;
         float shadowOffset = elevation * 0.5;
         float shadowBlur = elevation * 2.0;
         float2 shadowCoord = localCoord - float2(0.0, shadowOffset);
         float shadowSdf = sdfRoundedRect(shadowCoord, halfSize, cornerRadius);
-        float originalSdf = sdfRoundedRect(localCoord, halfSize, cornerRadius);
         if (originalSdf <= 0.0 || shadowSdf > shadowBlur) return 0.0;
         return (1.0 - shadowSdf / shadowBlur) * 0.15;
     }
@@ -636,7 +640,7 @@ private val GLASS_DISPLACEMENT_SHADER = """
                 finalCoord = applyLensEffect(finalCoord, center, glassSizes[i], cornerRadius,
                                            glassScales[i], centerDistortions[i]);
             }
-            shadowAlpha = max(shadowAlpha, getShadowIntensity(localCoord, halfSize, cornerRadius, elevations[i]));
+            shadowAlpha = max(shadowAlpha, getShadowIntensity(localCoord, halfSize, cornerRadius, elevations[i], sdf));
             rimHighlight = max(rimHighlight, getRimHighlight(localCoord, halfSize, cornerRadius));
             if (sdf > 0.0 && sdf < 4.0 && surfaceNormal.x == 0.0 && surfaceNormal.y == 0.0) {
                 float epsilon = 1.0;
@@ -663,19 +667,29 @@ private val GLASS_DISPLACEMENT_SHADER = """
         }
         float4 color = contents.eval(finalCoord);
         if (blurRadius > 0.0) {
-            float4 blurredColor = float4(0.0);
-            float totalWeight = 0.0;
             float invRadius = 1.0 / max(blurRadius, 1.0);
+            // Horizontal pass
+            float4 hBlurred = float4(0.0);
+            float hWeight = 0.0;
             for (int dx = -5; dx <= 5; dx++) {
-                for (int dy = -5; dy <= 5; dy++) {
-                    float2 offset = float2(float(dx), float(dy)) * blurRadius * 0.4;
-                    float distance = length(offset) * invRadius;
-                    float weight = exp(-distance * distance * 2.0);
-                    blurredColor += contents.eval(finalCoord + offset) * weight;
-                    totalWeight += weight;
-                }
+                float offset = float(dx) * blurRadius * 0.4;
+                float dist = abs(offset) * invRadius;
+                float w = exp(-dist * dist * 2.0);
+                hBlurred += contents.eval(finalCoord + float2(offset, 0.0)) * w;
+                hWeight += w;
             }
-            color = blurredColor / totalWeight;
+            hBlurred /= hWeight;
+            // Vertical pass
+            float4 vBlurred = float4(0.0);
+            float vWeight = 0.0;
+            for (int dy = -5; dy <= 5; dy++) {
+                float offset = float(dy) * blurRadius * 0.4;
+                float dist = abs(offset) * invRadius;
+                float w = exp(-dist * dist * 2.0);
+                vBlurred += contents.eval(finalCoord + float2(0.0, offset)) * w;
+                vWeight += w;
+            }
+            color = vBlurred / vWeight;
         }
         if (tintColor.a > 0.0) {
             color.rgb = mix(color.rgb, tintColor.rgb, tintColor.a * 0.9);

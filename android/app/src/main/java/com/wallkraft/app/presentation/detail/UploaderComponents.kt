@@ -155,7 +155,7 @@ internal fun UploaderAvatar(
         if (loadAvatar && avatarUrl.isNotBlank()) {
             SubcomposeAsyncImage(
                 model = avatarUrl,
-                contentDescription = null,
+                contentDescription = "$name avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
                 loading = { InitialLetter(initial) },
@@ -199,7 +199,7 @@ internal fun DeletedUploaderRow() {
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
-                contentDescription = null,
+                contentDescription = "Deleted account",
                 tint = Color.White.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
                 modifier = Modifier.size(KraftIconSize.Small),
             )

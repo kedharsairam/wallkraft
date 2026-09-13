@@ -1,6 +1,12 @@
 package com.wallkraft.app.data.cache
 
 import com.wallkraft.app.domain.model.Wallpaper
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 
 /**
  * Re-validates and restores offline copies of favorited wallpapers.
@@ -24,18 +30,33 @@ class FavoriteOfflineRepair(private val store: OfflineImageStore) {
 
     /**
      * Restores every wallpaper in [wallpapers], reporting progress.
+     * Runs up to 4 downloads concurrently for better throughput.
      * Runs on the caller's thread (suspend); offload with Dispatchers.IO.
      */
     suspend fun repairAll(
         wallpapers: List<Wallpaper>,
         onProgress: suspend (done: Int, total: Int) -> Unit = { _, _ -> },
     ): RepairResult {
-        var restored = 0
-        val failed = mutableListOf<String>()
-        wallpapers.forEachIndexed { index, wallpaper ->
-            if (store.save(wallpaper)) restored++ else failed += wallpaper.id
-            onProgress(index + 1, wallpapers.size)
+        val total = wallpapers.size
+        var completed = 0
+        var restoredCount = 0
+        val failed = java.util.concurrent.ConcurrentLinkedQueue<String>()
+        val mutex = Mutex()
+        val semaphore = Semaphore(4)
+        coroutineScope {
+            wallpapers.map { wallpaper ->
+                async {
+                    semaphore.withPermit {
+                        val success = store.save(wallpaper)
+                        mutex.withLock {
+                            completed++
+                            if (success) restoredCount++ else failed.add(wallpaper.id)
+                            onProgress(completed, total)
+                        }
+                    }
+                }
+            }.forEach { it.await() }
         }
-        return RepairResult(restored, failed)
+        return RepairResult(restoredCount, failed.toList())
     }
 }
