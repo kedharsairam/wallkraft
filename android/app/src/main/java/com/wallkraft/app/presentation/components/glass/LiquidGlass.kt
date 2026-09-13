@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -145,7 +147,7 @@ private class GlassBoxScopeImpl(
 private class GlassScopeImpl(private val density: Density) : GlassScope {
 
     var updateCounter by mutableStateOf(0)
-    val elements: MutableList<GlassElement> = mutableListOf()
+    val elements: MutableList<GlassElement> = mutableStateListOf()
     private val activeElements = mutableSetOf<String>()
 
     fun markElementAsActive(elementId: String) {
@@ -401,9 +403,10 @@ private fun GlassContainerWithShader(
     glassContent: @Composable GlassBoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
+    val context = LocalContext.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember { RuntimeShader(GLASS_DISPLACEMENT_SHADER) }
+    val shader = remember { RuntimeShader(getGlassShader(context)) }
 
     SideEffect {
         glassScope.cleanupInactiveElements()
@@ -419,7 +422,8 @@ private fun GlassContainerWithShader(
         modifier = modifier
             .graphicsLayer {
                 shader.setFloatUniform("resolution", size.width, size.height)
-                val a = glassScope.updateCounter
+                // Read updateCounter to trigger recomposition when elements change
+                glassScope.updateCounter
 
                 val elements = glassScope.elements
                 val effectiveCount = minOf(elements.size, 10)
@@ -447,9 +451,10 @@ private fun GlassContainerWithShaderHidden(
     glassContent: @Composable GlassBoxScope.() -> Unit,
 ) {
     val density = LocalDensity.current
+    val context = LocalContext.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember { RuntimeShader(GLASS_DISPLACEMENT_SHADER) }
+    val shader = remember { RuntimeShader(getGlassShader(context)) }
 
     SideEffect {
         if (hidden) {
@@ -481,7 +486,8 @@ private fun GlassContainerWithShaderHidden(
         modifier = modifier
             .graphicsLayer {
                 shader.setFloatUniform("resolution", size.width, size.height)
-                val a = glassScope.updateCounter
+                // Read updateCounter to trigger recomposition when elements change
+                glassScope.updateCounter
 
                 // Force 0 elements when hidden, even if cleanup is delayed
                 val effectiveCount = if (hidden) 0 else minOf(glassScope.elements.size, 10)
@@ -524,188 +530,11 @@ private fun GlassContainerFallback(
     }
 }
 
-// AGSL glass shader: blur, lens magnification, edge warp, specular rim with
-// reflection sampling, tint, edge darkness, elevation shadow.
-private val GLASS_DISPLACEMENT_SHADER = """
-    uniform float2 resolution;
-    uniform shader contents;
-    uniform int elementsCount;
-    uniform float2 glassPositions[10];
-    uniform float2 glassSizes[10];
-    uniform float glassScales[10];
-    uniform float cornerRadii[10];
-    uniform float elevations[10];
-    uniform float centerDistortions[10];
-    uniform float glassTints[40]; // 10 elements * 4 components (r,g,b,a)
-    uniform float glassDarkness[10];
-    uniform float glassWarpEdges[10];
-    uniform float glassBlurs[10];
+@Volatile
+private var cachedGlassShader: String? = null
 
-    float sdfRoundedRect(float2 p, float2 halfSize, float radius) {
-        float2 d = abs(p) - halfSize + radius;
-        return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - radius;
-    }
-
-    float getWarpRegion(float2 localCoord, float2 halfSize, float cornerRadius, float warpEdges) {
-        if (warpEdges <= 0.0) return 0.0;
-        float outerSdf = sdfRoundedRect(localCoord, halfSize, cornerRadius);
-        if (outerSdf >= 0.0) return 0.0;
-        float inset = warpEdges * min(halfSize.x, halfSize.y) * 0.5;
-        float2 innerSize = max(halfSize - inset, 0.1);
-        float innerRadius = max(cornerRadius * min(innerSize.x / halfSize.x, innerSize.y / halfSize.y), 0.0);
-        float innerSdf = sdfRoundedRect(localCoord, innerSize, innerRadius);
-        return step(0.0, innerSdf);
-    }
-
-    float2 applyWarpDistortion(float2 localCoord, float2 halfSize, float cornerRadius, float warpEdges) {
-        if (warpEdges <= 0.0) return localCoord;
-        float inset = warpEdges * min(halfSize.x, halfSize.y) * 0.5;
-        float2 innerSize = max(halfSize - inset, 0.1);
-        float innerRadius = max(cornerRadius * min(innerSize.x / halfSize.x, innerSize.y / halfSize.y), 0.0);
-        float innerSdf = sdfRoundedRect(localCoord, innerSize, innerRadius);
-        if (innerSdf <= 0.0) return localCoord;
-        float normalizedDist = clamp(innerSdf / inset, 0.0, 1.0);
-        float warpIntensity = normalizedDist * normalizedDist * warpEdges;
-        float pullStrength = warpIntensity * 0.8;
-        float targetScale = max(0.1, 1.0 - pullStrength);
-        float2 pulledCoord = localCoord * targetScale;
-        float2 centerDir = length(localCoord) > 0.001 ? normalize(localCoord) : float2(0.0, 1.0);
-        float2 radialOffset = centerDir * (warpIntensity * 0.03 * length(localCoord));
-        return pulledCoord + radialOffset;
-    }
-
-    float2 applyLensEffect(float2 fragCoord, float2 center, float2 size, float cornerRadius, float scale, float centerDistortion) {
-        if (scale <= 0.0) return fragCoord;
-        float2 localCoord = fragCoord - center;
-        float2 halfSize = size * 0.5;
-        float sdf = sdfRoundedRect(localCoord, halfSize, cornerRadius);
-        if (sdf >= 0.0) return fragCoord;
-        float2 rel = localCoord / halfSize;
-        float normalizedDist = length(rel) / 1.414;
-        float baseScale = 1.0 + scale;
-        float distortionFactor = 1.0;
-        if (centerDistortion > 0.0) {
-            float profile = 1.0 - smoothstep(0.0, 1.0, normalizedDist);
-            distortionFactor = 1.0 + centerDistortion * profile;
-        }
-        float finalScale = baseScale * distortionFactor;
-        return center + (fragCoord - center) / finalScale;
-    }
-
-    float getShadowIntensity(float2 localCoord, float2 halfSize, float cornerRadius, float elevation, float originalSdf) {
-        if (elevation <= 0.0) return 0.0;
-        float shadowOffset = elevation * 0.5;
-        float shadowBlur = elevation * 2.0;
-        float2 shadowCoord = localCoord - float2(0.0, shadowOffset);
-        float shadowSdf = sdfRoundedRect(shadowCoord, halfSize, cornerRadius);
-        if (originalSdf <= 0.0 || shadowSdf > shadowBlur) return 0.0;
-        return (1.0 - shadowSdf / shadowBlur) * 0.15;
-    }
-
-    float getRimHighlight(float2 localCoord, float2 halfSize, float cornerRadius) {
-        float sdf = sdfRoundedRect(localCoord, halfSize, cornerRadius);
-        float rimWidth = 5.0;
-        if (sdf <= 0.0 || sdf >= rimWidth) return 0.0;
-        float intensity = (rimWidth - sdf) / rimWidth;
-        float verticalPos = localCoord.y / halfSize.y;
-        float lightingFactor = mix(1.2, 0.7, (verticalPos + 1.0) * 0.5);
-        return intensity * 0.8 * lightingFactor;
-    }
-
-    float4 main(float2 fragCoord) {
-        float2 finalCoord = fragCoord;
-        float shadowAlpha = 0.0;
-        float rimHighlight = 0.0;
-        float4 tintColor = float4(0.0);
-        float darknessEffect = 0.0;
-        float blurRadius = 0.0;
-        float2 surfaceNormal = float2(0.0);
-        for (int i = 0; i < 10; i++) {
-            if (i >= elementsCount) break;
-            float2 center = glassPositions[i] + glassSizes[i] * 0.5;
-            float2 localCoord = fragCoord - center;
-            float2 halfSize = glassSizes[i] * 0.5;
-            float cornerRadius = cornerRadii[i];
-            float sdf = sdfRoundedRect(localCoord, halfSize, cornerRadius);
-            if (sdf < 0.0 && glassBlurs[i] > 0.0) {
-                blurRadius = max(blurRadius, glassBlurs[i] * 20.0);
-            }
-            float warpRegion = getWarpRegion(localCoord, halfSize, cornerRadius, glassWarpEdges[i]);
-            if (warpRegion > 0.0) {
-                float2 warpedCoord = applyWarpDistortion(localCoord, halfSize, cornerRadius, glassWarpEdges[i]);
-                float2 warpedFragCoord = center + warpedCoord;
-                finalCoord = applyLensEffect(warpedFragCoord, glassPositions[i] + glassSizes[i] * 0.5,
-                                           glassSizes[i], cornerRadius, glassScales[i], centerDistortions[i]);
-            } else {
-                finalCoord = applyLensEffect(finalCoord, center, glassSizes[i], cornerRadius,
-                                           glassScales[i], centerDistortions[i]);
-            }
-            shadowAlpha = max(shadowAlpha, getShadowIntensity(localCoord, halfSize, cornerRadius, elevations[i], sdf));
-            rimHighlight = max(rimHighlight, getRimHighlight(localCoord, halfSize, cornerRadius));
-            if (sdf > 0.0 && sdf < 4.0 && surfaceNormal.x == 0.0 && surfaceNormal.y == 0.0) {
-                float epsilon = 1.0;
-                float sdfX = sdfRoundedRect(localCoord + float2(epsilon, 0.0), halfSize, cornerRadius);
-                float sdfY = sdfRoundedRect(localCoord + float2(0.0, epsilon), halfSize, cornerRadius);
-                surfaceNormal = normalize(float2(sdfX - sdf, sdfY - sdf));
-            }
-            if (sdf < 0.0) {
-                float4 elementTint = float4(glassTints[i * 4], glassTints[i * 4 + 1],
-                                          glassTints[i * 4 + 2], glassTints[i * 4 + 3]);
-                if (elementTint.a > 0.0) {
-                    tintColor = mix(tintColor, elementTint, elementTint.a);
-                }
-                float currentDarkness = glassDarkness[i];
-                if (currentDarkness > 0.0) {
-                    float maxRadius = min(halfSize.x, halfSize.y) * 0.8;
-                    float distanceFromEdge = abs(sdf);
-                    if (distanceFromEdge < maxRadius) {
-                        float intensity = smoothstep(0.0, 1.0, (maxRadius - distanceFromEdge) / maxRadius);
-                        darknessEffect = max(darknessEffect, currentDarkness * intensity);
-                    }
-                }
-            }
-        }
-        float4 color = contents.eval(finalCoord);
-        if (blurRadius > 0.0) {
-            float invRadius = 1.0 / max(blurRadius, 1.0);
-            // Horizontal pass
-            float4 hBlurred = float4(0.0);
-            float hWeight = 0.0;
-            for (int dx = -5; dx <= 5; dx++) {
-                float offset = float(dx) * blurRadius * 0.4;
-                float dist = abs(offset) * invRadius;
-                float w = exp(-dist * dist * 2.0);
-                hBlurred += contents.eval(finalCoord + float2(offset, 0.0)) * w;
-                hWeight += w;
-            }
-            hBlurred /= hWeight;
-            // Vertical pass
-            float4 vBlurred = float4(0.0);
-            float vWeight = 0.0;
-            for (int dy = -5; dy <= 5; dy++) {
-                float offset = float(dy) * blurRadius * 0.4;
-                float dist = abs(offset) * invRadius;
-                float w = exp(-dist * dist * 2.0);
-                vBlurred += contents.eval(finalCoord + float2(0.0, offset)) * w;
-                vWeight += w;
-            }
-            color = vBlurred / vWeight;
-        }
-        if (tintColor.a > 0.0) {
-            color.rgb = mix(color.rgb, tintColor.rgb, tintColor.a * 0.9);
-        }
-        if (darknessEffect > 0.0) {
-            color.rgb = mix(color.rgb, float3(0.0), darknessEffect * 0.5);
-        }
-        if (rimHighlight > 0.0) {
-            float2 reflectionOffset = surfaceNormal * 24.0;
-            float4 reflectedColor = contents.eval(fragCoord + reflectionOffset);
-            reflectedColor.rgb = max(reflectedColor.rgb * 1.8 + 0.35, 0.15);
-            color = mix(color, reflectedColor, rimHighlight);
-        }
-        if (shadowAlpha > 0.0) {
-            color.rgb = mix(color.rgb, float3(0.0), shadowAlpha);
-        }
-        return color;
-    }
-""".trimIndent()
+private fun getGlassShader(context: android.content.Context): String {
+    return cachedGlassShader ?: context.assets.open("shaders/glass_displacement.agsl")
+        .bufferedReader().use { it.readText() }
+        .also { cachedGlassShader = it }
+}

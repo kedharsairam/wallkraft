@@ -68,6 +68,7 @@ import com.wallkraft.app.util.DownloadedFiles
 @Composable
 fun FavoritesScreen(
     onOpenWallpaper: (Wallpaper) -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
@@ -84,6 +85,7 @@ fun FavoritesScreen(
         collectionsRepository = viewModel.collectionsRepository,
         favoriteImageStore = viewModel.favoriteImageStore,
         onOpenWallpaper = onOpenWallpaper,
+        onNavigateToBrowse = onNavigateToBrowse,
         gridState = gridState,
         navBarPadding = navBarPadding,
         topInset = topInset,
@@ -103,6 +105,7 @@ private fun FavoritesScreenImpl(
     collectionsRepository: CollectionsRepository,
     favoriteImageStore: OfflineImageStore,
     onOpenWallpaper: (Wallpaper) -> Unit,
+    onNavigateToBrowse: () -> Unit = {},
     gridState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState,
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
@@ -321,6 +324,14 @@ private fun FavoritesScreenImpl(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 ) {
+                    if (collections.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_collections_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12),
+                        )
+                    }
                     CollectionStrip(
                         collections = collections,
                         covers = covers,
@@ -340,6 +351,8 @@ private fun FavoritesScreenImpl(
                             title = stringResource(R.string.no_favorites_title),
                             message = stringResource(R.string.no_favorites_message),
                             icon = Icons.Outlined.FavoriteBorder,
+                            actionLabel = stringResource(R.string.browse_wallpapers),
+                            onAction = onNavigateToBrowse,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(bottom = KraftSpacing.GlassBarReserve),

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-09-14
+
+### Added
+- **Empty favorites state** — shows heart icon, "No favorites yet" message, and "Browse wallpapers" CTA when list is empty
+- **Empty search state** — "No results found" with hint to adjust keywords or filters
+- **Network error banner** — inline error banner with retry button instead of generic snackbar
+- **Empty collections hint** — "Create collections to organize your favorites" when no collections exist
+- **GLSL shader extraction** — shader moved from inline Kotlin string to `assets/shaders/glass_displacement.agsl` with cached loading
+- **CI unit tests** — GitHub Actions now runs `testDebugUnitTest` before lint and build
+
+### Fixed
+- **LiquidGlass thread safety** — `MutableList` replaced with `mutableStateListOf()` (Compose snapshot-state backed)
+- **RotateWallpaperWorker optimization** — new `observeWallpapers()` method avoids mapping full Favorite objects
+- **Color filter accessibility** — 2-letter text labels below each color dot for sighted users
+- **Search suggestions hierarchy** — "Recent" (clock icon, muted) vs "Trending" (trending icon, bold) section headers
+- **Test compilation** — FakeFavoritesRepository fakes now implement `observeWallpapers()`
+
 ## [2.3.0] - 2026-09-14
 
 ### Fixed

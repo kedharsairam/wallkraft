@@ -241,6 +241,11 @@
     <!-- Error / empty states -->
     <string name="error_title">Something went wrong</string>
     <string name="error_retry">Try again</string>
+    <string name="browse_wallpapers" translatable="false">Browse wallpapers</string>
+    <string name="no_results_found" translatable="false">No results found</string>
+    <string name="no_results_search_hint" translatable="false">Try different keywords or adjust your filters.</string>
+    <string name="no_collections_hint" translatable="false">Create collections to organize your favorites</string>
+    <string name="network_error_message" translatable="false">Something went wrong. Check your connection.</string>
     <string name="error_rate_limited">Rate limit reached. Please wait a moment and try again.</string>
     <string name="error_network">Something went wrong. Check your connection.</string>
     <string name="error_generic">Something went wrong.</string>

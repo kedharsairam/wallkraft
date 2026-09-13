@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
@@ -629,10 +630,21 @@ fun SearchFilterBar(
                     if (history.isNotEmpty()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            FilterSectionLabel(stringResource(R.string.search_recent))
+                            Icon(
+                                imageVector = Icons.Filled.History,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(KraftIconSize.Small),
+                            )
+                            Text(
+                                text = stringResource(R.string.search_recent),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
                             TextButton(onClick = onClearHistory) {
                                 Text(
                                     text = stringResource(R.string.search_clear_history),
@@ -649,6 +661,27 @@ fun SearchFilterBar(
                         }
                     }
                 } else {
+                    if (typedMatches.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing4),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.TrendingUp,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(KraftIconSize.Small),
+                            )
+                            Text(
+                                text = stringResource(R.string.search_trending),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                     typedMatches.forEach { match ->
                         SuggestionRow(text = match, icon = null, onClick = { selectSuggestion(match) })
                     }

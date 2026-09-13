@@ -21,6 +21,11 @@ class FavoritesRepositoryImpl(
             entities.map { Favorite(it.toWallpaper(json), it.addedAt) }
         }
 
+    override fun observeWallpapers(): Flow<List<Wallpaper>> =
+        dao.observeAll().map { entities ->
+            entities.map { it.toWallpaper(json) }
+        }
+
     override suspend fun isFavorite(id: String): Boolean = dao.exists(id)
 
     override suspend fun add(wallpaper: Wallpaper) {

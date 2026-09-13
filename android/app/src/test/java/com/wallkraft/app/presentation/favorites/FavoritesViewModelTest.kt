@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -138,6 +139,7 @@ class FavoritesViewModelTest {
         }
 
         override fun observeAll(): Flow<List<Favorite>> = _favorites
+        override fun observeWallpapers(): Flow<List<Wallpaper>> = _favorites.map { favs -> favs.map { it.wallpaper } }
         override suspend fun isFavorite(id: String): Boolean = id in addedIds
         override suspend fun add(wallpaper: Wallpaper) {
             addedIds.add(wallpaper.id)
