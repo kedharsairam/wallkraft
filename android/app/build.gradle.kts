@@ -22,6 +22,10 @@ android {
     namespace = "com.wallkraft.app"
     compileSdk = 36
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     defaultConfig {
         applicationId = "com.wallkraft.app"
         minSdk = 26

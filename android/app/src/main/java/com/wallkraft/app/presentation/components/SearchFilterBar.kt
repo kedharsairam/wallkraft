@@ -61,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.shadow
@@ -147,6 +148,7 @@ fun SearchFilterBar(
     var isFocused by remember { mutableStateOf(false) }
     var showFilters by remember { mutableStateOf(false) }
     var barHeight by remember { mutableIntStateOf(0) }
+    val reduceMotion = rememberReduceMotion()
 
     // Dismiss filter panel when search bar loses focus (e.g. user taps
     // outside on the browse area). Only fires on focus LOSS � not on focus
@@ -261,8 +263,8 @@ fun SearchFilterBar(
                 // -- Search button (appears on focus) --------------------
                 AnimatedVisibility(
                     visible = isFocused,
-                    enter = expandVertically(tween(200)) + fadeIn(tween(200)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+                    enter = if (reduceMotion) fadeIn(tween(200)) else expandVertically(tween(200)) + fadeIn(tween(200)),
+                    exit = if (reduceMotion) fadeOut(tween(200)) else shrinkVertically(tween(200)) + fadeOut(tween(200)),
                 ) {
                     Row {
                         Box(
@@ -329,8 +331,8 @@ fun SearchFilterBar(
         val panelMaxHeight = screenHeightDp - KraftSpacing.SearchBarHeight - 48.dp
         AnimatedVisibility(
             visible = showFilters,
-            enter = expandVertically(tween(250)) + fadeIn(tween(250)),
-            exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+            enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),
+            exit = if (reduceMotion) fadeOut(tween(200)) else shrinkVertically(tween(200)) + fadeOut(tween(200)),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = panelMaxHeight)
@@ -510,8 +512,8 @@ fun SearchFilterBar(
                 // -- Top range � only for Toplist (like wallhaven.cc) -----
                 AnimatedVisibility(
                     visible = draftFilters.sorting == Sorting.Toplist,
-                    enter = expandVertically(tween(250)) + fadeIn(tween(250)),
-                    exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+                    enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),
+                    exit = if (reduceMotion) fadeOut(tween(200)) else shrinkVertically(tween(200)) + fadeOut(tween(200)),
                 ) {
                     Column {
                         HorizontalDivider(
@@ -598,8 +600,8 @@ fun SearchFilterBar(
             visible = isFocused && !showFilters &&
                 (trimmedQuery.isNotEmpty() && typedMatches.isNotEmpty() ||
                     trimmedQuery.isEmpty() && history.isNotEmpty()),
-            enter = expandVertically(tween(250)) + fadeIn(tween(250)),
-            exit = shrinkVertically(tween(200)) + fadeOut(tween(200)),
+            enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),
+            exit = if (reduceMotion) fadeOut(tween(200)) else shrinkVertically(tween(200)) + fadeOut(tween(200)),
             modifier = Modifier
                 .fillMaxWidth()
                 // 40%-screen cap: history is a quick pick list, not a page.

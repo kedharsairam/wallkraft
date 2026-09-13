@@ -48,9 +48,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.ErrorState
 import com.wallkraft.app.presentation.components.GridAppendFooter
+import com.wallkraft.app.presentation.components.PaginationErrorFooter
 import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
@@ -137,6 +139,7 @@ private fun BrowseScreenImpl(
     val uiState by viewModel.uiState.collectAsState()
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
     val scope = rememberCoroutineScope()
+    val reduceMotion = rememberReduceMotion()
     LaunchedEffect(initialQuery, title) {
         searchState.query = title.ifBlank { uiState.filters.query }
         searchState.titleActive = title.isNotBlank()
@@ -236,9 +239,11 @@ private fun BrowseScreenImpl(
                         uiState.wallpapers.isEmpty() -> "empty"
                         else -> "grid"
                     }
+                    // Show pagination error snackbar when data exists but load-more failed
+                    val paginationError = uiState.error != null && uiState.wallpapers.isNotEmpty()
                     Crossfade(
                         targetState = stateKey,
-                        animationSpec = tween(durationMillis = 220),
+                        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 220),
                         label = "browseState",
                     ) { state ->
                         when (state) {
@@ -275,7 +280,13 @@ private fun BrowseScreenImpl(
                                 downloadedIds = downloadedIds,
                                 prefetchFullRes = prefetchFullRes,
                                 footer = {
-                                    if (uiState.isAppending) GridAppendFooter()
+                                    when {
+                                        uiState.isAppending -> GridAppendFooter()
+                                        paginationError -> PaginationErrorFooter(
+                                            message = uiState.error ?: "",
+                                            onRetry = viewModel::loadNextPage,
+                                        )
+                                    }
                                 },
                                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                     start = KraftSpacing.Spacing16,

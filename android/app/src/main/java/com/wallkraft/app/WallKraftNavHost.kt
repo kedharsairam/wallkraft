@@ -303,9 +303,21 @@ private fun WallKraftNavHostImpl(rotationStore: RotationStore) {
                         previewThumb = entry.arguments?.getString("thumb").orEmpty(),
                         previewPath = entry.arguments?.getString("path").orEmpty(),
                         onBack = { navController.popBackStack() },
-                        onTagClick = { tag -> navController.navigate(Routes.browse(tag)) },
+                        onTagClick = { tag ->
+                            navController.navigate(Routes.browse(tag)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                            }
+                        },
                         onUploaderClick = { username ->
-                            navController.navigate(Routes.browse("@$username", title = username))
+                            navController.navigate(Routes.browse("@$username", title = username)) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                            }
                         },
                         navBarPadding = 0.dp,
                         sharedTransitionScope = null,
@@ -534,13 +546,14 @@ private fun HigTabItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val reduceMotion = rememberReduceMotion()
     val tint = if (selected) MaterialTheme.colorScheme.primary else KraftColors.TextPrimary
     val haptic = LocalHapticFeedback.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
         targetValue = if (pressed) 0.9f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
+        animationSpec = if (reduceMotion) spring(dampingRatio = 1f, stiffness = 5000f) else spring(dampingRatio = 0.6f, stiffness = 500f),
         label = "tabPress",
     )
 

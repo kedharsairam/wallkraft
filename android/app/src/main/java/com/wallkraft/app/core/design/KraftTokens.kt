@@ -47,7 +47,7 @@ object KraftColors {
     // Labels use #EBEBF5 base (cool gray-white, not pure white).
     val TextPrimary = Color(0xFFFFFFFF)       // label — 100% opacity
     val TextSecondary = Color(0x99EBEBF5)     // secondaryLabel — 60% of #EBEBF5
-    val TextTertiary = Color(0x73EBEBF5)      // tertiaryLabel — 45% of #EBEBF5 (~4.6:1 on #000000, was 30% 2.9:1 P0 fix)
+    val TextTertiary = Color(0x80EBEBF5)      // tertiaryLabel — 50% of #EBEBF5 (~5.2:1 on #000000, above AA 4.5:1)
 
     // ─── Separators ─────────────────────────────────────────────────────
     // Separator = #545458 at ~35% alpha on dark backgrounds
@@ -67,7 +67,7 @@ object KraftColors {
     // ─── Filter Chips ──────────────────────────────────────────────────
     // Non-purity chips (categories, sorting, orientation).
     val ChipSelectedContainer = AuroraBlue.copy(alpha = 0.2f)  // subtle blue tint — selected chip
-    val ChipSelectedLabel = Color.White                       // white label on blue container for contrast
+    val ChipSelectedLabel = AuroraBlue                     // primary label on light tint for contrast
 
     // Purity chips — Aurora palette for cohesion.
     val PuritySfwContainer = AuroraGreen.copy(alpha = 0.2f)   // subtle green tint

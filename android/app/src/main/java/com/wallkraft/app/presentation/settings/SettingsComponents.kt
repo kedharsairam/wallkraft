@@ -2,6 +2,7 @@ package com.wallkraft.app.presentation.settings
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTypeScale
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import kotlin.math.roundToInt
 
 /**
@@ -97,10 +99,11 @@ fun AboutRow(title: String, subtitle: String? = null, trailing: @Composable (() 
 
 @Composable
 fun BuyMeACoffeeButton(onClick: () -> Unit) {
+    val reduceMotion = rememberReduceMotion()
     var pressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.95f else 1f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 400f),
         label = "bmcScale",
     )
     LaunchedEffect(pressed) {

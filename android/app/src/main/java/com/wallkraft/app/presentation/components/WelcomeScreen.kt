@@ -34,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
@@ -83,9 +85,19 @@ fun WelcomeScreen(onDone: () -> Unit) {
                     )
                 }
             }
+            val pageIndicatorDesc = stringResource(
+                R.string.welcome_page_indicator,
+                pagerState.currentPage + 1,
+                3,
+            )
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth().padding(vertical = KraftSpacing.Spacing16),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = KraftSpacing.Spacing16)
+                    .semantics {
+                        contentDescription = pageIndicatorDesc
+                    },
             ) {
                 repeat(3) { i ->
                     Box(

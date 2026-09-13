@@ -2,6 +2,7 @@ package com.wallkraft.app
 
 import android.app.Application
 import android.os.Process
+import android.util.Log
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -80,6 +81,8 @@ class WallKraftApplication : Application() {
                 if (!live) {
                     com.wallkraft.app.data.rotation.RotationScheduler.apply(this@WallKraftApplication, schedule)
                 }
+            }.onFailure { e ->
+                Log.e("WallKraftApplication", "Rotation schedule reconciliation failed", e)
             }
         }
     }

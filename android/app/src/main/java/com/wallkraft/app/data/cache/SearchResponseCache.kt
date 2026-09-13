@@ -23,30 +23,33 @@ import java.security.MessageDigest
  * always re-fetches the full wallpaper via `wallpaper(id)`, so a cached
  * tagless copy never shadows the full metadata.
  */
-class SearchResponseCache(
+open class SearchResponseCache(
     private val directory: File,
     private val json: Json,
 ) {
     private val ttlMillis = KraftConstants.SearchCacheTtlMs
 
     /** True when a fresh (within TTL) cached response exists. */
-    fun isFresh(filters: WallhavenFilters, page: Int): Boolean {
+    open fun isFresh(filters: WallhavenFilters, page: Int): Boolean {
         val file = fileFor(filters, page)
         return file.exists() && System.currentTimeMillis() - file.lastModified() < ttlMillis
     }
 
     /** Returns the cached response for this (filters, page), or null. */
-    suspend fun get(filters: WallhavenFilters, page: Int): WallpaperResponse? =
+    open suspend fun get(filters: WallhavenFilters, page: Int): WallpaperResponse? =
         withContext(Dispatchers.IO) {
             val file = fileFor(filters, page)
             if (!file.exists()) return@withContext null
             runCatching {
                 json.decodeFromString(WallpaperResponse.serializer(), file.readText())
-            }.getOrNull()
+            }.getOrElse { e ->
+                if (com.wallkraft.app.BuildConfig.DEBUG) Log.w("SearchResponseCache", "Failed to read cached response", e)
+                null
+            }
         }
 
     /** Stores a response for this (filters, page), evicting oldest entries. */
-    suspend fun put(filters: WallhavenFilters, page: Int, response: WallpaperResponse) =
+    open suspend fun put(filters: WallhavenFilters, page: Int, response: WallpaperResponse) =
         withContext(Dispatchers.IO) {
             runCatching {
                 directory.mkdirs()

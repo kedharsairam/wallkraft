@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.detail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -52,6 +53,7 @@ import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.util.formatCount
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /**
  * The bottom-panel content: drag handle, uploader row, stat pills, and tags.
@@ -79,6 +81,7 @@ internal fun DetailPanelContent(
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
     modifier: Modifier = Modifier,
 ) {
+    val reduceMotion = rememberReduceMotion()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -114,8 +117,10 @@ internal fun DetailPanelContent(
             label = "uploaderState",
             transitionSpec = {
                 ContentTransform(
-                    targetContentEnter = fadeIn(animationSpec = SharedElementSpringFloat),
-                    initialContentExit = fadeOut(animationSpec = SharedElementSpringFloat),
+                    targetContentEnter = if (reduceMotion) fadeIn(tween(0))
+                        else fadeIn(animationSpec = SharedElementSpringFloat),
+                    initialContentExit = if (reduceMotion) fadeOut(tween(0))
+                        else fadeOut(animationSpec = SharedElementSpringFloat),
                 )
             },
             modifier = Modifier,
@@ -144,8 +149,10 @@ internal fun DetailPanelContent(
         Spacer(Modifier.height(KraftSpacing.Spacing8))
         AnimatedVisibility(
             visible = pullHintVisible,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = SharedElementSpringFloat),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = SharedElementSpringFloat),
+            enter = if (reduceMotion) fadeIn(tween(0))
+                else expandVertically(expandFrom = Alignment.Top) + fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = if (reduceMotion) fadeOut(tween(0))
+                else shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(animationSpec = SharedElementSpringFloat),
             modifier = Modifier,
         ) {
             Row(
