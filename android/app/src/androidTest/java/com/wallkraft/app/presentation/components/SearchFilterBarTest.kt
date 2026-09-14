@@ -229,4 +229,38 @@ class SearchFilterBarTest {
         compose.onNodeWithText("miku").assertExists()
         compose.onNodeWithText("1.2m", useUnmergedTree = true).assertExists()
     }
+
+    @Test
+    fun search_tips_expand_shows_rows_and_inserts_token() {
+        var queried: String? = null
+        setBar(query = "", onQueryChange = { queried = it })
+
+        // Open the filter panel
+        compose.onNodeWithContentDescription(resString(R.string.filters))
+            .performClick()
+
+        // Tips section is collapsed — token rows should not exist
+        compose.onNodeWithText("type:png").assertDoesNotExist()
+
+        // Click the "Search tips" header to expand
+        compose.onNodeWithText(resString(R.string.search_tips))
+            .performScrollTo()
+            .performClick()
+
+        // All 7 tip rows should now be visible
+        compose.onNodeWithText("tag", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("-tag", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("+tag", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("@user", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("id:123", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("type:png", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("like:123", useUnmergedTree = true).assertExists()
+
+        // Click the type:png chip — should insert token and dismiss panel
+        compose.onNodeWithText("type:png", useUnmergedTree = true)
+            .performScrollTo()
+            .performClick()
+
+        assertEquals(" type:png", queried)
+    }
 }

@@ -9,6 +9,7 @@ import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
+import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import com.wallkraft.app.util.ElapsedClock
@@ -45,6 +46,12 @@ data class WallpaperListUiState(
      * is older than the search-cache TTL.
      */
     val cachedAt: Long? = null,
+    /**
+     * When non-null, the displayed results were fetched with a degraded filter
+     * set because the user's original filters returned empty. Null means the
+     * shown results match the user's requested filters exactly.
+     */
+    val appliedFilters: WallhavenFilters? = null,
 )
 
 /**
@@ -82,6 +89,15 @@ abstract class WallpaperListViewModel(
      */
     private var loadJob: Job? = null
 
+    /**
+     * Set by subclasses in their init block before calling [loadFirstPage] to
+     * prevent the parent coroutine from overwriting the child's filter
+     * configuration. The parent's init launches an async coroutine that reads
+     * settings and updates filters — without this guard, the child's filters
+     * get stomped before loadFirstPage runs.
+     */
+    protected var filtersConfigured = false
+
     init {
         // Seed the query synchronously so the search box already shows it on
         // the very first frame (e.g. the tag when opened from a detail screen).
@@ -105,19 +121,21 @@ abstract class WallpaperListViewModel(
             } else {
                 settings.purity - Purity.NSFW
             }
-            _uiState.update {
-                it.copy(
-                    filters = WallhavenFilters(
-                        categories = initialCategories,
-                        purity = effectivePurity,
-                        sorting = settings.sorting,
-                        topRange = settings.topRange,
-                        orientation = settings.orientation,
-                        query = initialQuery,
-                    ),
-                )
+            if (!filtersConfigured) {
+                _uiState.update {
+                    it.copy(
+                        filters = WallhavenFilters(
+                            categories = initialCategories,
+                            purity = effectivePurity,
+                            sorting = settings.sorting,
+                            topRange = settings.topRange,
+                            orientation = settings.orientation,
+                            query = initialQuery,
+                        ),
+                    )
+                }
+                loadFirstPage()
             }
-            loadFirstPage()
         }
         viewModelScope.launch {
             repository.observeRateLimited().collect { limited ->
@@ -139,6 +157,12 @@ abstract class WallpaperListViewModel(
     }
 
     fun retry() = loadFirstPage()
+
+    /** Clear fallback banner — re-run with the user's original filters (showing true empty state). */
+    fun showOriginalFilters() {
+        _uiState.update { it.copy(appliedFilters = null) }
+        loadFirstPage()
+    }
 
     /** Pull-to-refresh: re-fetch page 1 without clearing the list. */
     fun refresh() {
@@ -196,18 +220,53 @@ abstract class WallpaperListViewModel(
                 when (val result = repository.search(filters, 1)) {
                     is Result.Success -> {
                         val response = result.data
-                        _uiState.update {
-                            it.copy(
-                                wallpapers = response.data,
-                                isInitialLoading = false,
-                                isAppending = false,
-                                currentPage = response.meta.currentPage,
-                                lastPage = response.meta.lastPage,
-                                hasMore = response.meta.currentPage < response.meta.lastPage,
-                                totalResults = response.meta.total,
-                                cachedAt = response.cachedAt,
-                                error = null,
-                            )
+                        if (response.data.isEmpty() && !_uiState.value.rateLimited) {
+                            val fallbackResult = tryPurityFallback(filters)
+                            if (fallbackResult != null) {
+                                val resp = fallbackResult.response
+                                _uiState.update {
+                                    it.copy(
+                                        wallpapers = resp.data,
+                                        isInitialLoading = false,
+                                        isAppending = false,
+                                        currentPage = resp.meta.currentPage,
+                                        lastPage = resp.meta.lastPage,
+                                        hasMore = resp.meta.currentPage < resp.meta.lastPage,
+                                        totalResults = resp.meta.total,
+                                        cachedAt = resp.cachedAt,
+                                        error = null,
+                                        appliedFilters = fallbackResult.filters,
+                                    )
+                                }
+                            } else {
+                                _uiState.update {
+                                    it.copy(
+                                        wallpapers = emptyList(),
+                                        isInitialLoading = false,
+                                        isAppending = false,
+                                        currentPage = response.meta.currentPage,
+                                        lastPage = response.meta.lastPage,
+                                        hasMore = false,
+                                        totalResults = 0,
+                                        cachedAt = null,
+                                        error = null,
+                                    )
+                                }
+                            }
+                        } else {
+                            _uiState.update {
+                                it.copy(
+                                    wallpapers = response.data,
+                                    isInitialLoading = false,
+                                    isAppending = false,
+                                    currentPage = response.meta.currentPage,
+                                    lastPage = response.meta.lastPage,
+                                    hasMore = response.meta.currentPage < response.meta.lastPage,
+                                    totalResults = response.meta.total,
+                                    cachedAt = response.cachedAt,
+                                    error = null,
+                                )
+                            }
                         }
                     }
                     is Result.Failure -> {
@@ -223,6 +282,74 @@ abstract class WallpaperListViewModel(
             }
         }
     }
+
+    /**
+     * Tries progressively looser purity/category combinations when the user's
+     * original filters return zero results. Returns the first non-empty
+     * [WallpaperResponse] or null if all fallbacks are also empty.
+     *
+     * Fallback sequence (at most 3 extra API calls):
+     * 1. current categories + SFW+Sketchy (drop NSFW)
+     * 2. current categories + SFW-only
+     * 3. all categories + SFW-only
+     *
+     * Skips NSFW rung if the original filters didn't include NSFW. Never
+     * triggers when purity is already maximally permissive AND categories are
+     * all three — there's nothing more permissive to try.
+     */
+    private suspend fun tryPurityFallback(
+        originalFilters: WallhavenFilters,
+    ): FallbackResult? {
+        val originalPurity = originalFilters.purity
+        val originalCategories = originalFilters.categories
+
+        val allPurity = setOf(Purity.SFW, Purity.Sketchy, Purity.NSFW)
+        val allCategories = setOf(Category.General, Category.Anime, Category.People)
+
+        if (originalPurity == allPurity && originalCategories == allCategories) return null
+
+        val fallbackCandidates = buildList {
+            // Rung 1: relax purity — add Sketchy if original was SFW-only
+            if (Purity.Sketchy !in originalPurity) {
+                add(
+                    originalFilters.copy(
+                        purity = originalPurity + Purity.Sketchy,
+                    )
+                )
+            }
+            // Rung 2: relax categories — try all categories with same purity
+            if (originalCategories != allCategories) {
+                add(
+                    originalFilters.copy(
+                        categories = allCategories,
+                    )
+                )
+            }
+            // Rung 3: relax both purity and categories (SFW+Sketchy + all categories)
+            if (Purity.Sketchy !in originalPurity && originalCategories != allCategories) {
+                add(
+                    originalFilters.copy(
+                        purity = setOf(Purity.SFW, Purity.Sketchy),
+                        categories = allCategories,
+                    )
+                )
+            }
+        }
+
+        for (candidate in fallbackCandidates) {
+            val result = repository.search(candidate, 1)
+            if (result is Result.Success && result.data.data.isNotEmpty()) {
+                return FallbackResult(result.data, candidate)
+            }
+            if (result is Result.Failure) break
+        }
+        return null
+    }
+
+    private class FallbackResult(
+        val response: WallpaperResponse,
+        val filters: WallhavenFilters,
+    )
 
     fun loadNextPage() {
         val state = _uiState.value
