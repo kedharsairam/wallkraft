@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wallkraft.app.WorkerEntryPoint
+import com.wallkraft.app.util.RotationEngine
 import com.wallkraft.app.util.RotationFraming
 import com.wallkraft.app.util.RotationPicker
 import com.wallkraft.app.util.RotationRender
@@ -70,32 +71,35 @@ class RotateWallpaperWorker(
         val crops = rotationCropStore.current()
         val position = RotationPicker.mapTarget(settings.target)
 
-        val startIndex = RotationPicker.pickNext(candidates.size, settings.lastIndex)
-        for (index in RotationPicker.retryOrder(startIndex, candidates.size)) {
-            val wallpaper = candidates[index]
-            val file = favoriteImageStore.fileFor(wallpaper.id)
-            val output = if (file != null) {
-                val rect = RotationFraming.frameRect(
-                    wallpaper.dimensionX,
-                    wallpaper.dimensionY,
-                    screen.width,
-                    screen.height,
-                    crops[wallpaper.id],
-                    settings.mode,
-                )
-                RotationRender.render(file, rect, screen, settings.mode)
-            } else {
-                null
-            }
-            if (output != null) {
-                try {
-                    if (WallpaperSetter.setAsWallpaper(applicationContext, output, position)) {
-                        rotationStore.setLastIndex(index)
-                        return Result.success()
-                    }
-                } finally {
-                    output.recycle()
+        val pickResult = RotationEngine.pickNoRepeat(candidates, settings.recentIds)
+        if (pickResult.index < 0) return Result.failure()
+
+        val index = pickResult.index
+        val wallpaper = candidates[index]
+        val file = favoriteImageStore.fileFor(wallpaper.id)
+        val output = if (file != null) {
+            val rect = RotationFraming.frameRect(
+                wallpaper.dimensionX,
+                wallpaper.dimensionY,
+                screen.width,
+                screen.height,
+                crops[wallpaper.id],
+                settings.mode,
+            )
+            RotationRender.render(file, rect, screen, settings.mode)
+        } else {
+            null
+        }
+        if (output != null) {
+            try {
+                if (WallpaperSetter.setAsWallpaper(applicationContext, output, position)) {
+                    val window = minOf(candidates.size - 1, 10)
+                    rotationStore.setLastIndex(index)
+                    rotationStore.appendRecentId(pickResult.id, window)
+                    return Result.success()
                 }
+            } finally {
+                output.recycle()
             }
         }
         return Result.failure()

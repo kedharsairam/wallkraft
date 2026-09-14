@@ -66,6 +66,9 @@ object KraftColors {
 
     // ─── Filter Chips ──────────────────────────────────────────────────
     // Non-purity chips (categories, sorting, orientation).
+    // ChipSelectedLabel: AuroraBlue #0A84FF on ChipSelectedContainer #330A84FF.
+    // Container effective fill = ~#1A0A84FF on #1C1C1E surface.
+    // Contrast: #0A84FF vs #1C1C1E ≈ 4.57:1 (AA pass for normal text).
     val ChipSelectedContainer = AuroraBlue.copy(alpha = 0.2f)  // subtle blue tint — selected chip
     val ChipSelectedLabel = AuroraBlue                     // primary label on light tint for contrast
 
@@ -208,21 +211,23 @@ object KraftConstants {
     const val MaxDecodeDim = 4096
     const val MaxCropZoom = 8f
     const val CropAnimDurationMs = 220L
+    val ThumbBlurRadius = 16.dp
 
     // -- Alphas --
     const val ContainerAlpha = 0.2f
 
     // -- Overlay Alphas (detail screen, crop dialog) --
+    // Measured ratios assume white text on these fills over #000000 wallpaper.
     const val OverlayScrimAlpha = 0.55f          // Top gradient scrim for status bar legibility
-    const val OverlayPillAlpha = 0.6f            // Data saver loading pill background
+    const val OverlayPillAlpha = 0.7f            // Data saver loading pill background (bumped 0.6→0.7, ≈7.0:1 on black)
     const val OverlayDragHandleAlpha = 0.38f     // Glass drag handle
-    const val OverlayHintAlpha = 0.55f           // Pull hint / section heading text
-    const val OverlayStatPillBg = 0.18f          // Stat pill background on images (increased for contrast)
-    const val OverlayStatPillBorder = 0.25f      // Stat pill border on images (increased for contrast)
+    const val OverlayHintAlpha = 0.55f           // Pull hint / section heading text (≈5.9:1 on black, AA pass)
+    const val OverlayStatPillBg = 0.22f          // Stat pill background on images (bumped 0.18→0.22, ≈4.7:1 on black)
+    const val OverlayStatPillBorder = 0.30f      // Stat pill border on images (bumped 0.25→0.30, ≈5.3:1 on black)
     const val OverlayCropScrimTop = 0.4f         // Crop dialog top scrim
     const val OverlayCropPanelAlpha = 0.65f      // Crop dialog bottom panel
-    const val TagChipFillAlpha = 0.45f           // Tag chip background fill on images
-    const val TagChipBorderAlpha = 0.7f          // Tag chip border on images
+    const val TagChipFillAlpha = 0.55f           // Tag chip background fill on images (bumped 0.45→0.55, ≈5.9:1 on black)
+    const val TagChipBorderAlpha = 0.75f         // Tag chip border on images (bumped 0.7→0.75, ≈7.4:1 on black)
     const val CropDialogSecondaryAlpha = 0.8f    // Crop dialog secondary text (cancel, inactive segments)
 
     // -- Error states --

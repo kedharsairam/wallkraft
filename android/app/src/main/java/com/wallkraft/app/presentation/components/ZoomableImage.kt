@@ -21,8 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -170,6 +174,13 @@ fun ZoomableImage(
     }
 
     val context = LocalContext.current
+    var fullResReady by remember { mutableStateOf(false) }
+    LaunchedEffect(model) { fullResReady = false }
+    val thumbAlpha by animateFloatAsState(
+        targetValue = if (fullResReady && loadFullRes) 0f else 1f,
+        animationSpec = tween(durationMillis = 220),
+        label = "thumbAlpha",
+    )
     // Decode at 4K max — razor-sharp at any phone zoom level (phone screens
     // are 1080-1440 px, so 4096 provides 3-4× headroom). Decoding the full
     // 4800×2700 original at view time is wasteful and risks OOM; the full-res
@@ -177,7 +188,7 @@ fun ZoomableImage(
     val fullRequest = remember(model) {
         ImageRequest.Builder(context)
             .data(model)
-            .crossfade(false)
+            .crossfade(true)
             .size(KraftConstants.MaxDecodeDim)
             .build()
     }
@@ -211,7 +222,7 @@ fun ZoomableImage(
                     model = placeholderModel,
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().blur(KraftConstants.ThumbBlurRadius).alpha(thumbAlpha),
                 )
             }
             if (loadFullRes) {
@@ -219,7 +230,10 @@ fun ZoomableImage(
                     model = fullRequest,
                     contentDescription = contentDescription,
                     contentScale = ContentScale.Fit,
-                    onSuccess = { onLoaded() },
+                    onSuccess = {
+                        fullResReady = true
+                        onLoaded()
+                    },
                     onError = { onError(it.result.throwable) },
                     modifier = Modifier.fillMaxSize(),
                 )

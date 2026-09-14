@@ -15,10 +15,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.domain.model.AppSettings
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -115,6 +120,25 @@ private fun DetailScreenImpl(
         backgroundAlpha.animateTo(1f, animationSpec = SharedElementSpringFloat)
     }
 
+    // Adjacent preload — gated on dataSaverMode==false (mirror BrowseScreen.kt:138 prefetchFullRes).
+    // Single-item detail (pager count 1) skips prefetch; prefetches populate cache cheaply, no cancel needed.
+    val appSettings by settingsRepository.settings.collectAsState(initial = AppSettings())
+    var currentPage by remember { mutableIntStateOf(0) }
+    val pagerWallpapers = remember(wallpaper) { listOfNotNull(wallpaper) }
+    LaunchedEffect(currentPage, pagerWallpapers.size, appSettings.dataSaverMode) {
+        if (appSettings.dataSaverMode) return@LaunchedEffect
+        if (pagerWallpapers.size <= 1) return@LaunchedEffect
+        val imageLoader = context.imageLoader
+        listOf(currentPage - 1, currentPage + 1).forEach { idx ->
+            if (idx in pagerWallpapers.indices) {
+                val url = pagerWallpapers[idx].path ?: return@forEach
+                imageLoader.enqueue(
+                    ImageRequest.Builder(context).data(url).size(KraftConstants.MaxDecodeDim).build(),
+                )
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             uiState.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -189,6 +213,14 @@ private fun DetailScreenImpl(
                         onTagClick = onTagClick,
                         onUploaderClick = onUploaderClick,
                         navBarPadding = navBarPadding,
+                        palette = uiState.palette,
+                        related = uiState.related,
+                        relatedLoading = uiState.relatedLoading,
+                        onRelatedClick = { wp -> viewModel.swapToRelated(wp) },
+                        onColorSwatchClick = { argb ->
+                            val hex = String.format("%06X", 0xFFFFFF and argb)
+                            onTagClick(hex)
+                        },
                         modifier = Modifier.fillMaxSize(),
                         sharedElementModifier = sharedElementModifier,
                         animatedVisibilityScope = animatedVisibilityScope,

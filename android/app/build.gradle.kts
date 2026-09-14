@@ -41,8 +41,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 53
-        versionName = "2.5.0"
+        versionCode = 54
+        versionName = "2.6.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).
@@ -159,6 +159,9 @@ dependencies {
 
     // Background work (wallpaper rotation schedule)
     implementation(libs.work.runtime.ktx)
+
+    // Palette
+    implementation(libs.palette.ktx)
 
     // Hilt
     implementation(libs.hilt.android)

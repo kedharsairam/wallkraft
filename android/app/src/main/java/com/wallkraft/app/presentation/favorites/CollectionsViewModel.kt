@@ -11,6 +11,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * Result of [quickAdd] — tells the caller what happened.
+ */
+sealed class QuickAddResult {
+    /** 0 collections: auto-created "Saved" and added there. Caller shows snackbar with undo. */
+    data class AutoCreated(val collectionId: Long, val collectionName: String) : QuickAddResult()
+    /** 1 collection: one-tap added. Caller shows brief snackbar confirmation. */
+    data class OneTapAdded(val collectionId: Long, val collectionName: String) : QuickAddResult()
+    /** N≥2 collections: caller should show the existing AddToCollectionDialog. */
+    data class ShowDialog(val ids: Set<String>) : QuickAddResult()
+}
+
 @HiltViewModel
 class CollectionsViewModel @Inject constructor(
     private val collectionsRepository: CollectionsRepository,
@@ -64,6 +76,45 @@ class CollectionsViewModel @Inject constructor(
             } else {
                 collectionsRepository.removeFrom(collectionId, wallpaperId)
             }
+        }
+    }
+
+    /**
+     * Smart add: encapsulates the 0/1/N collection decision.
+     *
+     * - **0 collections** → auto-creates "Saved" and adds [ids] there.
+     *   Returns [QuickAddResult.AutoCreated] so the caller can show an undo
+     *   snackbar (undo = removeItems).
+     * - **1 collection** → one-tap add. Returns [QuickAddResult.OneTapAdded].
+     * - **N≥2 collections** → returns [QuickAddResult.ShowDialog] with the
+     *   wallpaper ids so the caller opens the existing [AddToCollectionDialog].
+     */
+    fun quickAdd(ids: Set<String>, onResult: (QuickAddResult) -> Unit) {
+        viewModelScope.launch {
+            val current = collections.value
+            when {
+                current.isEmpty() -> {
+                    val colId = collectionsRepository.create("Saved")
+                    if (colId > 0) ids.forEach { collectionsRepository.addTo(colId, it) }
+                    onResult(QuickAddResult.AutoCreated(colId, "Saved"))
+                }
+                current.size == 1 -> {
+                    val col = current.first()
+                    ids.forEach { collectionsRepository.addTo(col.id, it) }
+                    onResult(QuickAddResult.OneTapAdded(col.id, col.name))
+                }
+                else -> onResult(QuickAddResult.ShowDialog(ids))
+            }
+        }
+    }
+
+    /**
+     * Undo for [QuickAddResult.AutoCreated]: removes the auto-created items
+     * so the snackbar undo works. Call [delete] to fully remove the collection.
+     */
+    fun removeItems(collectionId: Long, wallpaperIds: List<String>) {
+        viewModelScope.launch {
+            wallpaperIds.forEach { collectionsRepository.removeFrom(collectionId, it) }
         }
     }
 }

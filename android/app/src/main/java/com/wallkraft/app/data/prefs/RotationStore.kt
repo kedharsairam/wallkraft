@@ -17,6 +17,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.Json
 import java.io.IOException
 
 /** Rotation settings snapshot. */
@@ -28,6 +31,8 @@ data class RotationSettings(
     val sourceCollectionId: Long? = null,
     /** Index of the last applied wallpaper (round-robin cursor). */
     val lastIndex: Int = -1,
+    /** IDs of recently shown wallpapers, newest last. */
+    val recentIds: List<String> = emptyList(),
 )
 
 interface RotationSettingsStore {
@@ -39,6 +44,8 @@ interface RotationSettingsStore {
     suspend fun setTarget(target: RotationTarget)
     suspend fun setSourceCollection(id: Long?)
     suspend fun setLastIndex(index: Int)
+    suspend fun setRecentIds(ids: List<String>)
+    suspend fun appendRecentId(id: String, window: Int = 10)
     suspend fun markTimingWelcomeSeen()
 }
 
@@ -60,6 +67,7 @@ class RotationStore(private val context: Context) : RotationSettingsStore {
         val TARGET = stringPreferencesKey("target")
         val SOURCE_COLLECTION = longPreferencesKey("source_collection")
         val LAST_INDEX = intPreferencesKey("last_index")
+        val RECENT_IDS = stringPreferencesKey("recent_ids")
         val TIMING_WELCOME_SEEN = booleanPreferencesKey("timing_welcome_seen")
     }
 
@@ -80,6 +88,9 @@ class RotationStore(private val context: Context) : RotationSettingsStore {
                 }.getOrDefault(RotationTarget.BOTH),
                 sourceCollectionId = prefs[Keys.SOURCE_COLLECTION]?.takeIf { it >= 0 },
                 lastIndex = prefs[Keys.LAST_INDEX] ?: -1,
+                recentIds = runCatching {
+                    Json.decodeFromString<List<String>>(prefs[Keys.RECENT_IDS] ?: "[]")
+                }.getOrDefault(emptyList()),
             )
         }
 
@@ -111,6 +122,22 @@ class RotationStore(private val context: Context) : RotationSettingsStore {
 
     override suspend fun setLastIndex(index: Int) {
         context.rotationDataStore.edit { it[Keys.LAST_INDEX] = index }
+    }
+
+    override suspend fun setRecentIds(ids: List<String>) {
+        context.rotationDataStore.edit { prefs ->
+            prefs[Keys.RECENT_IDS] = Json.encodeToString(ListSerializer(String.serializer()), ids)
+        }
+    }
+
+    override suspend fun appendRecentId(id: String, window: Int) {
+        context.rotationDataStore.edit { prefs ->
+            val current = runCatching {
+                Json.decodeFromString<List<String>>(prefs[Keys.RECENT_IDS] ?: "[]")
+            }.getOrDefault(emptyList())
+            val updated = (current + id).takeLast(window)
+            prefs[Keys.RECENT_IDS] = Json.encodeToString(ListSerializer(String.serializer()), updated)
+        }
     }
 
     /** One-shot welcome card for boundary timing. False for fresh installs too. */

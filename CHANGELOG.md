@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-09-15
+
+### Added
+- **Quick Settings tile "Shuffle favorites"** — one-tap wallpaper rotation from the notification shade, bypasses schedule OFF (intentional)
+- **Palette strip on detail** — extracted dominant swatches (Palette API), tap to search by color
+- **Related wallpapers strip** — `like:` query for similar wallpapers, horizontal thumbnail row, tap to swap in-place (no navigation push)
+- **Search syntax coach marks** — expandable "Search tips" card in filter panel with 7 Wallhaven `q` syntax tokens, tap-to-insert
+- **0/1/N collection smart-add** — auto-create "Saved" collection (0), one-tap add (1), existing dialog (≥2), snackbar undo
+
+### Changed
+- **Blurred thumbnail placeholder** — crossfade from blurred thumb to full-res on detail (16dp blur, 220ms alpha)
+- **Adjacent preload on detail** — pages ±1 prefetched via Coil (gated on dataSaverMode, skipped for single-item)
+- **No-repeat rotation engine** — replaced lastIndex round-robin with `pickNoRepeat()` (recentIds window, cap 10, graceful reset when exhausted)
+- **Color filter labels** — shade dots now show "Family, shade N of M" instead of raw hex; font bumped to 10sp
+- **Overlay alpha contrast** — overlay pills/borders/chips raised to AA-passing contrast ratios; measured comments added
+
+### Fixed
+- **RotationStore serialization** — recentIds JSON encoding uses explicit `ListSerializer(String.serializer())` (was failing to infer)
+
 ## [2.5.0] - 2026-09-14
 
 ### Added
