@@ -2,6 +2,7 @@ package com.wallkraft.app.di
 
 import android.content.Context
 import androidx.room.Room
+import com.wallkraft.app.core.cache.ImageCache
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.data.api.GithubApi
 import com.wallkraft.app.data.api.RetryInterceptor
@@ -21,6 +22,8 @@ import com.wallkraft.app.data.repository.CollectionsRepositoryImpl
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
 import com.wallkraft.app.data.repository.SavedSearchRepositoryImpl
 import com.wallkraft.app.data.repository.WallpaperRepositoryImpl
+import com.wallkraft.app.data.wipe.AndroidWipeBackend
+import com.wallkraft.app.domain.usecase.WipeBackend
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import com.wallkraft.app.domain.repository.FavoritesRepository
 import com.wallkraft.app.domain.repository.SavedSearchRepository
@@ -163,6 +166,13 @@ object AppModule {
     fun provideRotationCropStore(
         @ApplicationContext context: Context,
     ): CropStore = RotationCropStore(context)
+
+    @Provides @Singleton
+    fun provideWipeBackend(
+        @ApplicationContext context: Context,
+        db: WallKraftDatabase,
+        imageCache: ImageCache,
+    ): WipeBackend = AndroidWipeBackend(context, db, imageCache)
 
     @Provides @Singleton
     fun provideElapsedClock(): ElapsedClock =

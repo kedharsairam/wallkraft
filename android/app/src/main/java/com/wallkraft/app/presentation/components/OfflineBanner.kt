@@ -1,0 +1,51 @@
+package com.wallkraft.app.presentation.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftIconSize
+import com.wallkraft.app.core.design.KraftRadius
+import com.wallkraft.app.core.design.KraftSpacing
+
+/** Inline banner shown when the device is offline. Status only — failed loads keep their full error states. */
+@Composable
+fun OfflineBanner(modifier: Modifier = Modifier) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KraftRadius.Standard))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite }
+            .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.WifiOff,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.size(KraftIconSize.Medium),
+        )
+        Text(
+            text = stringResource(R.string.offline_banner),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.padding(start = KraftSpacing.Spacing12),
+        )
+    }
+}

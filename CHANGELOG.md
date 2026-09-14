@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-09-14
+
+### Added
+- **Crash log management** — 14-day expiry, delete button, on-device-only disclosure in About section
+- **Delete all data** — GDPR erasure: one-tap wipe of Room, DataStores, encrypted prefs, files, caches, WorkManager (destructive confirm dialog)
+- **Connectivity awareness** — NetworkCallback observer + OfflineBanner ("You're offline — showing saved content") on Browse/Favorites/Detail
+- **Offline repair on reconnect** — favorites missing-file repair triggers on network reconnect (debounced, not just screen entry)
+
+### Changed
+- **Stale-data indicators** — cachedAt now survives round-trip; "Updated X ago — tap to refresh" caption when showing stale browse results
+- **Detail disk fallback** — wallpaper metadata chain is now memory (LruCache) → fresh disk (7-day TTL) → network → stale disk; survives offline detail opens
+
+### Fixed
+- **LruCache stub in tests** — replaced android.util.LruCache (returns null under isReturnDefaultValues) with LinkedHashMap LRU so disk-fallback tests are honest
+
 ## [2.4.0] - 2026-09-14
 
 ### Changed

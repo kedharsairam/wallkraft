@@ -40,6 +40,25 @@ class SettingsAboutSectionTest {
     }
 
     @Test
+    fun delete_crash_logs_click_calls_callback() {
+        var clicks = 0
+        compose.setContent {
+            KraftTheme {
+                SettingsAboutSection(
+                    githubUrl = "https://example.com",
+                    onPrivacyClick = {},
+                    onShareCrashLogClick = {},
+                    onDeleteCrashLogClick = { clicks++ },
+                )
+            }
+        }
+
+        compose.onNodeWithText("Delete crash logs").performClick()
+
+        assertEquals(1, clicks)
+    }
+
+    @Test
     fun privacy_click_calls_callback() {
         var clicks = 0
         compose.setContent {

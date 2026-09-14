@@ -45,6 +45,11 @@ class RotationCropStore(private val context: Context) : CropStore {
 
     override suspend fun current(): Map<String, CropRect> = crops.first()
 
+    /** Clears every key in the `rotation_crops` file. */
+    suspend fun clear() {
+        context.rotationCropsDataStore.edit { it.clear() }
+    }
+
     override suspend fun save(id: String, rect: CropRect) {
         if (!rect.isValid()) return
         context.rotationCropsDataStore.edit { prefs ->

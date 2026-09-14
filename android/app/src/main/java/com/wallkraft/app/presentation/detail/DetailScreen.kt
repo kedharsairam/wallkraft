@@ -7,6 +7,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.utils.KraftHaptics
@@ -35,7 +38,9 @@ import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.repository.SettingsRepository
+import com.wallkraft.app.presentation.common.ConnectivityViewModel
 import com.wallkraft.app.presentation.components.ErrorState
+import com.wallkraft.app.presentation.components.OfflineBanner
 import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.util.WallpaperDownload
 import com.wallkraft.app.util.WallpaperSetter
@@ -94,6 +99,8 @@ private fun DetailScreenImpl(
 ) {
     val viewModel: DetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -195,6 +202,15 @@ private fun DetailScreenImpl(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter),
         )
+
+        if (!isOnline && wallpaper != null) {
+            OfflineBanner(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = 68.dp, start = 16.dp, end = 16.dp),
+            )
+        }
     }
 
     val setTarget = setWallpaperTarget

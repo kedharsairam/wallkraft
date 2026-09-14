@@ -196,6 +196,62 @@ class DetailViewModelTest {
         assertFalse(vm.uiState.value.isDetailLoaded)
     }
 
+    @Test
+    fun `disk fallback success renders wallpaper without error`() = runTest(dispatcher) {
+        // Simulates the repository's disk fallback: offline, but a cached
+        // copy of the full metadata is returned as Success.
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { id ->
+            Result.Success(Wallpaper(id = id, path = "https://example.com/$id.jpg", views = 100))
+        }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        assertNull(state.error)
+        assertEquals(100, state.wallpaper?.views)
+        assertTrue(state.isDetailLoaded)
+    }
+
+    @Test
+    fun `offline failure with preview keeps preview and hides error`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        repo.wallpaperResult = { Result.Failure(AppError.NetworkError.NoConnection) }
+        val vm = DetailViewModel(
+            "wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "offline" },
+            previewThumb = "thumb.jpg", previewPath = "path.jpg",
+        )
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertFalse(state.isLoading)
+        // The preview covers the screen, so no error is surfaced.
+        assertNull(state.error)
+        assertEquals("path.jpg", state.wallpaper?.path)
+        assertFalse(state.isDetailLoaded)
+    }
+
+    @Test
+    fun `retry after offline failure can succeed`() = runTest(dispatcher) {
+        val repo = FakeWallpaperRepository()
+        var online = false
+        repo.wallpaperResult = { id ->
+            if (online) Result.Success(Wallpaper(id = id)) else Result.Failure(AppError.NetworkError.NoConnection)
+        }
+        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "offline" })
+        advanceUntilIdle()
+        assertEquals("offline", vm.uiState.value.error)
+
+        online = true
+        vm.load()
+        advanceUntilIdle()
+
+        assertNull(vm.uiState.value.error)
+        assertEquals("wp-1", vm.uiState.value.wallpaper?.id)
+        assertTrue(vm.uiState.value.isDetailLoaded)
+    }
+
     private class FakeWallpaperRepository : WallpaperRepository {
         var wallpaperResult: (String) -> Result<Wallpaper> = {
             Result.Success(Wallpaper(id = it, dimensionX = 1920, dimensionY = 1080))

@@ -85,6 +85,11 @@ class RotationStore(private val context: Context) : RotationSettingsStore {
 
     override suspend fun current(): RotationSettings = settings.first()
 
+    /** Clears every key in the `rotation` file (schedule, mode, cursor, flags). */
+    suspend fun clear() {
+        context.rotationDataStore.edit { it.clear() }
+    }
+
     override suspend fun setSchedule(schedule: RotationSchedule) {
         context.rotationDataStore.edit { it[Keys.SCHEDULE] = schedule.name }
     }
