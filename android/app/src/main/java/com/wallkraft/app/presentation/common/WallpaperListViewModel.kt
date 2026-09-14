@@ -38,6 +38,13 @@ data class WallpaperListUiState(
     /** Total result count from the API (meta.total). 0 = unknown. */
     val totalResults: Int = 0,
     val rateLimited: Boolean = false,
+    /**
+     * Wall-clock time (epoch millis) the visible first page was fetched.
+     * Null on fresh network data that carries no timestamp yet and while a
+     * new query loads. The Browse header shows "Updated X ago" only when this
+     * is older than the search-cache TTL.
+     */
+    val cachedAt: Long? = null,
 )
 
 /**
@@ -153,6 +160,7 @@ abstract class WallpaperListViewModel(
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
                                 totalResults = response.meta.total,
+                                cachedAt = response.cachedAt,
                                 error = null,
                             )
                         }
@@ -182,7 +190,7 @@ abstract class WallpaperListViewModel(
         loadJob = viewModelScope.launch {
             // Reset the total so the search-bar count hides until the new
             // query's count arrives (never show a stale total).
-            _uiState.update { it.copy(isInitialLoading = true, error = null, totalResults = 0) }
+            _uiState.update { it.copy(isInitialLoading = true, error = null, totalResults = 0, cachedAt = null) }
             val filters = _uiState.value.filters
             try {
                 when (val result = repository.search(filters, 1)) {
@@ -197,6 +205,7 @@ abstract class WallpaperListViewModel(
                                 lastPage = response.meta.lastPage,
                                 hasMore = response.meta.currentPage < response.meta.lastPage,
                                 totalResults = response.meta.total,
+                                cachedAt = response.cachedAt,
                                 error = null,
                             )
                         }

@@ -38,6 +38,16 @@ object RotationScheduler {
     /** Input flag: chain links perpetuate the schedule; manual runs don't. */
     internal const val KEY_CHAIN = "chain"
 
+    /**
+     * Cancels all rotation work (chain + legacy rolling). The data wipe calls
+     * this BEFORE clearing tables so no worker can re-observe mid-wipe state.
+     */
+    fun cancelAll(context: Context) {
+        val manager = WorkManager.getInstance(context)
+        manager.cancelUniqueWork(UNIQUE_CHAIN)
+        manager.cancelUniqueWork(UNIQUE_PERIODIC)
+    }
+
     fun apply(context: Context, schedule: RotationSchedule) {
         val manager = WorkManager.getInstance(context)
         manager.cancelUniqueWork(UNIQUE_CHAIN)

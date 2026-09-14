@@ -116,6 +116,7 @@ private fun SettingsScreenImpl(
     val cacheClearedMsg = stringResource(R.string.cache_cleared)
     val apiSavedMsg = stringResource(R.string.api_key_saved)
     val noCrashLogsMsg = stringResource(R.string.no_crash_logs)
+    val crashLogsDeletedMsg = stringResource(R.string.crash_logs_deleted)
     val upToDateMsg = stringResource(R.string.update_up_to_date)
     val checkFailedMsg = stringResource(R.string.update_check_failed)
     var showUpdateDialog by remember { mutableStateOf<com.wallkraft.app.domain.model.AppUpdateInfo?>(null) }
@@ -223,7 +224,18 @@ private fun SettingsScreenImpl(
                         context.startActivity(Intent.createChooser(intent, null))
                     }
                 },
+                onDeleteCrashLogClick = {
+                    val deleted = CrashLogs.deleteAll(context)
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            if (deleted > 0) crashLogsDeletedMsg else noCrashLogsMsg,
+                        )
+                    }
+                },
             )
+
+            SettingsDangerSection()
+
             Spacer(Modifier.height(KraftSpacing.GlassBarReserve))
         }
     }

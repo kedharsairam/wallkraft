@@ -246,22 +246,31 @@ internal fun relativeTime(createdAt: String): String? {
         val fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val ldt = java.time.LocalDateTime.parse(createdAt, fmt)
         val instant = ldt.atZone(java.time.ZoneId.of("UTC")).toInstant()
-        val now = java.time.Instant.now()
-        val d = java.time.Duration.between(instant, now)
-        if (d.isNegative) return null
-        val mins = d.toMinutes()
-        val hours = d.toHours()
-        val days = d.toDays()
-        when {
-            mins < 1 -> "just now"
-            mins < 60 -> "${mins}m ago"
-            hours < 24 -> "${hours}h ago"
-            days < 7 -> "${days}d ago"
-            days < 30 -> "${days / 7}w ago"
-            days < 365 -> "${days / 30}mo ago"
-            else -> "${days / 365}y ago"
-        }
+        if (instant.isAfter(java.time.Instant.now())) return null
+        relativeTimeAgo(instant.toEpochMilli())
     } catch (_: Exception) {
         null
+    }
+}
+
+/**
+ * Short relative time ("5m ago") for an epoch-millis timestamp such as
+ * [com.wallkraft.app.domain.model.WallpaperResponse.cachedAt]. Same buckets
+ * as [relativeTime] so every "X ago" caption reads consistently.
+ */
+internal fun relativeTimeAgo(cachedAtMillis: Long, nowMillis: Long = java.time.Instant.now().toEpochMilli()): String {
+    val d = java.time.Duration.ofMillis(nowMillis - cachedAtMillis)
+    if (d.isNegative) return "just now"
+    val mins = d.toMinutes()
+    val hours = d.toHours()
+    val days = d.toDays()
+    return when {
+        mins < 1 -> "just now"
+        mins < 60 -> "${mins}m ago"
+        hours < 24 -> "${hours}h ago"
+        days < 7 -> "${days}d ago"
+        days < 30 -> "${days / 7}w ago"
+        days < 365 -> "${days / 30}mo ago"
+        else -> "${days / 365}y ago"
     }
 }

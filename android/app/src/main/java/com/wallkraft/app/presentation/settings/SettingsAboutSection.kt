@@ -41,6 +41,7 @@ fun SettingsAboutSection(
     githubUrl: String,
     onPrivacyClick: () -> Unit,
     onShareCrashLogClick: () -> Unit,
+    onDeleteCrashLogClick: () -> Unit = {},
     updateState: UpdateUiState = UpdateUiState.Idle,
     onCheckUpdates: () -> Unit = {},
 ) {
@@ -131,9 +132,18 @@ fun SettingsAboutSection(
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         AboutRow(
             title = stringResource(R.string.share_crash_log),
+            subtitle = stringResource(R.string.crash_log_disclosure),
             onClick = {
                 KraftHaptics.buttonPress(haptic)
                 onShareCrashLogClick()
+            },
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        AboutRow(
+            title = stringResource(R.string.delete_crash_logs),
+            onClick = {
+                KraftHaptics.buttonPress(haptic)
+                onDeleteCrashLogClick()
             },
         )
     }

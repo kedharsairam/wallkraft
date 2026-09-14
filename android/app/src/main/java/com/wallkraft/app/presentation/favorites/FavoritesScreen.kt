@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -59,7 +60,9 @@ import com.wallkraft.app.domain.model.Wallpaper
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
+import com.wallkraft.app.presentation.common.ConnectivityViewModel
 import com.wallkraft.app.presentation.components.EmptyState
+import com.wallkraft.app.presentation.components.OfflineBanner
 import com.wallkraft.app.presentation.components.WallpaperGrid
 import com.wallkraft.app.domain.model.DownloadedFile
 import com.wallkraft.app.util.DownloadedFiles
@@ -117,6 +120,8 @@ private fun FavoritesScreenImpl(
 ) {
     val viewModel: FavoritesViewModel = hiltViewModel()
     val favorites by viewModel.favorites.collectAsState()
+    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
     val collectionsVm: CollectionsViewModel = hiltViewModel()
     val collections by collectionsVm.collections.collectAsState()
     var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -347,6 +352,11 @@ private fun FavoritesScreenImpl(
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
                     )
+                    if (!isOnline) {
+                        OfflineBanner(
+                            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing8),
+                        )
+                    }
                     val visibleMissing = displayedFavorites.count { it.wallpaper.id !in offlineIds }
                     val progress = repairProgress
                     if (favorites.isEmpty()) {

@@ -1,6 +1,5 @@
 package com.wallkraft.app.data.repository
 
-import android.util.LruCache
 import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.data.api.WallhavenApiSource
 import com.wallkraft.app.data.cache.SearchResponseCache
@@ -17,7 +16,9 @@ class WallpaperRepositoryImpl(
 ) : WallpaperRepository {
 
     /** Bounded in-memory cache — caps at 200 entries to prevent OOM on long sessions. */
-    private val cacheById = LruCache<String, Wallpaper>(200)
+    private val cacheById = object : LinkedHashMap<String, Wallpaper>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Wallpaper>): Boolean = size > 200
+    }
 
     override suspend fun search(
         filters: WallhavenFilters,
@@ -54,6 +55,9 @@ class WallpaperRepositoryImpl(
                     // server-side, this client filter is defense-in-depth only.
                     // Overwriting total with page size is what showed "24".
                     meta = response.meta,
+                    // Stamp now so the UI gets cachedAt even before the cache
+                    // round-trip; put() re-stamps with the same wall-clock.
+                    cachedAt = System.currentTimeMillis(),
                 )
                 searchCache.put(filters, page, processed)
                 Result.Success(processed)
@@ -71,15 +75,40 @@ class WallpaperRepositoryImpl(
         }
     }
 
-    override suspend fun wallpaper(id: String): Result<Wallpaper> =
-        cacheById.get(id)?.let { Result.Success(it) }
-            ?: when (val result = api.wallpaper(id)) {
-                is Result.Success -> {
-                    cacheById.put(id, result.data)
-                    result
-                }
-                is Result.Failure -> result
+    /**
+     * Detail metadata chain: memory LruCache → fresh disk → network.
+     * A fresh disk copy (7-day TTL — metadata rarely changes; views and
+     * favorites counts go stale gracefully) short-circuits the network so
+     * repeat visits are instant and offline-capable. On network failure a
+     * stale disk copy still beats an error, mirroring the search fallback.
+     */
+    override suspend fun wallpaper(id: String): Result<Wallpaper> {
+        // 1. Memory hit → instant.
+        synchronized(cacheById) { cacheById[id] }?.let { return Result.Success(it) }
+        // 2. Fresh disk hit → no network round-trip.
+        if (searchCache.isWallpaperFresh(id)) {
+            searchCache.getWallpaper(id)?.let {
+                synchronized(cacheById) { cacheById[it.id] = it }
+                return Result.Success(it)
             }
+        }
+        // 3. Network fetch, writing through to both caches.
+        return when (val result = api.wallpaper(id)) {
+            is Result.Success -> {
+                synchronized(cacheById) { cacheById[result.data.id] = result.data }
+                searchCache.putWallpaper(result.data)
+                result
+            }
+            is Result.Failure -> {
+                // 4. Offline fallback — a stale disk copy beats an error.
+                searchCache.getWallpaper(id)?.let {
+                    synchronized(cacheById) { cacheById[it.id] = it }
+                    return Result.Success(it)
+                }
+                result
+            }
+        }
+    }
 
     override fun observeRateLimited(): Flow<Boolean> = api.observeRateLimited()
 }

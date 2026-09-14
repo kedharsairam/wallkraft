@@ -1,5 +1,6 @@
 package com.wallkraft.app.domain.model
 
+import com.wallkraft.app.core.design.KraftConstants
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.util.Locale
@@ -119,4 +120,24 @@ data class WallpaperMeta(
 data class WallpaperResponse(
     @SerialName("data") val data: List<Wallpaper> = emptyList(),
     @SerialName("meta") val meta: WallpaperMeta = WallpaperMeta(),
-)
+    /**
+     * Wall-clock time (epoch millis) when this response was fetched from the
+     * network. Null for live API responses that haven't been stamped yet and
+     * for payloads decoded from old cache files. Survives the cache
+     * round-trip via kotlinx.serialization so the UI can show stale-data
+     * indicators ("Updated X ago").
+     */
+    @SerialName("cached_at") val cachedAt: Long? = null,
+) {
+    /**
+     * True when this response is older than [ttlMillis]. Null [cachedAt]
+     * (fresh network data) is never stale.
+     */
+    fun isStale(
+        nowMillis: Long = System.currentTimeMillis(),
+        ttlMillis: Long = KraftConstants.SearchCacheTtlMs,
+    ): Boolean {
+        val at = cachedAt ?: return false
+        return nowMillis - at > ttlMillis
+    }
+}

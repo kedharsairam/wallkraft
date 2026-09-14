@@ -181,6 +181,10 @@ object KraftConstants {
     // -- Caching --
     const val SearchCacheTtlMs = 30 * 60 * 1000L
     const val SearchCacheMaxEntries = 100
+    // Detail metadata rarely changes (views/favorites go stale gracefully),
+    // so the per-wallpaper disk cache lives much longer than search pages.
+    const val WallpaperCacheTtlMs = 7 * 24 * 60 * 60 * 1000L
+    const val WallpaperCacheMaxEntries = 200
     const val FavoriteImageMaxBytes = 100L * 1024 * 1024
     const val CoilDiskMaxBytes = 512L * 1024 * 1024
     const val CoilMemoryPercent = 0.25

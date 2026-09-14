@@ -52,4 +52,36 @@ class CrashLogsTest {
     fun missingDir_returnsNull() {
         assertNull(CrashLogs.latestIn(File(dir, "nope")))
     }
+
+    @Test
+    fun pruneOld_deletesOnlyExpiredLogs() {
+        val dayMs = 24 * 60 * 60 * 1000L
+        crash("crash-old.log", ageMs = 15 * dayMs)
+        val fresh = crash("crash-fresh.log", ageMs = 1 * dayMs)
+        File(dir, "notes.txt").writeText("keep me")
+        assertEquals(1, CrashLogs.pruneOld(dir, maxAgeDays = 14))
+        assertEquals(fresh, CrashLogs.latestIn(dir))
+    }
+
+    @Test
+    fun pruneOld_keepsBoundaryAndMissingDir() {
+        assertEquals(0, CrashLogs.pruneOld(File(dir, "nope")))
+        assertEquals(0, CrashLogs.pruneOld(dir))
+    }
+
+    @Test
+    fun deleteAll_removesCrashLogsOnly() {
+        crash("crash-1.log", ageMs = 1000)
+        crash("crash-2.log", ageMs = 2000)
+        val notes = File(dir, "notes.txt").apply { writeText("keep me") }
+        assertEquals(2, CrashLogs.deleteAll(dir))
+        assertNull(CrashLogs.latestIn(dir))
+        assertEquals(true, notes.exists())
+    }
+
+    @Test
+    fun deleteAll_emptyOrMissingDir_returnsZero() {
+        assertEquals(0, CrashLogs.deleteAll(dir))
+        assertEquals(0, CrashLogs.deleteAll(File(dir, "nope")))
+    }
 }

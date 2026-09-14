@@ -11,8 +11,10 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -40,6 +42,7 @@ class WallKraftApplication : Application() {
         // and create a fallback otherwise (so startup before Hilt injection still works).
         com.wallkraft.app.core.cache.GridImageLoader.init(this)
         realignRotationSchedule()
+        observeReconnectAndRepair()
     }
 
     /**
@@ -85,6 +88,9 @@ class WallKraftApplication : Application() {
     }
 
     private fun installCrashHandler() {
+        // Age-based expiry: crash logs older than 14 days never accumulate.
+        // (Count is bounded to the newest 3 by the handler below.)
+        runCatching { com.wallkraft.app.util.CrashLogs.pruneOld(this) }
         val default = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
@@ -108,6 +114,77 @@ class WallKraftApplication : Application() {
             }
         }
     }
+
+    /**
+     * Mid-session recovery: when connectivity drops and returns, re-run the
+     * offline repair for favorites missing a local copy (favorites minus
+     * [com.wallkraft.app.data.cache.OfflineImageStore.fileFor] present).
+     *
+     * The screen-entry trigger in FavoritesScreen stays as-is (belt and
+     * suspenders): it covers cold starts with missing files, this covers
+     * mid-session recovery. No schema change — the missing set is derived
+     * at runtime.
+     *
+     * Debounce: rapid flaps are ignored — a reconnect only repairs when the
+     * device was offline for at least 5s, and repairs are spaced at least
+     * 10s apart.
+     */
+    private fun observeReconnectAndRepair() {
+        applicationScope.launch {
+            runCatching {
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    this@WallKraftApplication,
+                    RepairOnReconnectEntryPoint::class.java,
+                )
+                val connectivity = entryPoint.connectivityObserver()
+                val favoritesRepository = entryPoint.favoritesRepository()
+                val imageStore = entryPoint.favoriteImageStore()
+                val repair = com.wallkraft.app.data.cache.FavoriteOfflineRepair(imageStore)
+                var wentOfflineAt = -1L
+                var lastRepairAt = 0L
+                var previous = true
+                connectivity.isOnline.collect { online ->
+                    val now = System.currentTimeMillis()
+                    if (!online) {
+                        if (previous) wentOfflineAt = now
+                    } else if (!previous) {
+                        val offlineFor = now - wentOfflineAt
+                        val sinceLastRepair = now - lastRepairAt
+                        if (wentOfflineAt > 0 &&
+                            offlineFor >= RECONNECT_MIN_OFFLINE_MS &&
+                            sinceLastRepair >= RECONNECT_MIN_REPAIR_GAP_MS
+                        ) {
+                            lastRepairAt = now
+                            val wallpapers = withContext(Dispatchers.IO) {
+                                favoritesRepository.observeWallpapers().first()
+                            }
+                            val missing = withContext(Dispatchers.IO) {
+                                repair.missing(wallpapers)
+                            }
+                            if (missing.isNotEmpty()) {
+                                withContext(Dispatchers.IO) {
+                                    repair.repairAll(missing)
+                                }
+                            }
+                        }
+                    }
+                    previous = online
+                }
+            }.onFailure { e ->
+                if (BuildConfig.DEBUG) {
+                    Log.e("WallKraftApplication", "Reconnect repair failed", e)
+                }
+            }
+        }
+    }
+
+    companion object {
+        /** Reconnect only counts when offline for at least this long (flap filter). */
+        const val RECONNECT_MIN_OFFLINE_MS = 5_000L
+
+        /** Minimum gap between two reconnect repairs. */
+        const val RECONNECT_MIN_REPAIR_GAP_MS = 10_000L
+    }
 }
 
 @EntryPoint
@@ -120,6 +197,14 @@ interface RateLimitStateEntryPoint {
 @InstallIn(SingletonComponent::class)
 interface RotationStoreEntryPoint {
     fun rotationStore(): com.wallkraft.app.data.prefs.RotationSettingsStore
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface RepairOnReconnectEntryPoint {
+    fun connectivityObserver(): com.wallkraft.app.util.ConnectivityObserver
+    fun favoritesRepository(): com.wallkraft.app.domain.repository.FavoritesRepository
+    fun favoriteImageStore(): com.wallkraft.app.data.cache.OfflineImageStore
 }
 
 @EntryPoint

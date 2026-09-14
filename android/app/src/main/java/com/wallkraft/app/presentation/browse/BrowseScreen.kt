@@ -50,11 +50,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.GridAppendFooter
 import com.wallkraft.app.presentation.components.PaginationErrorFooter
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wallkraft.app.presentation.common.ConnectivityViewModel
+import com.wallkraft.app.presentation.components.OfflineBanner
 import com.wallkraft.app.presentation.components.RateLimitBanner
 import com.wallkraft.app.presentation.components.ShimmerGrid
 import com.wallkraft.app.presentation.components.WallpaperGrid
@@ -111,6 +115,8 @@ private fun BrowseScreenImpl(
 ) {
     val viewModel: BrowseViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
     val scope = rememberCoroutineScope()
     val reduceMotion = rememberReduceMotion()
@@ -192,6 +198,12 @@ private fun BrowseScreenImpl(
                 ) { focusManager.clearFocus() },
         ) {
             Column(modifier = Modifier.fillMaxSize().padding(top = topInset)) {
+                if (!isOnline) {
+                    OfflineBanner(
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
                 if (uiState.rateLimited) {
                     RateLimitBanner(
                         modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
@@ -236,6 +248,13 @@ private fun BrowseScreenImpl(
                     },
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                 ) {
+                    val listCachedAt = uiState.cachedAt
+                    val staleCaptionVisible =
+                        !uiState.isInitialLoading &&
+                            !uiState.isRefreshing &&
+                            uiState.wallpapers.isNotEmpty() &&
+                            listCachedAt != null &&
+                            System.currentTimeMillis() - listCachedAt > KraftConstants.SearchCacheTtlMs
                     val stateKey = when {
                         uiState.isInitialLoading -> "loading"
                         uiState.rateLimited && uiState.wallpapers.isEmpty() -> "rateLimited"
@@ -244,11 +263,24 @@ private fun BrowseScreenImpl(
                     }
                     // Show pagination error snackbar when data exists but load-more failed
                     val paginationError = uiState.error != null && uiState.wallpapers.isNotEmpty()
-                    Crossfade(
-                        targetState = stateKey,
-                        animationSpec = tween(durationMillis = if (reduceMotion) 0 else 220),
-                        label = "browseState",
-                    ) { state ->
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Stale-data caption: subtle, tappable "Updated X ago"
+                        // under the browse header. Shown only when stale data is
+                        // actually visible — never on fresh loads, loading, or
+                        // empty states. Stale != broken, so no warning colors;
+                        // red/amber stay reserved for the offline/error states.
+                        if (listCachedAt != null && staleCaptionVisible) {
+                            StaleUpdatedCaption(
+                                cachedAt = listCachedAt,
+                                onRetry = viewModel::refresh,
+                            )
+                        }
+                        Crossfade(
+                            targetState = stateKey,
+                            animationSpec = tween(durationMillis = if (reduceMotion) 0 else 220),
+                            label = "browseState",
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                        ) { state ->
                         when (state) {
                             "loading" -> ShimmerGrid(
                                 modifier = Modifier,
@@ -298,9 +330,39 @@ private fun BrowseScreenImpl(
                                 animatedVisibilityScope = animatedVisibilityScope,
                             )
                         }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Subtle stale-data caption shown directly under the browse header when the
+ * visible results are older than the search-cache TTL. Plain caption styling
+ * on the default background — deliberately not a warning banner (stale data
+ * is still usable; red/amber are reserved for offline/error states). Tapping
+ * forces a refresh.
+ */
+@Composable
+private fun StaleUpdatedCaption(
+    cachedAt: Long,
+    onRetry: () -> Unit,
+) {
+    val ago = remember(cachedAt) { com.wallkraft.app.presentation.detail.relativeTimeAgo(cachedAt) }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onRetry)
+            .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing4),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.browse_updated_ago, ago),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }

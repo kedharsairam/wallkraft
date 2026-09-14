@@ -97,6 +97,12 @@
     <string name="cache_description">Temporary browsing files. Clearing frees space — favorites stay.</string>
     <string name="clear_cache">Clear cache</string>
     <string name="cache_cleared">Cache cleared</string>
+    <string name="danger_zone_title" translatable="false">Danger zone</string>
+    <string name="delete_all_data" translatable="false">Delete all data</string>
+    <string name="delete_all_data_description" translatable="false">Remove everything WallKraft stored on this device.</string>
+    <string name="delete_all_data_dialog_title" translatable="false">Delete all data?</string>
+    <string name="delete_all_data_dialog_message" translatable="false">Favorites, collections, settings, cached images — everything. The API key too. This cannot be undone.</string>
+    <string name="delete_all_data_deleting" translatable="false">Deleting…</string>
     <string name="favorites_storage_format">%1$d wallpapers • %2$s</string>
     <string name="api_key_advanced_description">Optional key for higher limits. Tap to edit.</string>
     <string name="api_key_valid">Valid key — NSFW unlocked</string>
@@ -110,6 +116,9 @@
     <string name="github_title">GitHub</string>
     <string name="share_crash_log">Share crash log</string>
     <string name="no_crash_logs">No crash logs yet</string>
+    <string name="delete_crash_logs" translatable="false">Delete crash logs</string>
+    <string name="crash_logs_deleted" translatable="false">Crash logs deleted</string>
+    <string name="crash_log_disclosure" translatable="false">Stored on-device only, kept max 14 days / last 3, never sent automatically</string>
     <string name="github_url" translatable="false">https://github.com/kedharsairam/wallkraft</string>
     <string name="settings_categories">Categories</string>
     <string name="settings_purity">Purity</string>
@@ -254,6 +263,8 @@
     <string name="error_not_found">This wallpaper no longer exists.</string>
     <string name="rate_limit_banner">Rate limit reached. Please wait a moment before browsing more.</string>
     <string name="rate_limit_hint">Wallhaven\'s API limit has been reached. Wait a minute and try again.</string>
+    <string name="offline_banner" translatable="false">You\'re offline — showing saved content.</string>
+    <string name="browse_updated_ago" translatable="false">Updated %1$s — tap to refresh</string>
     <string name="buy_me_a_coffee_title">Support</string>
     <string name="buy_me_a_coffee_description">If you enjoy WallKraft, buy me a coffee:</string>
 

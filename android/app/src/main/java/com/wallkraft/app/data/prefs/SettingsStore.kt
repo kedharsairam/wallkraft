@@ -47,6 +47,14 @@ class SettingsStore(private val context: Context) : SettingsRepository {
 
     override suspend fun current(): AppSettings = settings.first()
 
+    /**
+     * Clears every key in `wallkraft_settings`. The API key itself lives in
+     * [EncryptedApiKeyStore], not here — the wipe clears that separately.
+     */
+    suspend fun clear() {
+        context.wallKraftDataStore.edit { it.clear() }
+    }
+
     override suspend fun update(transform: (AppSettings) -> AppSettings) {
         // Read current API key from encrypted store inside the edit block for atomicity.
         context.wallKraftDataStore.edit { prefs ->
