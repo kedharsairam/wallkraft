@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,11 +34,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -51,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.components.EmptyState
@@ -210,6 +216,13 @@ private fun BrowseScreenImpl(
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
                 }
+                if (uiState.appliedFilters != null) {
+                    PurityFallbackBanner(
+                        onShowOriginal = viewModel::showOriginalFilters,
+                        modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing8))
+                }
                 if (uiState.error != null) {
                     Row(
                         modifier = Modifier
@@ -364,5 +377,35 @@ private fun StaleUpdatedCaption(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
         )
+    }
+}
+
+/**
+ * Banner shown when results were returned from a broader purity/category
+ * filter set because the user's original filters yielded zero results.
+ */
+@Composable
+private fun PurityFallbackBanner(
+    onShowOriginal: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(KraftRadius.Standard))
+            .background(MaterialTheme.colorScheme.tertiaryContainer)
+            .semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite }
+            .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing12),
+    ) {
+        Text(
+            text = stringResource(R.string.purity_fallback_banner),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
+            modifier = Modifier.weight(1f),
+        )
+        TextButton(onClick = onShowOriginal) {
+            Text(stringResource(R.string.purity_fallback_show_original))
+        }
     }
 }

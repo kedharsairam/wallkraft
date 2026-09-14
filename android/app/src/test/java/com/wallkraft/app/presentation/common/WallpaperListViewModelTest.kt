@@ -3,6 +3,8 @@
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.domain.model.AppSettings
+import com.wallkraft.app.domain.model.Category
+import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.WallhavenFilters
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.WallpaperMeta
@@ -14,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -22,6 +25,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -239,6 +243,97 @@ class WallpaperListViewModelTest {
         assertFalse(vm.uiState.value.isRefreshing)
     }
 
+    @Test
+    fun `empty SFW falls back to SFW+Sketchy`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        repo.onSearch = { filters, page ->
+            val hasSketchy = Purity.Sketchy in filters.purity
+            if (hasSketchy) {
+                Result.Success(WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-sketchy", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = 1, lastPage = 1),
+                ))
+            } else {
+                Result.Success(WallpaperResponse(
+                    data = emptyList(),
+                    meta = WallpaperMeta(currentPage = 1, lastPage = 1),
+                ))
+            }
+        }
+        val initialFilters = WallhavenFilters(purity = setOf(Purity.SFW))
+        val vm = TestVM(repo, initialFilters = initialFilters)
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+        assertEquals("wp-sketchy", vm.uiState.value.wallpapers[0].id)
+        assertNotNull(vm.uiState.value.appliedFilters)
+        assertTrue(Purity.Sketchy in vm.uiState.value.appliedFilters!!.purity)
+    }
+
+    @Test
+    fun `429 rate limited does NOT fallback`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        repo.onSearch = { _, _ -> Result.Failure(AppError.NetworkError.RateLimited()) }
+        val vm = TestVM(repo)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.wallpapers.isEmpty())
+        assertNull(vm.uiState.value.appliedFilters)
+    }
+
+    @Test
+    fun `page greater than 1 empty does NOT fallback`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        var pageCounter = 0
+        repo.onSearch = { _, page ->
+            pageCounter++
+            if (page == 1) {
+                Result.Success(WallpaperResponse(
+                    data = listOf(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080)),
+                    meta = WallpaperMeta(currentPage = 1, lastPage = 3),
+                ))
+            } else {
+                Result.Success(WallpaperResponse(
+                    data = emptyList(),
+                    meta = WallpaperMeta(currentPage = page, lastPage = 3),
+                ))
+            }
+        }
+        val vm = TestVM(repo)
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+        val requestsBefore = repo.searchRequests.size
+
+        vm.loadNextPage()
+        advanceUntilIdle()
+
+        assertEquals(1, vm.uiState.value.wallpapers.size)
+        assertNull(vm.uiState.value.appliedFilters)
+    }
+
+    @Test
+    fun `already all purity does NOT fallback`() = runTest(dispatcher) {
+        val repo = FakeRepo()
+        repo.onSearch = { _, _ ->
+            Result.Success(WallpaperResponse(
+                data = emptyList(),
+                meta = WallpaperMeta(currentPage = 1, lastPage = 1),
+            ))
+        }
+        val allPurityFilters = WallhavenFilters(
+            purity = setOf(Purity.SFW, Purity.Sketchy, Purity.NSFW),
+            categories = setOf(Category.General, Category.Anime, Category.People),
+        )
+        val vm = TestVM(repo, initialFilters = allPurityFilters)
+        advanceUntilIdle()
+
+        assertTrue(vm.uiState.value.wallpapers.isEmpty())
+        assertNull(vm.uiState.value.appliedFilters)
+        // Only 1 search request — no fallback attempts
+        assertEquals(1, repo.searchRequests.size)
+    }
+
     // --- Helpers ---
 
     private class FakeClock(private var now: Long = 0) : ElapsedClock {
@@ -251,7 +346,16 @@ class WallpaperListViewModelTest {
         initialQuery: String = "",
         errorMessage: (AppError) -> String = { "error" },
         clock: ElapsedClock = FakeClock(),
-    ) : WallpaperListViewModel(repository, FakeSettingsRepo(), errorMessage, initialQuery, clock)
+        initialFilters: WallhavenFilters? = null,
+    ) : WallpaperListViewModel(repository, FakeSettingsRepo(), errorMessage, initialQuery, clock) {
+        init {
+            if (initialFilters != null) {
+                filtersConfigured = true
+                _uiState.update { it.copy(filters = initialFilters) }
+                loadFirstPage()
+            }
+        }
+    }
 
     private class FakeRepo : WallpaperRepository {
         val searchRequests = mutableListOf<Triple<WallhavenFilters, Int, Boolean>>()
