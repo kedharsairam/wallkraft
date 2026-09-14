@@ -120,6 +120,11 @@ internal fun DetailContent(
     onTagClick: (String) -> Unit,
     onUploaderClick: (String) -> Unit,
     navBarPadding: androidx.compose.ui.unit.Dp,
+    palette: List<Int> = emptyList(),
+    related: List<Wallpaper> = emptyList(),
+    relatedLoading: Boolean = false,
+    onRelatedClick: ((Wallpaper) -> Unit)? = null,
+    onColorSwatchClick: ((Int) -> Unit)? = null,
     modifier: Modifier = Modifier,
     sharedElementModifier: Modifier = Modifier,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
@@ -491,6 +496,11 @@ internal fun DetailContent(
                 expanded = newExpanded
             },
             chromeAlpha = 1f,
+            palette = palette,
+            related = related,
+            relatedLoading = relatedLoading,
+            onRelatedClick = onRelatedClick,
+            onColorSwatchClick = onColorSwatchClick,
         )
         } // end chrome zIndex box
     }

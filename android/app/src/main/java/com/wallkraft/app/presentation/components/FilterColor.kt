@@ -153,7 +153,7 @@ fun ColorFilterRow(
                     )
                     Text(
                         text = abbreviation,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = if (active) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -173,11 +173,12 @@ fun ColorFilterRow(
                 verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                expanded.shades.forEach { hex ->
+                expanded.shades.forEachIndexed { index, hex ->
                     val shadeSelected = hex == selectedHex
+                    val familyName = stringResource(expanded.nameRes)
                     ColorDot(
                         hex = hex,
-                        contentDesc = "#$hex",
+                        contentDesc = "$familyName, shade ${index + 1} of ${expanded.shades.size}",
                         selected = shadeSelected,
                         modifier = Modifier.size(
                             width = KraftSpacing.Spacing40,

@@ -28,12 +28,15 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import androidx.lifecycle.viewModelScope
 import java.io.File
+import kotlinx.coroutines.cancel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetailViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val viewModels = mutableListOf<DetailViewModel>()
 
     @Before
     fun setUp() {
@@ -42,7 +45,28 @@ class DetailViewModelTest {
 
     @After
     fun tearDown() {
+        viewModels.forEach { it.viewModelScope.cancel() }
+        viewModels.clear()
+        // Allow real IO threads (from extractPalette's withContext(Dispatchers.IO))
+        // to settle before removing the test dispatcher.
+        Thread.sleep(50)
         Dispatchers.resetMain()
+    }
+
+    private fun createVm(
+        id: String = "wp-1",
+        wallpaperRepository: WallpaperRepository = FakeWallpaperRepository(),
+        favoritesRepository: FavoritesRepository = FakeFavoritesRepository(),
+        settingsRepository: SettingsRepository = FakeSettingsRepository(),
+        favoriteImageStore: OfflineImageStore = FakeFavoriteImageStore(),
+        rotationCropStore: CropStore = FakeRotationCropStore(),
+        errorMessage: (AppError) -> String = { "error" },
+        previewThumb: String? = null,
+        previewPath: String? = null,
+    ): DetailViewModel {
+        val vm = DetailViewModel(id, wallpaperRepository, favoritesRepository, settingsRepository, favoriteImageStore, rotationCropStore, errorMessage, previewThumb, previewPath)
+        viewModels.add(vm)
+        return vm
     }
 
     @Test
@@ -51,7 +75,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 2560, dimensionY = 1440))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -65,7 +89,7 @@ class DetailViewModelTest {
     fun `load failure sets error message`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
+        val vm = createVm(wallpaperRepository = repo, errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "unknown" })
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -81,7 +105,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo, favoritesRepository = favRepo)
         advanceUntilIdle()
 
         assertFalse("wp-1" in vm.uiState.value.favoriteIds)
@@ -100,7 +124,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo, favoritesRepository = favRepo)
         advanceUntilIdle()
 
         vm.toggleFavorite(Wallpaper(id = "wp-1", dimensionX = 1920, dimensionY = 1080))
@@ -117,7 +141,7 @@ class DetailViewModelTest {
             callCount++
             Result.Success(Wallpaper(id = "$id-$callCount", dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
         advanceUntilIdle()
 
         vm.load()
@@ -130,7 +154,7 @@ class DetailViewModelTest {
     @Test
     fun `initial state is loading`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
 
         // Before advancing, should be in loading state
         assertTrue(vm.uiState.value.isLoading)
@@ -145,7 +169,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
         }
-        val vm = DetailViewModel("wp-1", repo, favRepo, FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo, favoritesRepository = favRepo)
         advanceUntilIdle()
 
         assertTrue("wp-1" in vm.uiState.value.favoriteIds)
@@ -155,7 +179,7 @@ class DetailViewModelTest {
     fun `load failure does not set wallpaper`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "not found")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
+        val vm = createVm(wallpaperRepository = repo, errorMessage = { e -> (e as? AppError.Unknown)?.message ?: "error" })
         advanceUntilIdle()
 
         assertNull(vm.uiState.value.wallpaper)
@@ -166,7 +190,7 @@ class DetailViewModelTest {
     fun `isDetailLoaded becomes true after a successful load`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { id -> Result.Success(Wallpaper(id = id)) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
         advanceUntilIdle()
 
         assertTrue(vm.uiState.value.isDetailLoaded)
@@ -176,7 +200,7 @@ class DetailViewModelTest {
     fun `isDetailLoaded stays false when the load fails`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.Unknown(message = "network")) }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
         advanceUntilIdle()
 
         assertFalse(vm.uiState.value.isDetailLoaded)
@@ -186,8 +210,8 @@ class DetailViewModelTest {
     fun `preview seed keeps isDetailLoaded false`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Success(Wallpaper(id = it)) }
-        val vm = DetailViewModel(
-            "wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" },
+        val vm = createVm(
+            wallpaperRepository = repo,
             previewThumb = "thumb.jpg", previewPath = "path.jpg",
         )
 
@@ -204,7 +228,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             Result.Success(Wallpaper(id = id, path = "https://example.com/$id.jpg", views = 100))
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "error" })
+        val vm = createVm(wallpaperRepository = repo)
         advanceUntilIdle()
 
         val state = vm.uiState.value
@@ -218,8 +242,9 @@ class DetailViewModelTest {
     fun `offline failure with preview keeps preview and hides error`() = runTest(dispatcher) {
         val repo = FakeWallpaperRepository()
         repo.wallpaperResult = { Result.Failure(AppError.NetworkError.NoConnection) }
-        val vm = DetailViewModel(
-            "wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "offline" },
+        val vm = createVm(
+            wallpaperRepository = repo,
+            errorMessage = { "offline" },
             previewThumb = "thumb.jpg", previewPath = "path.jpg",
         )
         advanceUntilIdle()
@@ -239,7 +264,7 @@ class DetailViewModelTest {
         repo.wallpaperResult = { id ->
             if (online) Result.Success(Wallpaper(id = id)) else Result.Failure(AppError.NetworkError.NoConnection)
         }
-        val vm = DetailViewModel("wp-1", repo, FakeFavoritesRepository(), FakeSettingsRepository(), FakeFavoriteImageStore(), FakeRotationCropStore(), errorMessage = { "offline" })
+        val vm = createVm(wallpaperRepository = repo, errorMessage = { "offline" })
         advanceUntilIdle()
         assertEquals("offline", vm.uiState.value.error)
 

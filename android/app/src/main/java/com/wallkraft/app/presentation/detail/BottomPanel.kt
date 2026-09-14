@@ -67,6 +67,11 @@ internal fun BottomPanel(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     chromeAlpha: Float = 1f,
+    palette: List<Int> = emptyList(),
+    related: List<Wallpaper> = emptyList(),
+    relatedLoading: Boolean = false,
+    onRelatedClick: ((Wallpaper) -> Unit)? = null,
+    onColorSwatchClick: ((Int) -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
@@ -234,6 +239,11 @@ internal fun BottomPanel(
                     tagsScrollable = contentOverflows,
                     pullHintVisible = !expanded,
                     bottomPadding = navBarPadding,
+                    palette = palette,
+                    related = related,
+                    relatedLoading = relatedLoading,
+                    onRelatedClick = onRelatedClick,
+                    onColorSwatchClick = onColorSwatchClick,
                 )
             },
             measurePolicy = { measurables: List<androidx.compose.ui.layout.Measurable>, constraints: Constraints ->

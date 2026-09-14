@@ -9,11 +9,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +24,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,10 +46,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
@@ -81,6 +89,11 @@ internal fun DetailPanelContent(
     tagsScrollable: Boolean = false,
     pullHintVisible: Boolean = true,
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    palette: List<Int> = emptyList(),
+    related: List<Wallpaper> = emptyList(),
+    relatedLoading: Boolean = false,
+    onRelatedClick: ((Wallpaper) -> Unit)? = null,
+    onColorSwatchClick: ((Int) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val reduceMotion = rememberReduceMotion()
@@ -245,6 +258,127 @@ internal fun DetailPanelContent(
                         }
                     }
                 }
+
+                // Palette strip — dominant 28dp + 4 swatches 20dp, CircleShape
+                if (palette.isNotEmpty() && clickable) {
+                    Spacer(Modifier.height(KraftSpacing.Spacing16))
+                    Text(
+                        text = stringResource(R.string.tags_heading).replace("Tags", "Palette"),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                            letterSpacing = KraftTypeScale.LabelSpacing,
+                        ),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing4))
+                    PaletteStrip(
+                        palette = palette,
+                        onSwatchClick = { argb ->
+                            KraftHaptics.buttonPress(haptic)
+                            onColorSwatchClick?.invoke(argb)
+                        },
+                    )
+                }
+
+                // Related strip — horizontal LazyRow of 44dp thumbnails
+                if ((related.isNotEmpty() || relatedLoading) && clickable) {
+                    Spacer(Modifier.height(KraftSpacing.Spacing16))
+                    Text(
+                        text = "Related",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                            letterSpacing = KraftTypeScale.LabelSpacing,
+                        ),
+                    )
+                    Spacer(Modifier.height(KraftSpacing.Spacing4))
+                    RelatedStrip(
+                        related = related,
+                        loading = relatedLoading,
+                        onClick = { wp ->
+                            KraftHaptics.buttonPress(haptic)
+                            onRelatedClick?.invoke(wp)
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Palette strip: dominant 28dp circle + up to 4 swatches at 20dp circles.
+ * Tap a swatch triggers a color search.
+ */
+@Composable
+private fun PaletteStrip(
+    palette: List<Int>,
+    onSwatchClick: (Int) -> Unit,
+) {
+    val dominant = palette.firstOrNull() ?: return
+    val swatches = palette.drop(1).take(4)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        // Dominant swatch — 28dp
+        Box(
+            modifier = Modifier
+                .size(28.dp)
+                .clip(CircleShape)
+                .background(Color(dominant))
+                .clickable { onSwatchClick(dominant) },
+        )
+        // Secondary swatches — 20dp
+        swatches.forEach { rgb ->
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(Color(rgb))
+                    .clickable { onSwatchClick(rgb) },
+            )
+        }
+    }
+}
+
+/**
+ * Horizontal strip of 44dp related thumbnails. Tap swaps in-place (no nav push).
+ */
+@Composable
+private fun RelatedStrip(
+    related: List<Wallpaper>,
+    loading: Boolean,
+    onClick: (Wallpaper) -> Unit,
+) {
+    if (loading && related.isEmpty()) {
+        // Skeleton placeholders while loading
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            contentPadding = PaddingValues(vertical = KraftSpacing.Spacing4),
+        ) {
+            items(6) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(KraftRadius.Small))
+                        .background(Color.White.copy(alpha = 0.1f)),
+                )
+            }
+        }
+    } else if (related.isNotEmpty()) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
+            contentPadding = PaddingValues(vertical = KraftSpacing.Spacing4),
+        ) {
+            items(related, key = { it.id }) { wallpaper ->
+                AsyncImage(
+                    model = wallpaper.thumbs.small ?: wallpaper.thumbs.large ?: wallpaper.path,
+                    contentDescription = wallpaper.resolution,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(KraftRadius.Small))
+                        .clickable { onClick(wallpaper) },
+                )
             }
         }
     }

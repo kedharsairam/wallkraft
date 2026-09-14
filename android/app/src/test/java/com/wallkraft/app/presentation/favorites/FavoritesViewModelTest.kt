@@ -170,6 +170,8 @@ class FavoritesViewModelTest {
         override suspend fun setTarget(target: RotationTarget) { _settings.value = _settings.value.copy(target = target) }
         override suspend fun setSourceCollection(id: Long?) { _settings.value = _settings.value.copy(sourceCollectionId = id) }
         override suspend fun setLastIndex(index: Int) { _settings.value = _settings.value.copy(lastIndex = index) }
+        override suspend fun setRecentIds(ids: List<String>) { _settings.value = _settings.value.copy(recentIds = ids) }
+        override suspend fun appendRecentId(id: String, window: Int) { _settings.value = _settings.value.copy(recentIds = (_settings.value.recentIds + id).takeLast(window)) }
         override suspend fun markTimingWelcomeSeen() {}
     }
 
