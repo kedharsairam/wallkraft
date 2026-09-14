@@ -434,23 +434,14 @@ fun CollectionNameDialog(
     val focusRequester = remember { FocusRequester() }
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = KraftRadius.Hero, topEnd = KraftRadius.Hero),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        dragHandle = {
-            Box(
-                modifier = Modifier
-                    .padding(vertical = KraftSpacing.Spacing12)
-                    .size(width = 36.dp, height = 6.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-            )
-        },
-    ) {
-        Column(modifier = Modifier.padding(KraftSpacing.Spacing20).navigationBarsPadding()) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(KraftRadius.Modal),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 0.dp,
+            shadowElevation = KraftConstants.DialogElevation,
+        ) {
+            Column(modifier = Modifier.padding(KraftSpacing.Spacing20)) {
                 Text(title, style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(KraftSpacing.Spacing16))
                 BasicTextField(
@@ -529,6 +520,7 @@ fun CollectionNameDialog(
                 }
             }
         }
+    }
 }
 
 // Backward-compat alias — FavoritesScreen previously used RenameCollectionDialog.
