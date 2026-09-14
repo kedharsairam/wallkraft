@@ -77,7 +77,9 @@ class WallKraftApplication : Application() {
                     com.wallkraft.app.data.rotation.RotationScheduler.apply(this@WallKraftApplication, schedule)
                 }
             }.onFailure { e ->
-                Log.e("WallKraftApplication", "Rotation schedule reconciliation failed", e)
+                if (BuildConfig.DEBUG) {
+                    Log.e("WallKraftApplication", "Rotation schedule reconciliation failed", e)
+                }
             }
         }
     }

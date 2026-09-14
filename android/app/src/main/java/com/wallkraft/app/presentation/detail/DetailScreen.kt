@@ -30,6 +30,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Wallpaper
@@ -162,7 +163,7 @@ private fun DetailScreenImpl(
                             }
                         },
                         onDownload = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             val downloadId = WallpaperDownload.download(context, wallpaper)
                             scope.launch {
                                 if (downloadId >= 0) {

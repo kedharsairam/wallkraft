@@ -65,6 +65,7 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
  * polished collection sheets — matching the liquid-glass top/bottom bars.
@@ -191,9 +192,7 @@ fun AddToCollectionDialog(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(KraftRadius.Standard))
                                 .clickable {
-                                    haptic.performHapticFeedback(
-                                        HapticFeedbackType.LongPress,
-                                    )
+                                    KraftHaptics.buttonPress(haptic)
                                     onToggle(entry.id, !allMembers)
                                 }
                                 .padding(
@@ -298,7 +297,7 @@ fun AddToCollectionDialog(
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     TextButton(
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             onCreate(newName.trim())
                             newName = ""
                         },
@@ -353,7 +352,7 @@ fun CollectionMenuDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             onRename()
                         }
                         .padding(
@@ -510,7 +509,7 @@ fun CollectionNameDialog(
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     TextButton(
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             onSave(text.trim())
                         },
                         enabled = text.trim().isNotEmpty(),

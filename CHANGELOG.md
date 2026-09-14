@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-09-14
+
+### Changed
+- **Haptic consistency** — all light interactions (chips, dots, tabs, switches, grid taps) now use light haptic; LongPress reserved for destructive/success/error
+- **Code style enforcement** — Spotless + ktlint gate in CI, full codebase normalized
+- **Glass shader performance** — pooled FloatArrays (zero per-frame allocation), safer remember key
+- **Dependency hygiene** — pinned test deps, Dependabot weekly scans, static User-Agent (no version leak)
+
+### Fixed
+- **Release log leakage** — all Log.d/i/v/w stripped in release via ProGuard + BuildConfig guards
+- **Uploader placeholder battery** — shimmer now stops when backgrounded or reduce-motion is on
+
 ## [2.3.2] - 2026-09-14
 
 ### Fixed

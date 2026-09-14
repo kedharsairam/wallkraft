@@ -36,6 +36,7 @@ import coil3.ImageLoader
 import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.cache.GridImageLoader
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
@@ -98,14 +99,22 @@ fun WallpaperCard(
             .then(
                 if (onLongClick != null) {
                     Modifier.combinedClickable(
-                        onClick = onClick,
+                        onClick = {
+                            KraftHaptics.buttonPress(haptic)
+                            onClick()
+                        },
                         onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             onLongClick()
                         },
                     )
                 } else {
-                    Modifier.combinedClickable(onClick = onClick)
+                    Modifier.combinedClickable(
+                        onClick = {
+                            KraftHaptics.buttonPress(haptic)
+                            onClick()
+                        },
+                    )
                 },
             ),
     ) {

@@ -85,6 +85,7 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
 import com.wallkraft.app.core.utils.rememberReduceMotion
+import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
  * A single full-bleed surface in the Instagram-reels style. The wallpaper
@@ -389,7 +390,7 @@ internal fun DetailContent(
                             .background(KraftColors.Glass)
                             .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
                             .clickable(onClick = {
-                                hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                                KraftHaptics.buttonPress(hapticLocal)
                                 handleBack()
                             }),
                     ) {
@@ -415,7 +416,7 @@ internal fun DetailContent(
             ) {
                 DetailCircleButton(
                     onClick = {
-                        hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                        KraftHaptics.buttonPress(hapticLocal)
                         onSetWallpaper()
                     },
                     text = stringResource(R.string.set_as_wallpaper),
@@ -450,7 +451,7 @@ internal fun DetailContent(
                 } else {
                     DetailCircleButton(
                         onClick = {
-                            hapticLocal.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(hapticLocal)
                             isSharing = true
                             contentScope.launch {
                                 try {

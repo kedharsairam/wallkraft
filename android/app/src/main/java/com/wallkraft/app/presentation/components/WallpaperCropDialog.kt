@@ -91,6 +91,7 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.domain.model.WallpaperPosition
 import com.wallkraft.app.domain.model.CropRect
@@ -147,7 +148,7 @@ fun WallpaperCropDialog(
 
     // When position picker is open, back dismisses the picker (not the dialog).
     BackHandler(enabled = showPositionPicker) {
-        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+        KraftHaptics.buttonPress(haptic)
         showPositionPicker = false
     }
 
@@ -355,7 +356,7 @@ fun WallpaperCropDialog(
                         .background(KraftColors.Glass)
                         .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
                         .clickable {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             showPositionPicker = true
                         },
                     contentAlignment = Alignment.Center,
@@ -378,7 +379,7 @@ fun WallpaperCropDialog(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.5f))
                         .clickable {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             showPositionPicker = false
                         },
                 )
@@ -470,7 +471,7 @@ fun WallpaperCropDialog(
                     .background(KraftColors.Glass)
                     .border(KraftSpacing.BorderWidth, KraftColors.GlassBorder, CircleShape)
                     .clickable {
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        KraftHaptics.buttonPress(haptic)
                         onDismiss()
                     },
                 contentAlignment = Alignment.Center,

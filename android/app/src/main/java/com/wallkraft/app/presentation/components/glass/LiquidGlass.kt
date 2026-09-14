@@ -338,6 +338,28 @@ fun GlassContainerWithHidden(
     }
 }
 
+private const val MAX_GLASS_ELEMENTS = 10
+
+/**
+ * Reusable uniform buffers for [applyGlassUniforms].
+ *
+ * Threading: the `graphicsLayer` block that calls [applyGlassUniforms] runs on
+ * the UI thread, and there is a single glass instance per composition, so
+ * plain fields suffice (no synchronization needed).
+ */
+private object GlassUniformPool {
+    val positions = FloatArray(MAX_GLASS_ELEMENTS * 2)
+    val sizes = FloatArray(MAX_GLASS_ELEMENTS * 2)
+    val scales = FloatArray(MAX_GLASS_ELEMENTS)
+    val radii = FloatArray(MAX_GLASS_ELEMENTS)
+    val elevations = FloatArray(MAX_GLASS_ELEMENTS)
+    val centerDistortions = FloatArray(MAX_GLASS_ELEMENTS)
+    val tints = FloatArray(MAX_GLASS_ELEMENTS * 4)
+    val darkness = FloatArray(MAX_GLASS_ELEMENTS)
+    val warpEdges = FloatArray(MAX_GLASS_ELEMENTS)
+    val blurs = FloatArray(MAX_GLASS_ELEMENTS)
+}
+
 /**
  * Packs glass element data into shader uniforms.
  * Shared by [GlassContainerWithShader] and [GlassContainerWithShaderHidden].
@@ -350,17 +372,16 @@ private fun applyGlassUniforms(
 ) {
     shader.setIntUniform("elementsCount", effectiveCount)
 
-    val maxElements = 10
-    val positions = FloatArray(maxElements * 2)
-    val sizes = FloatArray(maxElements * 2)
-    val scales = FloatArray(maxElements)
-    val radii = FloatArray(maxElements)
-    val elevations = FloatArray(maxElements)
-    val centerDistortions = FloatArray(maxElements)
-    val tints = FloatArray(maxElements * 4)
-    val darkness = FloatArray(maxElements)
-    val warpEdges = FloatArray(maxElements)
-    val blurs = FloatArray(maxElements)
+    val positions = GlassUniformPool.positions
+    val sizes = GlassUniformPool.sizes
+    val scales = GlassUniformPool.scales
+    val radii = GlassUniformPool.radii
+    val elevations = GlassUniformPool.elevations
+    val centerDistortions = GlassUniformPool.centerDistortions
+    val tints = GlassUniformPool.tints
+    val darkness = GlassUniformPool.darkness
+    val warpEdges = GlassUniformPool.warpEdges
+    val blurs = GlassUniformPool.blurs
 
     for (i in 0 until effectiveCount) {
         val element = elements[i]
@@ -406,7 +427,7 @@ private fun GlassContainerWithShader(
     val context = LocalContext.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember { RuntimeShader(getGlassShader(context)) }
+    val shader = remember(context) { RuntimeShader(getGlassShader(context)) }
 
     SideEffect {
         glassScope.cleanupInactiveElements()
@@ -426,7 +447,7 @@ private fun GlassContainerWithShader(
                 glassScope.updateCounter
 
                 val elements = glassScope.elements
-                val effectiveCount = minOf(elements.size, 10)
+                val effectiveCount = minOf(elements.size, MAX_GLASS_ELEMENTS)
 
                 applyGlassUniforms(shader, elements, effectiveCount)
 
@@ -454,7 +475,7 @@ private fun GlassContainerWithShaderHidden(
     val context = LocalContext.current
     val glassScope = remember { GlassScopeImpl(density) }
 
-    val shader = remember { RuntimeShader(getGlassShader(context)) }
+    val shader = remember(context) { RuntimeShader(getGlassShader(context)) }
 
     SideEffect {
         if (hidden) {
@@ -490,7 +511,7 @@ private fun GlassContainerWithShaderHidden(
                 glassScope.updateCounter
 
                 // Force 0 elements when hidden, even if cleanup is delayed
-                val effectiveCount = if (hidden) 0 else minOf(glassScope.elements.size, 10)
+                val effectiveCount = if (hidden) 0 else minOf(glassScope.elements.size, MAX_GLASS_ELEMENTS)
                 val elements = if (hidden) emptyList() else glassScope.elements
 
                 applyGlassUniforms(shader, elements, effectiveCount)

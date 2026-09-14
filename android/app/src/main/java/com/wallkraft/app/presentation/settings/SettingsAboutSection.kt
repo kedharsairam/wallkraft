@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
  * About section — developer credit, version, and link rows.
@@ -104,7 +105,7 @@ fun SettingsAboutSection(
         AboutRow(
             title = stringResource(R.string.github_title),
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
                 context.startActivity(intent)
             },
@@ -113,7 +114,7 @@ fun SettingsAboutSection(
         AboutRow(
             title = stringResource(R.string.privacy_title),
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 onPrivacyClick()
             },
         )
@@ -122,7 +123,7 @@ fun SettingsAboutSection(
         AboutRow(
             title = stringResource(R.string.licenses_title),
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(licensesUrl))
                 context.startActivity(intent)
             },
@@ -131,7 +132,7 @@ fun SettingsAboutSection(
         AboutRow(
             title = stringResource(R.string.share_crash_log),
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 onShareCrashLogClick()
             },
         )

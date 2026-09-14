@@ -7,10 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
 
@@ -32,7 +32,7 @@ fun SettingsSupportSection() {
         )
         BuyMeACoffeeButton(
             onClick = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/kedhartech"))
                 context.startActivity(intent)
             },
