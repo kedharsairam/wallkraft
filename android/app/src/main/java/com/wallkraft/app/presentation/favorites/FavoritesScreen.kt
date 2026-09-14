@@ -324,14 +324,6 @@ private fun FavoritesScreenImpl(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 ) {
-                    if (collections.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_collections_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = KraftSpacing.Spacing12),
-                        )
-                    }
                     CollectionStrip(
                         collections = collections,
                         covers = covers,
@@ -340,6 +332,17 @@ private fun FavoritesScreenImpl(
                         onNew = { showCreateDialog = true },
                         onMenu = { menuCollectionId = it },
                     )
+                    if (collections.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.no_collections_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = KraftSpacing.Spacing12),
+                        )
+                    }
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline,
                         modifier = Modifier.padding(horizontal = KraftSpacing.Spacing16),

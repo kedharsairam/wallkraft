@@ -30,8 +30,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 49
-        versionName = "2.3.1"
+        versionCode = 50
+        versionName = "2.3.2"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-09-14
+
+### Fixed
+- **Tag navigation** — tapping a tag on the detail screen now searches for that tag instead of showing default results
+- **Tag back navigation** — pressing back from tag results returns to the detail screen instead of the original browse screen
+- **New Collection dialog** — restored to centered dialog (was incorrectly converted to bottom sheet)
+- **Collections hint** — moved below the New Collection button, center-aligned
+
 ## [2.3.1] - 2026-09-14
 
 ### Added

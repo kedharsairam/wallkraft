@@ -247,20 +247,10 @@ private fun WallKraftNavHostImpl(rotationStore: RotationSettingsStore) {
                         previewPath = entry.arguments?.getString("path").orEmpty(),
                         onBack = { navController.popBackStack() },
                         onTagClick = { tag ->
-                            navController.navigate(Routes.browse(tag)) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Routes.browse(tag))
                         },
                         onUploaderClick = { username ->
-                            navController.navigate(Routes.browse("@$username", title = username)) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                            }
+                            navController.navigate(Routes.browse("@$username", title = username))
                         },
                         navBarPadding = 0.dp,
                         sharedTransitionScope = sharedTransitionScope,
