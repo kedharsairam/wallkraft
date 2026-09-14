@@ -2,6 +2,7 @@ package com.wallkraft.app.data.cache
 
 import android.util.Log
 import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.di.WallhavenClient
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,7 +24,7 @@ import java.io.File
  */
 class FavoriteImageStore(
     private val directory: File,
-    private val client: OkHttpClient,
+    @WallhavenClient private val client: OkHttpClient,
 ) : OfflineImageStore {
     companion object {
         const val MAX_BYTES: Long = KraftConstants.FavoriteImageMaxBytes

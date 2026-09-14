@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.data.api.GithubApi
+import com.wallkraft.app.data.api.RetryInterceptor
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.data.cache.FavoriteImageStore
 import com.wallkraft.app.data.cache.OfflineImageStore
@@ -18,9 +19,11 @@ import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.data.prefs.SearchHistoryStore
 import com.wallkraft.app.data.repository.CollectionsRepositoryImpl
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
+import com.wallkraft.app.data.repository.SavedSearchRepositoryImpl
 import com.wallkraft.app.data.repository.WallpaperRepositoryImpl
 import com.wallkraft.app.domain.repository.CollectionsRepository
 import com.wallkraft.app.domain.repository.FavoritesRepository
+import com.wallkraft.app.domain.repository.SavedSearchRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import com.wallkraft.app.core.errors.AppError
@@ -53,12 +56,20 @@ object AppModule {
         encodeDefaults = true
     }
 
-    @Provides @Singleton
-    fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+    private fun baseOkHttpBuilder(): OkHttpClient.Builder = OkHttpClient.Builder()
         .connectTimeout(KraftConstants.ConnectTimeoutSec, TimeUnit.SECONDS)
         .readTimeout(KraftConstants.ReadTimeoutSec, TimeUnit.SECONDS)
         .callTimeout(KraftConstants.CallTimeoutSec, TimeUnit.SECONDS)
-        .retryOnConnectionFailure(true)
+
+    @Provides @Singleton @WallhavenClient
+    fun provideWallhavenClient(): OkHttpClient = baseOkHttpBuilder()
+        .addInterceptor(RetryInterceptor())
+        .retryOnConnectionFailure(false)
+        .build()
+
+    @Provides @Singleton @GithubClient
+    fun provideGithubClient(): OkHttpClient = baseOkHttpBuilder()
+        .retryOnConnectionFailure(false)
         .build()
 
     @Provides @Singleton
@@ -68,7 +79,7 @@ object AppModule {
 
     @Provides @Singleton
     fun provideWallhavenApi(
-        client: OkHttpClient,
+        @WallhavenClient client: OkHttpClient,
         json: Json,
         settings: SettingsRepository,
         rateLimitState: com.wallkraft.app.data.api.RateLimitState,
@@ -76,7 +87,7 @@ object AppModule {
 
     @Provides @Singleton
     fun provideGithubApi(
-        client: OkHttpClient,
+        @GithubClient client: OkHttpClient,
         json: Json,
     ): GithubApi = GithubApi(client, json)
 
@@ -107,6 +118,7 @@ object AppModule {
             WallKraftDatabase.MIGRATION_1_2,
             WallKraftDatabase.MIGRATION_2_3,
             WallKraftDatabase.MIGRATION_3_4,
+            WallKraftDatabase.MIGRATION_4_5,
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()
@@ -124,9 +136,14 @@ object AppModule {
     ): CollectionsRepository = CollectionsRepositoryImpl(db.collectionDao())
 
     @Provides @Singleton
+    fun provideSavedSearchRepository(
+        db: WallKraftDatabase,
+    ): SavedSearchRepository = SavedSearchRepositoryImpl(db.savedSearchDao())
+
+    @Provides @Singleton
     fun provideFavoriteImageStore(
         @ApplicationContext context: Context,
-        client: OkHttpClient,
+        @WallhavenClient client: OkHttpClient,
     ): OfflineImageStore = FavoriteImageStore(
         directory = File(context.filesDir, "favorites"),
         client = client,

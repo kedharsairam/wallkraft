@@ -39,8 +39,11 @@ data class DetailUiState(
 /**
  * Detail screen VM — Hilt pilot.
  * Nav args "id", "thumb", "path" are read via [SavedStateHandle] so the Screen
- * no longer needs to pass them manually. A secondary constructor is retained for
- * unit tests (plain lambda + explicit id/thumbs without needing Hilt/SavedStateHandle).
+ * no longer needs to pass them manually. Direct reads (instead of
+ * SavedStateHandle.toRoute) keep plain JVM unit tests working: navigation
+ * decodes through android.os.Bundle, which is a no-op stub under unit tests.
+ * A secondary constructor is retained for unit tests (plain lambda + explicit
+ * id/thumbs without needing Hilt/SavedStateHandle).
  */
 @HiltViewModel
 class DetailViewModel @Inject constructor(

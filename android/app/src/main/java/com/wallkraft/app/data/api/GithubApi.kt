@@ -12,6 +12,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import com.wallkraft.app.di.GithubClient
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -38,7 +39,7 @@ private data class GithubRelease(
  * Public repo, no token. Rate limit 60/hr/IP unauth — fail silent, caller shows nothing.
  */
 class GithubApi @Inject constructor(
-    private val client: OkHttpClient,
+    @GithubClient private val client: OkHttpClient,
     private val json: Json,
 ) {
     suspend fun latestRelease(currentVersion: String = BuildConfig.VERSION_NAME): Result<AppUpdateInfo?> =
@@ -52,7 +53,7 @@ class GithubApi @Inject constructor(
                     .build()
                 client.newCall(request).execute().use { resp ->
                     if (resp.code == 403 || resp.code == 429) {
-                        return@withContext Result.Failure(AppError.NetworkError.RateLimited)
+                        return@withContext Result.Failure(AppError.NetworkError.RateLimited())
                     }
                     if (resp.code == 404) {
                         return@withContext Result.Failure(AppError.DataError.NotFound)

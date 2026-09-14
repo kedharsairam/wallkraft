@@ -6,13 +6,14 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FavoriteEntity::class, CollectionEntity::class, CollectionItemEntity::class],
-    version = 4,
+    entities = [FavoriteEntity::class, CollectionEntity::class, CollectionItemEntity::class, SavedSearchEntity::class],
+    version = 5,
     exportSchema = true,
 )
 abstract class WallKraftDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
     abstract fun collectionDao(): CollectionDao
+    abstract fun savedSearchDao(): SavedSearchDao
 
     companion object {
         /** v1 → v2: add the nullable `collection` column for favorites folders. */
@@ -82,6 +83,33 @@ abstract class WallKraftDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_collection_items_wallpaperId` " +
                         "ON `collection_items` (`wallpaperId`)",
+                )
+            }
+        }
+        /**
+         * v4 → v5: saved searches (reusable Browse filter sets, ordered by
+         * recency). Fresh table + indices — no data moves, existing favorites
+         * and collections are untouched.
+         */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `saved_searches` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, `query` TEXT NOT NULL, " +
+                        "`categories` TEXT NOT NULL, `purity` TEXT NOT NULL, " +
+                        "`sorting` TEXT NOT NULL, `topRange` TEXT NOT NULL, " +
+                        "`colors` TEXT NOT NULL, `orientation` TEXT NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, `lastUsedAt` INTEGER NOT NULL, " +
+                        "`useCount` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_saved_searches_name` " +
+                        "ON `saved_searches` (`name`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_saved_searches_lastUsedAt` " +
+                        "ON `saved_searches` (`lastUsedAt`)",
                 )
             }
         }

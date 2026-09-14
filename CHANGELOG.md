@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-14
+
+### Changed
+- **Type-safe navigation** — string routes replaced with first-party Navigation-Compose typed destinations (compile-time checked, no more Uri.encode)
+- **Centralized retry policy** — single OkHttp interceptor (GET-only, 5xx + IOException, exponential backoff with jitter); Wallhaven and Github use separate clients
+- **Rate-limit errors carry Retry-After** — 429 responses now include server retry hint
+
+### Added
+- **Saved searches (data layer)** — new Room table with DAO, repository, and migration; UI (save button, rotation source) lands in a follow-up
+- **Pure rotation decision functions** — 5 testable functions extracted from worker (collection filter, availability filter, target map, retry order, chain guard) + 11 new unit tests
+- **Retry + API mapping tests** — 10 new tests (interceptor behavior, error mapping, backoff timing)
+- **Navigation round-trip tests** — 7 tests for destination serialization edge cases
+
 ## [2.3.3] - 2026-09-14
 
 ### Changed

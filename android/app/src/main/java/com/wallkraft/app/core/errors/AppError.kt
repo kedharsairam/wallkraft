@@ -24,7 +24,7 @@ sealed interface AppError {
         data class ServerError(val code: Int? = null, val message: String? = null) : NetworkError
 
         /** 429 Too Many Requests — rate limit hit. */
-        data object RateLimited : NetworkError
+        data class RateLimited(val retryAfterSec: Long? = null) : NetworkError
     }
 
     /** Local data / parsing / validation failures. */
