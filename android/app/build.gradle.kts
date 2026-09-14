@@ -7,15 +7,26 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.spotless)
+}
+
+spotless {
+    kotlin {
+        ktlint("1.5.0")
+    }
+    kotlinGradle {
+        ktlint()
+    }
 }
 
 // Release signing credentials. key.properties is gitignored and only exists on
 // the maintainer's machine — a fresh clone or CI without secrets falls back to
 // the debug keystore so builds still succeed.
-val keystoreProperties = Properties().apply {
-    val f = rootProject.file("key.properties")
-    if (f.exists()) f.inputStream().use { load(it) }
-}
+val keystoreProperties =
+    Properties().apply {
+        val f = rootProject.file("key.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
 val hasReleaseKey = keystoreProperties.isNotEmpty()
 
 android {
@@ -30,8 +41,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 50
-        versionName = "2.3.2"
+        versionCode = 51
+        versionName = "2.3.3"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).
@@ -56,15 +67,16 @@ android {
             isDebuggable = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             // Real release key when key.properties exists; debug keystore
             // otherwise (local dev only).
-            signingConfig = if (hasReleaseKey) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig =
+                if (hasReleaseKey) {
+                    signingConfigs.getByName("release")
+                } else {
+                    signingConfigs.getByName("debug")
+                }
         }
     }
 
@@ -79,11 +91,12 @@ android {
 
     packaging {
         jniLibs {
-            excludes += setOf(
-                "lib/armeabi-v7a/*",
-                "lib/x86/*",
-                "lib/x86_64/*",
-            )
+            excludes +=
+                setOf(
+                    "lib/armeabi-v7a/*",
+                    "lib/x86/*",
+                    "lib/x86_64/*",
+                )
         }
     }
 

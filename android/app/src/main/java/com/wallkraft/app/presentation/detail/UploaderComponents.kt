@@ -40,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.SubcomposeAsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
@@ -47,6 +49,7 @@ import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /** The uploader row's three visual states, crossfaded as the detail loads. */
 internal enum class UploaderState { Loading, Loaded, Deleted }
@@ -102,15 +105,25 @@ internal fun UploaderRow(
  */
 @Composable
 internal fun UploaderRowPlaceholder() {
-    val pulse by rememberInfiniteTransition(label = "uploaderPlaceholder").animateFloat(
-        initialValue = KraftConstants.SkeletonAlphaMin,
-        targetValue = KraftConstants.SkeletonAlphaMax,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 750, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
-        ),
-        label = "uploaderPlaceholderAlpha",
-    )
+    val reduceMotion = rememberReduceMotion()
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val isVisible = lifecycleState.isAtLeast(Lifecycle.State.STARTED) && !reduceMotion
+    val transition = rememberInfiniteTransition(label = "uploaderPlaceholder")
+    // Respect ReduceMotion + background: snap to midpoint when disabled (P0 battery/a11y).
+    val pulse by if (isVisible) {
+        transition.animateFloat(
+            initialValue = KraftConstants.SkeletonAlphaMin,
+            targetValue = KraftConstants.SkeletonAlphaMax,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 750, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "uploaderPlaceholderAlpha",
+        )
+    } else {
+        remember { androidx.compose.runtime.mutableStateOf((KraftConstants.SkeletonAlphaMin + KraftConstants.SkeletonAlphaMax) / 2f) }
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(vertical = KraftSpacing.Spacing2),

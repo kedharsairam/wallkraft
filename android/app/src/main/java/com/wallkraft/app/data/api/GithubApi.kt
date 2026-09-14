@@ -47,7 +47,7 @@ class GithubApi @Inject constructor(
                 val request = Request.Builder()
                     .url("https://api.github.com/repos/kedharsairam/wallkraft/releases/latest")
                     .header("Accept", "application/vnd.github+json")
-                    .header("User-Agent", "WallKraft/${BuildConfig.VERSION_NAME}")
+                    .header("User-Agent", "WallKraft")
                     .get()
                     .build()
                 client.newCall(request).execute().use { resp ->
@@ -110,7 +110,7 @@ class GithubApi @Inject constructor(
                 val request = Request.Builder()
                     .url(url)
                     .header("Accept", "application/octet-stream")
-                    .header("User-Agent", "WallKraft/${BuildConfig.VERSION_NAME}")
+                    .header("User-Agent", "WallKraft")
                     .get()
                     .build()
                 client.newCall(request).execute().use { resp ->

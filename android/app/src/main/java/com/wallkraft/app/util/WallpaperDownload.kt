@@ -25,7 +25,11 @@ object WallpaperDownload {
     fun download(context: Context, wallpaper: Wallpaper): Long {
         return try {
             val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as? DownloadManager
-                ?: return -1L.also { Log.e(TAG, "DownloadManager unavailable") }
+                ?: return -1L.also {
+                    if (com.wallkraft.app.BuildConfig.DEBUG) {
+                        Log.e(TAG, "DownloadManager unavailable")
+                    }
+                }
             // Detect actual file extension from the URL instead of hardcoding .jpg.
             val extension = wallpaper.path.toUri().lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
             val request = DownloadManager.Request(wallpaper.path.toUri())
@@ -38,10 +42,14 @@ object WallpaperDownload {
                 )
             dm.enqueue(request)
         } catch (e: SecurityException) {
-            Log.e(TAG, "Storage permission denied for download", e)
+            if (com.wallkraft.app.BuildConfig.DEBUG) {
+                Log.e(TAG, "Storage permission denied for download", e)
+            }
             -1L
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to enqueue download", e)
+            if (com.wallkraft.app.BuildConfig.DEBUG) {
+                Log.e(TAG, "Failed to enqueue download", e)
+            }
             -1L
         }
     }

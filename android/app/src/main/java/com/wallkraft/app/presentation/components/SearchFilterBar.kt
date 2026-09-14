@@ -89,6 +89,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.wallkraft.app.R
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftIconSize
@@ -275,7 +276,7 @@ fun SearchFilterBar(
                                 .clip(CircleShape)
                                 .background(MaterialTheme.colorScheme.primary)
                                 .clickable {
-                                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                    KraftHaptics.buttonPress(haptic)
                                     keyboard?.hide()
                                     focusManager.clearFocus()
                                     onSearch(query)
@@ -303,7 +304,7 @@ fun SearchFilterBar(
                             else KraftColors.Surface,
                         )
                         .clickable {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             keyboard?.hide()
                             focusManager.clearFocus()
                             showFilters = !showFilters
@@ -400,7 +401,7 @@ fun SearchFilterBar(
                         FilterChip(
                             selected = checked,
                             onClick = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 val current = draftFilters.categories
                                 val updated = if (cat in current) {
                                     if (current.size > 1) current - cat else current
@@ -443,7 +444,7 @@ fun SearchFilterBar(
                             selected = checked,
                             onClick = {
                                 if (isNsfwLocked) return@FilterChip
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 val current = draftFilters.purity
                                 val updated = if (p in current) {
                                     if (current.size > 1) current - p else current
@@ -476,7 +477,7 @@ fun SearchFilterBar(
                         FilterChip(
                             selected = draftFilters.orientation == o,
                             onClick = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 draftFilters = draftFilters.copy(orientation = o)
                             },
                             label = { Text(o.displayName()) },
@@ -501,7 +502,7 @@ fun SearchFilterBar(
                         FilterChip(
                             selected = draftFilters.sorting == s,
                             onClick = {
-                                haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 draftFilters = draftFilters.copy(sorting = s)
                             },
                             label = { Text(s.displayName()) },
@@ -532,7 +533,7 @@ fun SearchFilterBar(
                                 FilterChip(
                                     selected = draftFilters.topRange == t,
                                     onClick = {
-                                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                        KraftHaptics.selectionChanged(haptic)
                                         draftFilters = draftFilters.copy(topRange = t)
                                     },
                                     label = { Text(t.displayName()) },
@@ -555,7 +556,7 @@ fun SearchFilterBar(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             draftFilters = WallhavenFilters(query = filters.query)
                         },
                         modifier = Modifier.weight(1f).height(KraftSpacing.TouchTarget),
@@ -566,7 +567,7 @@ fun SearchFilterBar(
                     ) { Text(stringResource(R.string.filter_reset)) }
                     Button(
                         onClick = {
-                            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             if (draftFilters != filters) onFiltersChange(draftFilters)
                             showFilters = false
                         },

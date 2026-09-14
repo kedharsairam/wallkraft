@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,6 +53,7 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.domain.model.Wallpaper
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.util.formatCount
 import com.wallkraft.app.core.utils.rememberReduceMotion
 
@@ -82,6 +84,7 @@ internal fun DetailPanelContent(
     modifier: Modifier = Modifier,
 ) {
     val reduceMotion = rememberReduceMotion()
+    val haptic = LocalHapticFeedback.current
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -131,7 +134,10 @@ internal fun DetailPanelContent(
                     avatarUrl = wallpaper.uploaderAvatarUrl,
                     createdAt = wallpaper.createdAt,
                     loadAvatar = loadAvatar,
-                    onClick = { onUploaderClick(wallpaper.uploaderName) },
+                    onClick = {
+                        KraftHaptics.buttonPress(haptic)
+                        onUploaderClick(wallpaper.uploaderName)
+                    },
                     clickable = clickable,
                 )
                 UploaderState.Deleted -> DeletedUploaderRow()
@@ -228,7 +234,14 @@ internal fun DetailPanelContent(
                         modifier = if (tagsScrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier,
                     ) {
                         wallpaper.tags.forEach { tag ->
-                            DetailTagChip(name = tag.name, onClick = { onTagClick(tag.name) }, clickable = clickable)
+                            DetailTagChip(
+                                name = tag.name,
+                                onClick = {
+                                    KraftHaptics.buttonPress(haptic)
+                                    onTagClick(tag.name)
+                                },
+                                clickable = clickable,
+                            )
                         }
                     }
                 }

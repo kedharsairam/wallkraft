@@ -33,7 +33,9 @@ object WallpaperSharing {
             )
             true
         } catch (e: Exception) {
-            Log.w(TAG, "No browser available to open ${wallpaper.url}", e)
+            if (com.wallkraft.app.BuildConfig.DEBUG) {
+                Log.w(TAG, "No browser available to open ${wallpaper.url}", e)
+            }
             false
         }
     }
@@ -101,7 +103,9 @@ object WallpaperSharing {
                 try {
                     local.copyTo(named, overwrite = true)
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to copy local file for sharing", e)
+                    if (com.wallkraft.app.BuildConfig.DEBUG) {
+                        Log.w(TAG, "Failed to copy local file for sharing", e)
+                    }
                 }
             }
             return named.takeIf { it.exists() && it.length() > 0 } ?: local
@@ -136,7 +140,9 @@ object WallpaperSharing {
                     file.takeIf { it.exists() && it.length() > 0 }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to read Coil disk cache for ${wallpaper.id}", e)
+                if (com.wallkraft.app.BuildConfig.DEBUG) {
+                    Log.w(TAG, "Failed to read Coil disk cache for ${wallpaper.id}", e)
+                }
                 null
             }
         }
@@ -169,7 +175,9 @@ object WallpaperSharing {
                 context.imageLoader.execute(request)
                 coilCachedFile(context, wallpaper)
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to fetch image for sharing: ${wallpaper.id}", e)
+                if (com.wallkraft.app.BuildConfig.DEBUG) {
+                    Log.w(TAG, "Failed to fetch image for sharing: ${wallpaper.id}", e)
+                }
                 null
             }
         }

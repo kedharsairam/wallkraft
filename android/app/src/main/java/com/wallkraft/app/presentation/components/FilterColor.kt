@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
  * Grouped color palette for the Wallhaven `colors` search parameter.
@@ -136,7 +137,7 @@ fun ColorFilterRow(
                             .size(KraftSpacing.TouchTarget)
                             .weight(1f),
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.selectionChanged(haptic)
                             if (active) {
                                 onSelect("")
                                 expandedKey = null
@@ -183,7 +184,7 @@ fun ColorFilterRow(
                             height = 32.dp,
                         ),
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.selectionChanged(haptic)
                             onSelect(if (shadeSelected) "" else hex)
                         },
                         onLongClick = null,

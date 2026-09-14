@@ -41,6 +41,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.data.prefs.RotationSettings
 import com.wallkraft.app.data.rotation.RotationScheduler
 import kotlinx.coroutines.Dispatchers
@@ -272,7 +273,7 @@ private fun SettingsScreenImpl(
                 viewModel.clearDownloadState()
             },
             onDownload = {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                KraftHaptics.buttonPress(haptic)
                 val dir = File(context.cacheDir, "update")
                 viewModel.downloadUpdate(info, dir)
             },

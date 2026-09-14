@@ -48,9 +48,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import com.wallkraft.app.core.utils.KraftHaptics
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
@@ -107,7 +107,7 @@ fun SettingsRotationSection(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(KraftRadius.Standard))
                 .clickable {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    KraftHaptics.buttonPress(haptic)
                     expanded = !expanded
                 }
                 .padding(vertical = KraftSpacing.Spacing8),
@@ -148,7 +148,7 @@ fun SettingsRotationSection(
                 FilterChip(
                     selected = settings.schedule == option,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        KraftHaptics.selectionChanged(haptic)
                         onSchedule(option)
                     },
                     label = { Text(label) },
@@ -188,7 +188,7 @@ fun SettingsRotationSection(
                 FilterChip(
                     selected = settings.mode == option,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        KraftHaptics.selectionChanged(haptic)
                         onMode(option)
                     },
                     label = { Text(label) },
@@ -212,7 +212,7 @@ fun SettingsRotationSection(
                 FilterChip(
                     selected = settings.target == option,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        KraftHaptics.selectionChanged(haptic)
                         onTarget(option)
                     },
                     label = { Text(label) },
@@ -260,7 +260,7 @@ fun SettingsRotationSection(
         ) {
             Button(
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    KraftHaptics.buttonPress(haptic)
                     onRotateNow()
                 },
                 // Disabled while a run is in flight: one tap, one run, and the

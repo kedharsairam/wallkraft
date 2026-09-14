@@ -24,6 +24,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftTopBar
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.favorites.FavoritesTopBarState
 
@@ -66,7 +67,7 @@ fun FavoritesSelectionTopBar(
                     val haptic = LocalHapticFeedback.current
                     TextButton(
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             topBarState.onToggleSelectAll()
                         },
                     ) {
@@ -79,7 +80,7 @@ fun FavoritesSelectionTopBar(
                     }
                     IconButton(
                         onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            KraftHaptics.buttonPress(haptic)
                             topBarState.onAddToCollection()
                         },
                     ) {

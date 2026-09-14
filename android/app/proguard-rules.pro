@@ -26,3 +26,9 @@
 
 # security-crypto / Tink — errorprone annotations are compile-only
 -dontwarn com.google.errorprone.annotations.**
+
+# Strip verbose/debug/info/warn logs in release (keep Log.e for crash breadcrumbs).
+-assumenosideeffects class android.util.Log {
+    public static *** d(...); public static *** i(...);
+    public static *** v(...); public static *** w(...);
+}

@@ -37,9 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
@@ -110,7 +110,7 @@ fun SettingsBrowsingSection(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(KraftRadius.Standard))
                 .clickable {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    KraftHaptics.buttonPress(haptic)
                     expanded = !expanded
                 }
                 .padding(vertical = KraftSpacing.Spacing8),
@@ -203,7 +203,7 @@ fun SettingsBrowsingSection(
                         FilterChip(
                             selected = selected,
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 val newSet = if (selected) settings.categories - category else settings.categories + category
                                 onCategories(newSet)
                             },
@@ -244,7 +244,7 @@ fun SettingsBrowsingSection(
                             selected = selected,
                             onClick = {
                                 if (isNsfwLocked) return@FilterChip
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 val newSet = if (selected) settings.purity - purity else settings.purity + purity
                                 onPurity(newSet)
                             },
@@ -273,7 +273,7 @@ fun SettingsBrowsingSection(
                         FilterChip(
                             selected = settings.orientation == orientation,
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 onOrientation(orientation)
                             },
                             label = { Text(orientation.displayName()) },
@@ -297,7 +297,7 @@ fun SettingsBrowsingSection(
                         FilterChip(
                             selected = settings.sorting == sorting,
                             onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                KraftHaptics.selectionChanged(haptic)
                                 onSorting(sorting)
                             },
                             label = { Text(sorting.displayName()) },
@@ -327,7 +327,7 @@ fun SettingsBrowsingSection(
                                 FilterChip(
                                     selected = settings.topRange == range,
                                     onClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        KraftHaptics.selectionChanged(haptic)
                                         onTopRange(range)
                                     },
                                     label = { Text(range.displayName()) },
