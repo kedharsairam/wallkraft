@@ -42,9 +42,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import com.wallkraft.app.R
-import com.wallkraft.app.Routes
+import com.wallkraft.app.navigation.Browse
+import com.wallkraft.app.navigation.Favorites
+import com.wallkraft.app.navigation.Settings
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
@@ -54,16 +57,16 @@ import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.core.utils.rememberReduceMotion
 
 data class GlassTab(
-    val route: String,
+    val destination: Any,
     @androidx.annotation.StringRes val labelRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
 )
 
 val defaultTabs = listOf(
-    GlassTab(Routes.BROWSE, R.string.tab_browse, Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
-    GlassTab(Routes.FAVORITES, R.string.tab_favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
-    GlassTab(Routes.SETTINGS, R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
+    GlassTab(Browse(), R.string.tab_browse, Icons.Filled.Dashboard, Icons.Outlined.Dashboard),
+    GlassTab(Favorites, R.string.tab_favorites, Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
+    GlassTab(Settings, R.string.tab_settings, Icons.Filled.Settings, Icons.Outlined.Settings),
 )
 
 private val GlassShape = CircleShape
@@ -88,8 +91,7 @@ fun GlassTabBar(
         tabs.forEach { tab ->
             val selected =
                 currentDestination?.hierarchy?.any {
-                    if (tab.route == Routes.BROWSE) it.route?.startsWith("browse") == true
-                    else it.route == tab.route
+                    it.hasRoute(tab.destination::class)
                 } == true
             GlassTabItem(
                 tab = tab,

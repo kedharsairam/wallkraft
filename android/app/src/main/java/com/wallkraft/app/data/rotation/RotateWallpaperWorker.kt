@@ -4,15 +4,12 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wallkraft.app.WorkerEntryPoint
-import com.wallkraft.app.domain.model.RotationTarget
-import com.wallkraft.app.domain.model.WallpaperPosition
 import com.wallkraft.app.util.RotationFraming
 import com.wallkraft.app.util.RotationPicker
 import com.wallkraft.app.util.RotationRender
 import com.wallkraft.app.util.WallpaperSetter
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
-import kotlin.math.min
 
 /**
  * Applies the next favorited wallpaper on schedule.
@@ -45,39 +42,36 @@ class RotateWallpaperWorker(
         // while a link was pending, in which case terminate quietly. A live
         // chain perpetuates FIRST so a crash mid-rotation never kills it.
         val settings = rotationStore.current()
-        if (inputData.getBoolean(RotationScheduler.KEY_CHAIN, false)) {
-            if (settings.schedule == com.wallkraft.app.domain.model.RotationSchedule.OFF) {
-                return Result.success()
-            }
+        val isChain = inputData.getBoolean(RotationScheduler.KEY_CHAIN, false)
+        if (!RotationPicker.shouldContinueChain(isChain, settings.schedule)) {
+            return Result.success()
+        }
+        if (isChain) {
             RotationScheduler.chainNext(applicationContext, settings.schedule)
         }
 
         val favorites = favoritesRepository.observeWallpapers().first()
-        val pool = if (settings.sourceCollectionId != null) {
-            val memberIds = collectionsRepository.observeAll().first()
+        val memberIds = if (settings.sourceCollectionId != null) {
+            collectionsRepository.observeAll().first()
                 .firstOrNull { it.id == settings.sourceCollectionId }
                 ?.items?.toSet()
                 ?: emptySet()
-            favorites.filter { it.id in memberIds }
         } else {
-            favorites
+            null
         }
-        val candidates = RotationPicker.candidates(pool).filter { wallpaper ->
-            favoriteImageStore.fileFor(wallpaper.id) != null
+        val pool = RotationPicker.filterByCollection(favorites, memberIds)
+        val candidates = RotationPicker.filterAvailable(RotationPicker.candidates(pool)) { id ->
+            favoriteImageStore.fileFor(id) != null
         }
         if (candidates.isEmpty()) return Result.failure()
 
         val metrics = applicationContext.resources.displayMetrics
         val screen = RotationRender.Screen(metrics.widthPixels, metrics.heightPixels)
         val crops = rotationCropStore.current()
-        val position = when (settings.target) {
-            RotationTarget.HOME -> WallpaperPosition.HOME
-            RotationTarget.LOCK -> WallpaperPosition.LOCK
-            RotationTarget.BOTH -> WallpaperPosition.BOTH
-        }
+        val position = RotationPicker.mapTarget(settings.target)
 
-        var index = RotationPicker.pickNext(candidates.size, settings.lastIndex)
-        repeat(min(3, candidates.size)) {
+        val startIndex = RotationPicker.pickNext(candidates.size, settings.lastIndex)
+        for (index in RotationPicker.retryOrder(startIndex, candidates.size)) {
             val wallpaper = candidates[index]
             val file = favoriteImageStore.fileFor(wallpaper.id)
             val output = if (file != null) {
@@ -103,7 +97,6 @@ class RotateWallpaperWorker(
                     output.recycle()
                 }
             }
-            index = (index + 1) % candidates.size
         }
         return Result.failure()
     }

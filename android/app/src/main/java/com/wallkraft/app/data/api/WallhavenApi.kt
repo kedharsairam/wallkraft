@@ -11,9 +11,9 @@ import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.model.toCategoryParam
 import com.wallkraft.app.domain.model.toPurityParam
 import com.wallkraft.app.domain.repository.SettingsRepository
+import com.wallkraft.app.di.WallhavenClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -50,21 +50,19 @@ private data class WallpaperEnvelope(
  * singleton is owned by the graph.
  */
 class WallhavenApi @javax.inject.Inject constructor(
-    private val client: OkHttpClient,
+    @WallhavenClient private val client: OkHttpClient,
     private val json: Json,
     private val settings: SettingsRepository,
     private val rateLimitState: RateLimitState,
 ) : WallhavenApiSource {
     private val baseUrl = "https://wallhaven.cc/api/v1"
 
-    /** Max automatic retries for transient failures (network / 5xx). */
     private companion object {
-        const val MAX_RETRIES = KraftConstants.RetryMax
         const val TAG = "WallKraftPerf"
     }
 
     override suspend fun search(filters: WallhavenFilters, page: Int): Result<WallpaperResponse> {
-        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
+        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited())
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("search")
             .apply {
@@ -90,7 +88,7 @@ class WallhavenApi @javax.inject.Inject constructor(
     }
 
     override suspend fun wallpaper(id: String): Result<Wallpaper> {
-        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited)
+        if (rateLimitState.limited.value) return Result.Failure(AppError.NetworkError.RateLimited())
         val url = baseUrl.toHttpUrl().newBuilder()
             .addPathSegment("w")
             .addPathSegment(id)
@@ -136,6 +134,12 @@ class WallhavenApi @javax.inject.Inject constructor(
         }
     }
 
+    /**
+     * Single-shot request — retries for transient failures now live in
+     * [RetryInterceptor] on the Wallhaven OkHttp client, so this method only
+     * maps responses to [Result]. 429 short-circuits to RateLimited with the
+     * server's `Retry-After` attached; it is never retried.
+     */
     private suspend inline fun <reified T> execute(url: String): Result<T> =
         withContext(Dispatchers.IO) {
             val currentSettings = settings.current()
@@ -149,84 +153,68 @@ class WallhavenApi @javax.inject.Inject constructor(
             // Debug-only API timing. The key travels in a header, never the
             // URL, so logging the URL leaks nothing sensitive.
             val startMs = android.os.SystemClock.elapsedRealtime()
-            var attempt = 0
-            while (true) {
-                val request = Request.Builder()
-                    .url(url)
-                    .header("Accept", "application/json")
-                    .apply { if (shouldSendKey) header("X-API-Key", apiKey) }
-                    .get()
-                    .build()
+            val request = Request.Builder()
+                .url(url)
+                .header("Accept", "application/json")
+                .apply { if (shouldSendKey) header("X-API-Key", apiKey) }
+                .get()
+                .build()
 
-                try {
-                    client.newCall(request).execute().use { response ->
-                        parseRateLimit(response.header("X-RateLimit-Remaining"))
-                        when {
-                            response.isSuccessful -> {
-                                val body = response.body?.string()
-                                    ?: return@withContext Result.Failure(
-                                        AppError.DataError.Parse(message = "Empty response")
-                                    )
-                                val result = try {
-                                    json.decodeFromString<T>(body)
-                                } catch (e: SerializationException) {
-                                    return@withContext Result.Failure(
-                                        AppError.DataError.Parse(message = "Invalid API response", cause = e)
-                                    )
-                                }
-                                if (com.wallkraft.app.BuildConfig.DEBUG) {
-                                    val took = android.os.SystemClock.elapsedRealtime() - startMs
-                                    android.util.Log.d(TAG, "api ${took}ms (attempts=${attempt + 1}) $url")
-                                }
-                                return@withContext Result.Success(result)
+            try {
+                client.newCall(request).execute().use { response ->
+                    parseRateLimit(response.header("X-RateLimit-Remaining"))
+                    when {
+                        response.isSuccessful -> {
+                            val body = response.body?.string()
+                                ?: return@withContext Result.Failure(
+                                    AppError.DataError.Parse(message = "Empty response"),
+                                )
+                            val result = try {
+                                json.decodeFromString<T>(body)
+                            } catch (e: SerializationException) {
+                                return@withContext Result.Failure(
+                                    AppError.DataError.Parse(message = "Invalid API response", cause = e),
+                                )
                             }
-                            response.code == 429 -> return@withContext Result.Failure(AppError.NetworkError.RateLimited)
-                            // Transient server error — retry with backoff.
-                            response.code in 500..599 && attempt < MAX_RETRIES -> {
-                                delay(backoffMillis(attempt))
-                                attempt++
+                            if (com.wallkraft.app.BuildConfig.DEBUG) {
+                                val took = android.os.SystemClock.elapsedRealtime() - startMs
+                                android.util.Log.d(TAG, "api ${took}ms $url")
                             }
-                            else -> return@withContext Result.Failure(httpCodeToAppError(response.code, "API error: ${response.code}"))
+                            return@withContext Result.Success(result)
                         }
+                        response.code == 429 -> return@withContext Result.Failure(
+                            AppError.NetworkError.RateLimited(parseRetryAfter(response.header("Retry-After"))),
+                        )
+                        else -> return@withContext Result.Failure(httpCodeToAppError(response.code, "API error: ${response.code}"))
                     }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: IOException) {
-                    // Transient network failure — retry with backoff.
-                    if (attempt < MAX_RETRIES) {
-                        delay(backoffMillis(attempt))
-                        attempt++
-                    } else {
-                        val appError = if (e is SocketTimeoutException) {
-                            AppError.NetworkError.Timeout
-                        } else {
-                            AppError.NetworkError.NoConnection
-                        }
-                        return@withContext Result.Failure(appError)
-                    }
-                } catch (e: SerializationException) {
-                    return@withContext Result.Failure(AppError.DataError.Parse(message = "Invalid API response", cause = e))
-                } catch (e: Exception) {
-                    return@withContext Result.Failure(AppError.Unknown(throwable = e, message = e.message))
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                val appError = if (e is SocketTimeoutException) {
+                    AppError.NetworkError.Timeout
+                } else {
+                    AppError.NetworkError.NoConnection
+                }
+                return@withContext Result.Failure(appError)
+            } catch (e: SerializationException) {
+                return@withContext Result.Failure(AppError.DataError.Parse(message = "Invalid API response", cause = e))
+            } catch (e: Exception) {
+                return@withContext Result.Failure(AppError.Unknown(throwable = e, message = e.message))
             }
-            // The loop only exits via return/throw — this satisfies the type
-            // checker but is never reached.
-            @Suppress("KotlinUnreachableCode")
-            error("unreachable")
         }
 
-    private fun httpCodeToAppError(code: Int, message: String?): AppError = when (code) {
+    internal fun httpCodeToAppError(code: Int, message: String?): AppError = when (code) {
         400 -> AppError.DataError.Validation(message)
         401 -> AppError.AuthError.Unauthorized
         403 -> AppError.AuthError.Expired
         404 -> AppError.DataError.NotFound
-        429 -> AppError.NetworkError.RateLimited
+        429 -> AppError.NetworkError.RateLimited()
         in 500..599 -> AppError.NetworkError.ServerError(code, message)
         else -> AppError.Unknown(message = message)
     }
 
-    private fun backoffMillis(attempt: Int): Long = KraftConstants.RetryBackoffBaseMs * (1 shl attempt)
+    private fun parseRetryAfter(header: String?): Long? = header?.trim()?.toLongOrNull()
 
     private fun parseRateLimit(remaining: String?) {
         remaining?.toIntOrNull()?.let { rateLimitState.update(it) }

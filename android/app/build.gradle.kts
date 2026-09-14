@@ -41,8 +41,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 51
-        versionName = "2.3.3"
+        versionCode = 52
+        versionName = "2.4.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).
@@ -168,6 +168,7 @@ dependencies {
     // Tests
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
+    testImplementation(libs.mockwebserver)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.test.ext)
     androidTestImplementation(libs.espresso)
