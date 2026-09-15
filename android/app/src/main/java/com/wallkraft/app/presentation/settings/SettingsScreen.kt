@@ -63,14 +63,16 @@ import java.util.UUID
 fun SettingsScreen(
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
+    onHistoryClick: () -> Unit = {},
 ) {
-    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset)
+    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset, onHistoryClick = onHistoryClick)
 }
 
 @Composable
 private fun SettingsScreenImpl(
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
+    onHistoryClick: () -> Unit = {},
 ) {
     val viewModel: SettingsViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
@@ -191,6 +193,8 @@ private fun SettingsScreenImpl(
                 cacheSizeText = cacheSizeText,
                 onClearCacheClick = { showClearCacheDialog = true },
             )
+
+            SettingsHistorySection(onClick = onHistoryClick)
 
             SettingsAdvancedSection(
                 apiKeyText = apiKeyText,

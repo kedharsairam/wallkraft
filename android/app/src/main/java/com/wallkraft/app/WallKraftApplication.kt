@@ -43,6 +43,7 @@ class WallKraftApplication : Application() {
         com.wallkraft.app.core.cache.GridImageLoader.init(this)
         realignRotationSchedule()
         observeReconnectAndRepair()
+        pruneOldHistory()
     }
 
     /**
@@ -184,6 +185,28 @@ class WallKraftApplication : Application() {
 
         /** Minimum gap between two reconnect repairs. */
         const val RECONNECT_MIN_REPAIR_GAP_MS = 10_000L
+
+        /** Keep wallpaper history for 90 days. */
+        const val HISTORY_RETENTION_MS = 90L * 24 * 60 * 60 * 1000
+    }
+
+    private fun pruneOldHistory() {
+        applicationScope.launch {
+            runCatching {
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    this@WallKraftApplication,
+                    HistoryPruneEntryPoint::class.java,
+                )
+                val cutoff = System.currentTimeMillis() - HISTORY_RETENTION_MS
+                withContext(Dispatchers.IO) {
+                    entryPoint.wallpaperHistoryDao().deleteOlderThan(cutoff)
+                }
+            }.onFailure { e ->
+                if (BuildConfig.DEBUG) {
+                    Log.e("WallKraftApplication", "History prune failed", e)
+                }
+            }
+        }
     }
 }
 
@@ -209,10 +232,17 @@ interface RepairOnReconnectEntryPoint {
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
+interface HistoryPruneEntryPoint {
+    fun wallpaperHistoryDao(): com.wallkraft.app.data.db.WallpaperHistoryDao
+}
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
 interface WorkerEntryPoint {
     fun rotationStore(): com.wallkraft.app.data.prefs.RotationSettingsStore
     fun favoritesRepository(): com.wallkraft.app.domain.repository.FavoritesRepository
     fun collectionsRepository(): com.wallkraft.app.domain.repository.CollectionsRepository
     fun favoriteImageStore(): com.wallkraft.app.data.cache.OfflineImageStore
     fun rotationCropStore(): com.wallkraft.app.data.prefs.CropStore
+    fun wallpaperHistoryDao(): com.wallkraft.app.data.db.WallpaperHistoryDao
 }

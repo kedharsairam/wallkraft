@@ -11,6 +11,12 @@ interface FavoriteDao {
     @Query("SELECT * FROM favorites ORDER BY addedAt DESC")
     fun observeAll(): Flow<List<FavoriteEntity>>
 
+    @Query("SELECT * FROM favorites ORDER BY addedAt DESC")
+    fun getAllBlocking(): List<FavoriteEntity>
+
+    @Query("SELECT * FROM favorites WHERE id = :id")
+    fun getByIdBlocking(id: String): FavoriteEntity?
+
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE id = :id)")
     suspend fun exists(id: String): Boolean
 

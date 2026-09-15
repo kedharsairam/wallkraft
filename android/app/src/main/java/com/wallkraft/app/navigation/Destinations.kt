@@ -9,6 +9,9 @@ data object Favorites
 data object Settings
 
 @Serializable
+data object History
+
+@Serializable
 data class Browse(val query: String = "", val title: String = "")
 
 @Serializable

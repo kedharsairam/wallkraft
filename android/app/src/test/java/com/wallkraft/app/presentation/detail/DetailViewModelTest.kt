@@ -3,6 +3,8 @@ package com.wallkraft.app.presentation.detail
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.db.WallpaperHistoryDao
+import com.wallkraft.app.data.db.WallpaperHistoryEntity
 import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.domain.model.Favorite
@@ -60,11 +62,12 @@ class DetailViewModelTest {
         settingsRepository: SettingsRepository = FakeSettingsRepository(),
         favoriteImageStore: OfflineImageStore = FakeFavoriteImageStore(),
         rotationCropStore: CropStore = FakeRotationCropStore(),
+        wallpaperHistoryDao: WallpaperHistoryDao = FakeWallpaperHistoryDao(),
         errorMessage: (AppError) -> String = { "error" },
         previewThumb: String? = null,
         previewPath: String? = null,
     ): DetailViewModel {
-        val vm = DetailViewModel(id, wallpaperRepository, favoritesRepository, settingsRepository, favoriteImageStore, rotationCropStore, errorMessage, previewThumb, previewPath)
+        val vm = DetailViewModel(id, wallpaperRepository, favoritesRepository, settingsRepository, favoriteImageStore, rotationCropStore, wallpaperHistoryDao, errorMessage, previewThumb, previewPath)
         viewModels.add(vm)
         return vm
     }
@@ -340,5 +343,25 @@ class DetailViewModelTest {
         override suspend fun save(id: String, rect: CropRect) {
             _crops.value = _crops.value + (id to rect)
         }
+    }
+
+    private class FakeWallpaperHistoryDao : WallpaperHistoryDao {
+        private val entries = mutableListOf<WallpaperHistoryEntity>()
+        private val _flow = MutableStateFlow<List<WallpaperHistoryEntity>>(emptyList())
+
+        override fun observeAll(): Flow<List<WallpaperHistoryEntity>> = _flow
+        override suspend fun insert(entity: WallpaperHistoryEntity) {
+            entries.add(entity)
+            _flow.value = entries.toList()
+        }
+        override suspend fun deleteOlderThan(cutoffMillis: Long) {
+            entries.removeAll { it.setAt < cutoffMillis }
+            _flow.value = entries.toList()
+        }
+        override suspend fun deleteById(wallpaperId: String, setAt: Long) {
+            entries.removeAll { it.wallpaperId == wallpaperId && it.setAt == setAt }
+            _flow.value = entries.toList()
+        }
+        override suspend fun count(): Int = entries.size
     }
 }

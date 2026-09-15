@@ -141,6 +141,12 @@
     <string name="settings_orientation">Orientation</string>
     <string name="rate_app_title">Rate WallKraft</string>
 
+    <!-- Wallpaper history -->
+    <string name="history_title" translatable="false">Wallpaper history</string>
+    <string name="history_source_rotation" translatable="false">Auto</string>
+    <string name="history_source_manual" translatable="false">Manual</string>
+    <string name="history_empty" translatable="false">No wallpaper history yet.</string>
+
     <!-- Favorites -->
     <string name="favorites_title">Favorites</string>
     <string name="no_favorites_title">No favorites yet</string>
@@ -221,6 +227,8 @@
     <string name="download">Download</string>
     <string name="share">Share</string>
     <string name="set_as_wallpaper">Set as Wallpaper</string>
+    <string name="lockscreen_preview" translatable="false">Preview lock screen</string>
+    <string name="lockscreen_swipe" translatable="false">Swipe up to unlock</string>
     <string name="wallpaper_position_title">Set wallpaper on</string>
     <string name="wallpaper_position_home">Home screen</string>
     <string name="wallpaper_position_lock">Lock screen</string>
@@ -302,4 +310,12 @@
     <string name="skip" translatable="false">Skip</string>
     <string name="get_started" translatable="false">Get Started</string>
     <string name="welcome_page_indicator" translatable="false">Page %1$d of %2$d</string>
+
+    <!-- Share preview -->
+    <string name="share_preview_brand" translatable="false">WallKraft</string>
+    <string name="share_preview_url" translatable="false">wallkraft.app</string>
+
+    <!-- Widget -->
+    <string name="widget_name" translatable="false">Favorites</string>
+    <string name="widget_no_favorites" translatable="false">Add favorites to use widget</string>
 </resources>

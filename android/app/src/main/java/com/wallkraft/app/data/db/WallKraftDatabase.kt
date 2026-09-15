@@ -6,14 +6,15 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [FavoriteEntity::class, CollectionEntity::class, CollectionItemEntity::class, SavedSearchEntity::class],
-    version = 5,
+    entities = [FavoriteEntity::class, CollectionEntity::class, CollectionItemEntity::class, SavedSearchEntity::class, WallpaperHistoryEntity::class],
+    version = 6,
     exportSchema = true,
 )
 abstract class WallKraftDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
     abstract fun collectionDao(): CollectionDao
     abstract fun savedSearchDao(): SavedSearchDao
+    abstract fun wallpaperHistoryDao(): WallpaperHistoryDao
 
     companion object {
         /** v1 → v2: add the nullable `collection` column for favorites folders. */
@@ -110,6 +111,20 @@ abstract class WallKraftDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_saved_searches_lastUsedAt` " +
                         "ON `saved_searches` (`lastUsedAt`)",
+                )
+            }
+        }
+        /** v5 → v6: wallpaper history (recently set wallpapers with dates). */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `wallpaper_history` (" +
+                        "`wallpaper_id` TEXT NOT NULL, " +
+                        "`path` TEXT NOT NULL, " +
+                        "`thumbnail` TEXT NOT NULL, " +
+                        "`set_at` INTEGER NOT NULL, " +
+                        "`source` TEXT NOT NULL, " +
+                        "PRIMARY KEY(`wallpaper_id`, `set_at`))",
                 )
             }
         }

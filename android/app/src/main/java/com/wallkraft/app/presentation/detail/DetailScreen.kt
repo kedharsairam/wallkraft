@@ -265,7 +265,10 @@ private fun DetailScreenImpl(
                 onDismiss = { setWallpaperTarget = null },
                 onConfirm = { cropped, position ->
                     val ok = WallpaperSetter.setAsWallpaper(context, cropped, position)
-                    if (ok) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    if (ok) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.recordHistory(setTarget, "MANUAL")
+                    }
                     ok
                 },
                 onCropRect = { rect ->

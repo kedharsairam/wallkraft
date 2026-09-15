@@ -14,7 +14,7 @@ import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.core.cache.ImageCache
 
 @Composable
-fun WallKraftApp() {
+fun WallKraftApp(initialDestination: String? = null) {
     setSingletonImageLoaderFactory { context ->
         ImageLoader.Builder(context)
             .crossfade(true)
@@ -36,6 +36,6 @@ fun WallKraftApp() {
     }
 
     KraftTheme {
-        WallKraftNavHost()
+        WallKraftNavHost(initialDestination = initialDestination)
     }
 }

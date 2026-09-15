@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.wallkraft.app.WorkerEntryPoint
+import com.wallkraft.app.data.db.WallpaperHistoryEntity
 import com.wallkraft.app.util.RotationEngine
 import com.wallkraft.app.util.RotationFraming
 import com.wallkraft.app.util.RotationPicker
@@ -35,6 +36,7 @@ class RotateWallpaperWorker(
         val collectionsRepository = entryPoint.collectionsRepository()
         val favoriteImageStore = entryPoint.favoriteImageStore()
         val rotationCropStore = entryPoint.rotationCropStore()
+        val wallpaperHistoryDao = entryPoint.wallpaperHistoryDao()
 
         // NOTE: no schedule-OFF early return for manual runs. Periodic work
         // only exists while a schedule is active (apply() cancels it when
@@ -96,6 +98,15 @@ class RotateWallpaperWorker(
                     val window = minOf(candidates.size - 1, 10)
                     rotationStore.setLastIndex(index)
                     rotationStore.appendRecentId(pickResult.id, window)
+                    wallpaperHistoryDao.insert(
+                        WallpaperHistoryEntity(
+                            wallpaperId = wallpaper.id,
+                            path = wallpaper.path,
+                            thumbnail = wallpaper.thumbnail.orEmpty(),
+                            setAt = System.currentTimeMillis(),
+                            source = "ROTATION",
+                        ),
+                    )
                     return Result.success()
                 }
             } finally {

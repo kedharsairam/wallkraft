@@ -78,7 +78,9 @@ import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ZoomableImage
+import com.wallkraft.app.util.SharePreview
 import com.wallkraft.app.util.WallpaperSharing
+import android.graphics.BitmapFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
@@ -134,6 +136,7 @@ internal fun DetailContent(
     val reduceMotion = rememberReduceMotion()
     var isZoomed by remember { mutableStateOf(false) }
     var isSharing by remember { mutableStateOf(false) }
+    var showLockscreenPreview by remember { mutableStateOf(false) }
     val contentScope = rememberCoroutineScope()
     val hapticLocal = LocalHapticFeedback.current
     DisposableEffect(Unit) {
@@ -438,6 +441,14 @@ internal fun DetailContent(
                     icon = Icons.Filled.Download,
                     contentDescription = stringResource(R.string.download),
                 )
+                DetailCircleButton(
+                    onClick = {
+                        KraftHaptics.buttonPress(hapticLocal)
+                        showLockscreenPreview = true
+                    },
+                    icon = Icons.Filled.Wallpaper,
+                    contentDescription = stringResource(R.string.lockscreen_preview),
+                )
                 if (isSharing) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -460,6 +471,35 @@ internal fun DetailContent(
                             isSharing = true
                             contentScope.launch {
                                 try {
+                                    val localFile = favoriteImageStore.fileFor(wallpaper.id)
+                                    val imageFile = localFile
+                                        ?: WallpaperSharing.imageFile(context, wallpaper)
+                                    val previewUri = if (imageFile != null) {
+                                        val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+                                        if (bitmap != null) {
+                                            try {
+                                                SharePreview.generateSharePreview(context, wallpaper, bitmap)
+                                            } finally {
+                                                if (!bitmap.isRecycled) bitmap.recycle()
+                                            }
+                                        } else null
+                                    } else null
+
+                                    if (previewUri != null) {
+                                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                            type = "image/jpeg"
+                                            putExtra(android.content.Intent.EXTRA_STREAM, previewUri)
+                                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        context.startActivity(android.content.Intent.createChooser(intent, null))
+                                    } else {
+                                        WallpaperSharing.share(
+                                            context,
+                                            wallpaper,
+                                            localFile,
+                                        )
+                                    }
+                                } catch (_: Exception) {
                                     WallpaperSharing.share(
                                         context,
                                         wallpaper,
@@ -503,5 +543,13 @@ internal fun DetailContent(
             onColorSwatchClick = onColorSwatchClick,
         )
         } // end chrome zIndex box
+
+        // Lockscreen preview overlay
+        if (showLockscreenPreview) {
+            com.wallkraft.app.presentation.lockscreen.LockscreenPreview(
+                wallpaper = wallpaper,
+                onDismiss = { showLockscreenPreview = false },
+            )
+        }
     }
 }

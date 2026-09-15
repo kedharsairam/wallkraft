@@ -19,6 +19,7 @@ security-crypto = "1.1.0"
 coroutines = "1.9.0"
 work = "2.11.2"
 palette = "1.0.0"
+glance = "1.1.1"
 junit = "4.13.2"
 test-ext = "1.3.0"
 espresso = "3.7.0"
@@ -62,6 +63,8 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
