@@ -79,6 +79,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -271,7 +272,9 @@ fun SearchFilterBar(
                                     maxLines = 1,
                                     // testTag inside the clear block: visible to
                                     // tests, still hidden from screen readers.
-                                    modifier = Modifier.clearAndSetSemantics { testTag = "result_count" },
+                                    modifier = Modifier.clearAndSetSemantics {
+                                        set(SemanticsProperties.TestTag, "result_count")
+                                    },
                                 )
                             }
                         }
