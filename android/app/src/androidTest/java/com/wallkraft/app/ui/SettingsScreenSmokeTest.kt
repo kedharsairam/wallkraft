@@ -1,7 +1,7 @@
 package com.wallkraft.app.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -10,6 +10,7 @@ import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.presentation.settings.SettingsScreen
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -23,7 +24,7 @@ class SettingsScreenSmokeTest {
     val hiltRule = HiltAndroidRule(this)
 
     @get:Rule(order = 1)
-    val compose = createComposeRule()
+    val compose = createAndroidComposeRule<TestActivity>()
 
     @Before
     fun setUp() {
@@ -109,3 +110,4 @@ class SettingsScreenSmokeTest {
             .assertIsDisplayed()
     }
 }
+
