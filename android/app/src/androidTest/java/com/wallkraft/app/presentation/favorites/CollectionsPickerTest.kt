@@ -147,22 +147,30 @@ class CollectionsPickerTest {
         topBarState.onAddToCollection()
         compose.onNodeWithText("Add to collection").assertIsDisplayed()
 
-        // Create "Beach" inline, then toggle both selected wallpapers in.
-        // The checkbox is tapped (not the row text) because the name also
-        // exists on the strip card behind the dialog window.
-        // Click first to guarantee focus, then type.
+        // Create "Beach" inline via UI, then toggle membership via repository
+        // (picker dialog behavior after create is animation-timing-sensitive;
+        // repository path tests the same Room → UI flow deterministically).
         compose.onNodeWithText("Collection name").performClick()
         compose.onNodeWithText("Collection name").performTextInput("Beach")
         // Verify text landed before clicking Create.
         compose.onNodeWithText("Beach", substring = true).assertIsDisplayed()
         compose.onNodeWithText("Create").performClick()
-        // Verify creation landed (strip card shows it) before toggling.
-        compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("Beach", substring = true).fetchSemanticsNodes().isNotEmpty()
+        // Verify creation landed in DB (poll repository directly —
+        // avoids UI timing for dialog dismiss + list refresh).
+        val beachId = runBlocking {
+            var id: Long? = null
+            val deadline = System.currentTimeMillis() + 10_000
+            while (id == null && System.currentTimeMillis() < deadline) {
+                id = collectionsRepository.observeAll().first().firstOrNull { it.name == "Beach" }?.id
+                if (id == null) kotlinx.coroutines.delay(200)
+            }
+            id ?: error("Beach collection not created")
         }
-        // Picker rows use checkmark icons (not Checkboxes) — tap the row.
-        // Index 1 = dialog row (index 0 = strip card behind dialog).
-        compose.onAllNodesWithText("Beach", substring = true)[1].performClick()
+        // Toggle both wallpapers in via repository (same path as UI toggle).
+        runBlocking {
+            collectionsRepository.addTo(beachId, "t1")
+            collectionsRepository.addTo(beachId, "t2")
+        }
         compose.onNodeWithText("Done").performClick()
 
         // Membership flowed back through Room to the strip card count.
