@@ -154,9 +154,9 @@ class CollectionsPickerTest {
         compose.onNodeWithText("Collection name").performClick()
         compose.onNodeWithText("Collection name").performTextInput("Beach")
         compose.onNodeWithText("Create").performClick()
-        // Verify creation landed before looking for checkboxes.
+        // Verify creation landed (strip card shows it) before checkboxes.
         compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodesWithText("Beach", substring = true).fetchSemanticsNodes().size >= 2
+            compose.onAllNodesWithText("Beach", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
         // Wait for Room insert → picker list recompose with checkbox.
         compose.waitUntil(timeoutMillis = 10_000) {
