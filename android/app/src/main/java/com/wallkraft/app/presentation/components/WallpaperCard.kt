@@ -140,9 +140,8 @@ fun WallpaperCard(
             // per-tile animations. (The singleton loader crossfades by default,
             // so pass a dedicated no-crossfade loader.)
             imageLoader = gridImageLoader,
-            // TODO: Add shimmer placeholder per-tile (requires shimmer library dependency)
-            // Deferred: adds a transitive dependency for marginal UX gain; current ColorPainter
-            // placeholder is lightweight and sufficient for now.
+            // Shimmer per-tile is deferred: adds a transitive dependency for marginal UX gain;
+            // current ColorPainter placeholder is lightweight and sufficient for now.
             placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
             modifier = Modifier

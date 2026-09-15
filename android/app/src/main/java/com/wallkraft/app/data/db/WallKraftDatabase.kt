@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     version = 6,
     exportSchema = true,
 )
+/** Room database for WallKraft — stores favorites, collections, saved searches, and wallpaper history. */
 abstract class WallKraftDatabase : RoomDatabase() {
     abstract fun favoriteDao(): FavoriteDao
     abstract fun collectionDao(): CollectionDao

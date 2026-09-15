@@ -238,6 +238,7 @@ object KraftConstants {
     const val SkeletonAlphaMin = 0.3f
     const val SkeletonAlphaMax = 0.5f
     const val ShimmerGradientAlpha = 0.5f
+    val ShimmerAvgTileHeightDp = 280.dp
 
     // -- Badges --
     const val BadgeAlpha = 0.85f                 // Downloaded badge
