@@ -156,15 +156,13 @@ class CollectionsPickerTest {
         // Verify text landed before clicking Create.
         compose.onNodeWithText("Beach", substring = true).assertIsDisplayed()
         compose.onNodeWithText("Create").performClick()
-        // Verify creation landed (strip card shows it) before checkboxes.
+        // Verify creation landed (strip card shows it) before toggling.
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("Beach", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
-        // Wait for Room insert → picker list recompose with checkbox.
-        compose.waitUntil(timeoutMillis = 10_000) {
-            compose.onAllNodes(isToggleable()).fetchSemanticsNodes().isNotEmpty()
-        }
-        compose.onAllNodes(isToggleable())[0].performClick()
+        // Picker rows use checkmark icons (not Checkboxes) — tap the row.
+        // Index 1 = dialog row (index 0 = strip card behind dialog).
+        compose.onAllNodesWithText("Beach", substring = true)[1].performClick()
         compose.onNodeWithText("Done").performClick()
 
         // Membership flowed back through Room to the strip card count.
