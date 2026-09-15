@@ -269,9 +269,9 @@ fun SearchFilterBar(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
-                                    modifier = Modifier
-                                        .clearAndSetSemantics {}
-                                        .testTag("result_count"),
+                                    // testTag inside the clear block: visible to
+                                    // tests, still hidden from screen readers.
+                                    modifier = Modifier.clearAndSetSemantics { testTag = "result_count" },
                                 )
                             }
                         }
