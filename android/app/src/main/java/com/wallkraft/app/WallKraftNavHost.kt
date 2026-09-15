@@ -130,141 +130,152 @@ private fun WallKraftNavHostImpl(
                         "favorites" -> Favorites
                         else -> Browse()
                     }
+
+                    // region Navigation graph
                     NavHost(
-                navController = navController,
-                startDestination = startDestination,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                composable<Browse>(
-                    enterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220))
-                    },
-                    exitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(220))
-                    },
-                ) { entry ->
-                    val args = entry.toRoute<Browse>()
-                    val query = args.query
-                    val title = args.title
-                    BrowseScreen(
-                        onOpenWallpaper = { w ->
-                            navController.navigate(Detail(id = w.id, thumb = w.thumbnail.orEmpty(), path = w.path))
-                        },
-                        gridState = if (query.isBlank()) browseGridState else null,
-                        navBarPadding = innerPadding.calculateBottomPadding(),
-                        topInset = topInset,
-                        initialQuery = query,
-                        title = title,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = this,
-                        searchState = browseSearchState,
-                    )
-                }
-                composable<Favorites>(
-                    enterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220))
-                    },
-                    exitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(220))
-                    },
-                ) {
-                    FavoritesScreen(
-                        onOpenWallpaper = { w ->
-                            navController.navigate(Detail(id = w.id, thumb = w.thumbnail.orEmpty(), path = w.path))
-                        },
-                        onNavigateToBrowse = {
-                            navController.navigate(Browse()) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                            }
-                        },
-                        gridState = favoritesGridState,
-                        navBarPadding = innerPadding.calculateBottomPadding(),
-                        topInset = topInset,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = this,
-                        topBarState = favoritesTopBarState,
-                    )
-                }
-                composable<Settings>(
-                    enterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220))
-                    },
-                    exitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(220))
-                    },
-                ) {
-                    SettingsScreen(
-                        navBarPadding = innerPadding.calculateBottomPadding(),
-                        topInset = topInset,
-                        onHistoryClick = {
-                            navController.navigate(History)
-                        },
-                    )
-                }
-                composable<History>(
-                    enterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220))
-                    },
-                    exitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(220))
-                    },
-                ) {
-                    HistoryScreen(
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable<Detail>(
-                    enterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220)) +
-                            androidx.compose.animation.scaleIn(
-                                tween(220),
-                                initialScale = 0.96f,
+                        navController = navController,
+                        startDestination = startDestination,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        // region Browse routes
+                        composable<Browse>(
+                            enterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220))
+                            },
+                            exitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(220))
+                            },
+                        ) { entry ->
+                            val args = entry.toRoute<Browse>()
+                            val query = args.query
+                            val title = args.title
+                            BrowseScreen(
+                                onOpenWallpaper = { w ->
+                                    navController.navigate(Detail(id = w.id, thumb = w.thumbnail.orEmpty(), path = w.path))
+                                },
+                                gridState = if (query.isBlank()) browseGridState else null,
+                                navBarPadding = innerPadding.calculateBottomPadding(),
+                                topInset = topInset,
+                                initialQuery = query,
+                                title = title,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = this,
+                                searchState = browseSearchState,
                             )
-                    },
-                    exitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(180))
-                    },
-                    popEnterTransition = {
-                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
-                        else fadeIn(tween(220))
-                    },
-                    popExitTransition = {
-                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
-                        else fadeOut(tween(180))
-                    },
-                ) { entry ->
-                    val detail = entry.toRoute<Detail>()
-                    DetailScreen(
-                        wallpaperId = detail.id,
-                        previewThumb = detail.thumb,
-                        previewPath = detail.path,
-                        onBack = { navController.popBackStack() },
-                        onTagClick = { tag ->
-                            navController.navigate(Browse(query = tag))
-                        },
-                        onUploaderClick = { username ->
-                            navController.navigate(Browse(query = "@$username", title = username))
-                        },
-                        navBarPadding = 0.dp,
-                        sharedTransitionScope = sharedTransitionScope,
-                        animatedVisibilityScope = this,
-                    )
+                        }
+                        composable<Favorites>(
+                            enterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220))
+                            },
+                            exitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(220))
+                            },
+                        ) {
+                            FavoritesScreen(
+                                onOpenWallpaper = { w ->
+                                    navController.navigate(Detail(id = w.id, thumb = w.thumbnail.orEmpty(), path = w.path))
+                                },
+                                onNavigateToBrowse = {
+                                    navController.navigate(Browse()) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                    }
+                                },
+                                gridState = favoritesGridState,
+                                navBarPadding = innerPadding.calculateBottomPadding(),
+                                topInset = topInset,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = this,
+                                topBarState = favoritesTopBarState,
+                            )
+                        }
+                        // endregion Browse routes
+
+                        // region Settings / History routes
+                        composable<Settings>(
+                            enterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220))
+                            },
+                            exitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(220))
+                            },
+                        ) {
+                            SettingsScreen(
+                                navBarPadding = innerPadding.calculateBottomPadding(),
+                                topInset = topInset,
+                                onHistoryClick = {
+                                    navController.navigate(History)
+                                },
+                            )
+                        }
+                        composable<History>(
+                            enterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220))
+                            },
+                            exitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(220))
+                            },
+                        ) {
+                            HistoryScreen(
+                                onBack = { navController.popBackStack() },
+                            )
+                        }
+                        // endregion Settings / History routes
+
+                        // region Detail route
+                        composable<Detail>(
+                            enterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220)) +
+                                    androidx.compose.animation.scaleIn(
+                                        tween(220),
+                                        initialScale = 0.96f,
+                                    )
+                            },
+                            exitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(180))
+                            },
+                            popEnterTransition = {
+                                if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                                else fadeIn(tween(220))
+                            },
+                            popExitTransition = {
+                                if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                                else fadeOut(tween(180))
+                            },
+                        ) { entry ->
+                            val detail = entry.toRoute<Detail>()
+                            DetailScreen(
+                                wallpaperId = detail.id,
+                                previewThumb = detail.thumb,
+                                previewPath = detail.path,
+                                onBack = { navController.popBackStack() },
+                                onTagClick = { tag ->
+                                    navController.navigate(Browse(query = tag))
+                                },
+                                onUploaderClick = { username ->
+                                    navController.navigate(Browse(query = "@$username", title = username))
+                                },
+                                navBarPadding = 0.dp,
+                                sharedTransitionScope = sharedTransitionScope,
+                                animatedVisibilityScope = this,
+                            )
+                        }
+                        // endregion Detail route
+                    }
+                    // endregion Navigation graph
                 }
-            }
-            }
             },
             glassContent = {
                 if (!isDetail) {

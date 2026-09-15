@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -134,7 +135,8 @@ internal fun DetailContent(
 ) {
     val context = LocalContext.current
     val reduceMotion = rememberReduceMotion()
-    var isZoomed by remember { mutableStateOf(false) }
+    var rawScale by remember { mutableStateOf(1f) }
+    val isZoomed by remember { derivedStateOf { rawScale > 1.01f } }
     var isSharing by remember { mutableStateOf(false) }
     var showLockscreenPreview by remember { mutableStateOf(false) }
     val contentScope = rememberCoroutineScope()
@@ -233,7 +235,7 @@ internal fun DetailContent(
             resetZoomSignal = resetZoomSignal,
             clipRadius = KraftRadius.Standard * (1f - backgroundAlpha),
             onLoaded = { fullResLoaded = true },
-            onZoomChanged = { scale -> isZoomed = scale > 1.01f },
+            onZoomChanged = { scale -> rawScale = scale },
             loadFullRes = fullResRequested,
             modifier = Modifier.fillMaxSize(),
             sharedElementModifier = sharedElementModifier,

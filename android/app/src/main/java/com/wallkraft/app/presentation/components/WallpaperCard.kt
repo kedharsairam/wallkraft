@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -75,8 +76,10 @@ fun WallpaperCard(
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
-    val gridImageLoader = GridImageLoader.get()
-        ?: ImageLoader.Builder(context.applicationContext).build()
+    val gridImageLoader = remember(context) {
+        GridImageLoader.get()
+            ?: ImageLoader.Builder(context.applicationContext).build()
+    }
 
     // Shared element stays on AsyncImage (not the outer Box) — putting it on
     // a clipped Box breaks the return transition: Compose resolves the pop

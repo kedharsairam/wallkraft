@@ -94,7 +94,9 @@ fun WallpaperGrid(
     val metrics = context.resources.displayMetrics
     val screenWidth = metrics.widthPixels
     val screenHeight = metrics.heightPixels
-    val gridImageLoader = GridImageLoader.get() ?: context.imageLoader
+    val gridImageLoader = remember(context) {
+        GridImageLoader.get() ?: context.imageLoader
+    }
     val reduceMotion = com.wallkraft.app.core.utils.rememberReduceMotion()
 
     val flingBehavior = remember(gridState, reduceMotion) { SmoothFlingBehavior(reduceMotion = reduceMotion) }

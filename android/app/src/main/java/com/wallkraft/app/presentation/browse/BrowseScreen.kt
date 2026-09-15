@@ -52,6 +52,8 @@ import androidx.lifecycle.lifecycleScope
 import com.wallkraft.app.data.prefs.SearchHistoryRepository
 import com.wallkraft.app.domain.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
@@ -132,8 +134,11 @@ private fun BrowseScreenImpl(
     }
     searchState.filters = uiState.filters
     searchState.totalResults = uiState.totalResults
-    val settings by settingsRepository.settings.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings())
-    searchState.hasApiKey = settings.apiKeyValid
+    val apiKeyValid by settingsRepository.settings
+        .map { it.apiKeyValid }
+        .distinctUntilChanged()
+        .collectAsState(initial = com.wallkraft.app.domain.model.AppSettings().apiKeyValid)
+    searchState.hasApiKey = apiKeyValid
     val history by searchHistoryStore.history.collectAsState(initial = emptyList())
     searchState.history = history
     searchState.onClearHistory = {
@@ -146,15 +151,20 @@ private fun BrowseScreenImpl(
     searchState.onFiltersChange = viewModel::setFilters
     var downloadedIds by remember { mutableStateOf(emptySet<String>()) }
     var prefetchFullRes by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        prefetchFullRes = !settingsRepository.current().dataSaverMode
-    }
+    var downloadedIdsLoaded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        prefetchFullRes = !settingsRepository.current().dataSaverMode
+        val ids = DownloadedFiles.downloadedIds(context)
+        downloadedIds = ids
+        downloadedIdsLoaded = true
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) {
+            if (event == Lifecycle.Event.ON_RESUME && downloadedIdsLoaded) {
                 lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val ids = DownloadedFiles.downloadedIds(context)
                     withContext(Dispatchers.Main) {
