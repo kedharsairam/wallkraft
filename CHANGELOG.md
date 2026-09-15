@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-09-15
+
+### Added
+- Compose UI smoke tests for Browse, Detail, Favorites, Settings (72 instrumented tests green on device)
+- JaCoCo coverage reporting with CI artifact upload
+- Favorite toggle bounce + color transition, filter apply pulse, selection checkmark scale (all reduceMotion-aware)
+
+### Changed
+- 5 screens accept ViewModels as parameters (HistoryScreen pattern) — testable without DI framework
+- Design token sweep: 11 new tokens, ~120 literals migrated (pixel-identical)
+- Settings recomposes once per keystroke (was twice); crop shows 800ms success confirmation; detail top-bar fades instead of jumping
+- Hilt integration tests use manual Room in-memory (no Hilt test runner dependency)
+
+### Fixed
+- Share decode capped at 1440px on IO thread (was full-res on Main — ANR/OOM risk on 2GB RAM)
+- Share preview bitmap clamped to 1080px output (was up to 96MB for 4K sources)
+- MediaStore query and share file copy moved off Main thread
+- Share staging dirs pruned to newest 20 + added to wipe inventory
+- Wallpaper palette extraction downloads image once (was twice)
+- Glance widget lint errors (restricted ColorProvider API)
+- Filter panel swipe-to-collapse only when scrolled to top
+- Search tips removed from filter panel (gesture conflict)
+
+### Testing
+- 372 unit + 72 instrumented tests, 0 failures (444 total)
+- Lint 0 errors; full suite verified on Pixel 8a hardware
+
 ## [3.1.0] - 2026-09-15
 
 ### Fixed
