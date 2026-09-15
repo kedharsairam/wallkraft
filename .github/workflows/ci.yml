@@ -61,5 +61,5 @@ jobs:
         run: |
           echo "## APK Size Report" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          ls -lh app/build/outputs/apk/debug/app-debug.apk 2>/dev/null || echo "APK not found"
+          ls -lh app/build/outputs/apk/debug/app-debug.apk >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "APK not found" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
