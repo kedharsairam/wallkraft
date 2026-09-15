@@ -64,8 +64,9 @@ fun SettingsScreen(
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
     onHistoryClick: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset, onHistoryClick = onHistoryClick)
+    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset, onHistoryClick = onHistoryClick, viewModel = viewModel)
 }
 
 @Composable
@@ -73,8 +74,8 @@ private fun SettingsScreenImpl(
     navBarPadding: Dp = 0.dp,
     topInset: Dp = 0.dp,
     onHistoryClick: () -> Unit = {},
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    val viewModel: SettingsViewModel = hiltViewModel()
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
     val isValidating by viewModel.isValidating.collectAsState()

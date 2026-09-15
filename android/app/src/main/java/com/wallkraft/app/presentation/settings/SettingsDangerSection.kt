@@ -74,8 +74,9 @@ class DangerZoneViewModel @Inject constructor(
  * the restart itself is the confirmation.
  */
 @Composable
-fun SettingsDangerSection() {
-    val viewModel: DangerZoneViewModel = hiltViewModel()
+fun SettingsDangerSection(
+    viewModel: DangerZoneViewModel = hiltViewModel(),
+) {
     val isWiping by viewModel.isWiping.collectAsState()
     var showConfirm by rememberSaveable { mutableStateOf(false) }
 

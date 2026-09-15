@@ -89,8 +89,9 @@ fun BrowseScreen(
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     searchState: BrowseSearchState = BrowseSearchState(),
+    viewModel: BrowseViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
 ) {
-    val viewModel: BrowseViewModel = hiltViewModel()
     BrowseScreenImpl(
         settingsRepository = viewModel.settingsRepository,
         searchHistoryStore = viewModel.searchHistoryStore,
@@ -103,6 +104,8 @@ fun BrowseScreen(
         sharedTransitionScope = sharedTransitionScope,
         animatedVisibilityScope = animatedVisibilityScope,
         searchState = searchState,
+        viewModel = viewModel,
+        connectivityViewModel = connectivityViewModel,
     )
 }
 
@@ -120,10 +123,10 @@ private fun BrowseScreenImpl(
     sharedTransitionScope: androidx.compose.animation.SharedTransitionScope? = null,
     animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope? = null,
     searchState: BrowseSearchState = BrowseSearchState(),
+    viewModel: BrowseViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
 ) {
-    val viewModel: BrowseViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
     val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
     val effectiveGridState = gridState ?: rememberLazyStaggeredGridState()
     val scope = rememberCoroutineScope()

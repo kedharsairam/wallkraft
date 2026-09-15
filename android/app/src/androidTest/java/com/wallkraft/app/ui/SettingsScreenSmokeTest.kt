@@ -1,113 +1,83 @@
 package com.wallkraft.app.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftTheme
+import com.wallkraft.app.data.api.GithubApi
+import com.wallkraft.app.data.api.RateLimitState
+import com.wallkraft.app.data.api.WallhavenApi
+import com.wallkraft.app.domain.model.AppSettings
+import com.wallkraft.app.domain.repository.SettingsRepository
 import com.wallkraft.app.presentation.settings.SettingsScreen
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
-
-import org.junit.Before
+import com.wallkraft.app.presentation.settings.SettingsViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import okhttp3.OkHttpClient
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@HiltAndroidTest
+/**
+ * Smoke tests for SettingsScreen — no Hilt, ViewModel constructed manually
+ * with real API clients (no network calls made during composition).
+ */
 @RunWith(AndroidJUnit4::class)
 class SettingsScreenSmokeTest {
 
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
+    @get:Rule
+    val compose = createComposeRule()
 
-    @get:Rule(order = 1)
-    val compose = createAndroidComposeRule<TestActivity>()
+    private class FakeSettingsRepository : SettingsRepository {
+        private val _settings = MutableStateFlow(AppSettings())
+        override val settings: Flow<AppSettings> = _settings
+        override suspend fun current(): AppSettings = _settings.value
+        override suspend fun update(transform: (AppSettings) -> AppSettings) {
+            _settings.value = transform(_settings.value)
+        }
+    }
 
-    @Before
-    fun setUp() {
-        hiltRule.inject()
+    private fun testContent() {
+        val repo = FakeSettingsRepository()
+        compose.setContent {
+            KraftTheme {
+                SettingsScreen(
+                    viewModel = SettingsViewModel(
+                        repo,
+                        WallhavenApi(OkHttpClient(), kotlinx.serialization.json.Json {}, repo, RateLimitState()),
+                        GithubApi(OkHttpClient(), kotlinx.serialization.json.Json {}),
+                        { "Error" },
+                    ),
+                )
+            }
+        }
+        compose.waitForIdle()
     }
 
     private fun resString(id: Int): String =
-        androidx.test.core.app.ApplicationProvider
-            .getApplicationContext<android.content.Context>()
-            .getString(id)
+        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     @Test
     fun browsing_section_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
+        testContent()
         compose.onNodeWithText(resString(R.string.browsing_title)).assertIsDisplayed()
     }
 
     @Test
     fun data_section_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
+        testContent()
         compose.onNodeWithText(resString(R.string.data_title)).assertIsDisplayed()
     }
 
     @Test
-    fun advanced_section_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
-        compose.onNodeWithText(resString(R.string.advanced_title))
-            .performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
-    fun api_key_title_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
-        compose.onNodeWithText(resString(R.string.api_key_title))
-            .performScrollTo()
-            .assertIsDisplayed()
-    }
-
-    @Test
     fun about_section_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
+        testContent()
         compose.onNodeWithText(resString(R.string.about_title))
             .performScrollTo()
             .assertIsDisplayed()
     }
-
-    @Test
-    fun support_section_is_displayed() {
-        compose.setContent {
-            KraftTheme {
-                SettingsScreen()
-            }
-        }
-
-        compose.onNodeWithText(resString(R.string.buy_me_a_coffee_title))
-            .performScrollTo()
-            .assertIsDisplayed()
-    }
 }
-

@@ -45,9 +45,9 @@ android {
         versionCode = 57
         versionName = "3.1.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
-        // HiltTestRunner was removed in Hilt 2.56 — WallKraftTestRunner
-        // (androidTest) does the same application swap. See WallKraftTestRunner.kt.
-        testInstrumentationRunner = "com.wallkraft.app.ui.WallKraftTestRunner"
+        // Instrumented tests construct ViewModels manually with fakes
+        // (screens accept ViewModels as params) — no Hilt test runner needed.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {

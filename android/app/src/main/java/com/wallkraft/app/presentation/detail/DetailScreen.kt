@@ -70,8 +70,9 @@ fun DetailScreen(
     previewPath: String = "",
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    viewModel: DetailViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
 ) {
-    val viewModel: DetailViewModel = hiltViewModel()
     DetailScreenImpl(
         settingsRepository = viewModel.settingsRepository,
         favoriteImageStore = viewModel.favoriteImageStore,
@@ -85,6 +86,8 @@ fun DetailScreen(
         previewPath = previewPath,
         sharedTransitionScope = sharedTransitionScope,
         animatedVisibilityScope = animatedVisibilityScope,
+        viewModel = viewModel,
+        connectivityViewModel = connectivityViewModel,
     )
 }
 
@@ -103,10 +106,10 @@ private fun DetailScreenImpl(
     previewPath: String = "",
     sharedTransitionScope: SharedTransitionScope? = null,
     animatedVisibilityScope: AnimatedVisibilityScope? = null,
+    viewModel: DetailViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
 ) {
-    val viewModel: DetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
-    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
     val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
