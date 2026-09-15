@@ -3,11 +3,11 @@ package com.wallkraft.app.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
@@ -65,9 +65,7 @@ class FavoriteWallpaperWidget : GlanceAppWidget() {
         }
 
         provideContent {
-            GlanceTheme {
-                WidgetContent(context, randomFavorite)
-            }
+            WidgetContent(context, randomFavorite)
         }
     }
 }
@@ -86,7 +84,7 @@ private fun WidgetContent(
         modifier = GlanceModifier
             .fillMaxSize()
             .cornerRadius(16.dp)
-            .background(ColorProvider(R.color.widget_background))
+            .background(ColorProvider(Color(0xFF1A1A1A)))
             .clickable(actionStartActivity(intent)),
         contentAlignment = Alignment.Center,
     ) {
@@ -118,7 +116,7 @@ private fun FavoriteContent(
             Text(
                 text = resolution,
                 style = TextStyle(
-                    color = ColorProvider(android.R.color.white),
+                    color = ColorProvider(Color.White),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                 ),
@@ -126,7 +124,7 @@ private fun FavoriteContent(
             Text(
                 text = favorite.category,
                 style = TextStyle(
-                    color = ColorProvider(android.R.color.white),
+                    color = ColorProvider(Color.White),
                     fontSize = 12.sp,
                 ),
             )
@@ -146,7 +144,7 @@ private fun EmptyContent() {
         Text(
             text = "WallKraft",
             style = TextStyle(
-                color = ColorProvider(android.R.color.white),
+                color = ColorProvider(Color.White),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             ),
@@ -154,7 +152,7 @@ private fun EmptyContent() {
         Text(
             text = "Add favorites to use widget",
             style = TextStyle(
-                color = ColorProvider(android.R.color.white),
+                color = ColorProvider(Color.White),
                 fontSize = 14.sp,
             ),
             modifier = GlanceModifier.padding(top = 8.dp),
