@@ -105,6 +105,8 @@ class CollectionStripTest {
                 )
             }
         }
+        // Let the dialog attach + focus request settle before typing.
+        compose.waitForIdle()
 
         // Field starts pre-filled with the cursor at the start in tests,
         // so typed text lands in front.

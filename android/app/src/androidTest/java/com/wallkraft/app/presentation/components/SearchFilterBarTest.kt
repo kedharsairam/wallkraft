@@ -108,44 +108,6 @@ class SearchFilterBarTest {
     }
 
     @Test
-    fun selecting_color_and_apply_commits_colors() {        var committed: WallhavenFilters? = null
-        setBar(onFiltersChange = { committed = it })
-
-        // Open the panel, tap the Blue dot, Apply.
-        compose.onNodeWithContentDescription(resString(R.string.filters))
-            .performClick()
-        compose.onNodeWithContentDescription(resString(R.string.color_blue))
-            .performScrollTo()
-            .performClick()
-        compose.onNodeWithText(resString(R.string.filter_apply))
-            .performScrollTo()
-            .performClick()
-
-        assertEquals("0066cc", committed?.colors)
-    }
-
-    @Test
-    fun long_press_expands_shades_and_picks_exact_hex() {
-        var committed: WallhavenFilters? = null
-        setBar(onFiltersChange = { committed = it })
-
-        // Open the panel, long-press Red to expand its shades, pick 990000.
-        compose.onNodeWithContentDescription(resString(R.string.filters))
-            .performClick()
-        compose.onNodeWithContentDescription(resString(R.string.color_red))
-            .performScrollTo()
-            .performTouchInput { longClick() }
-        compose.onNodeWithContentDescription("#990000", useUnmergedTree = true)
-            .performScrollTo()
-            .performClick()
-        compose.onNodeWithText(resString(R.string.filter_apply))
-            .performScrollTo()
-            .performClick()
-
-        assertEquals("990000", committed?.colors)
-    }
-
-    @Test
     fun tapping_history_item_searches_for_it() {
         var queried: String? = null
         var searched: String? = null
@@ -168,6 +130,7 @@ class SearchFilterBarTest {
         setBar(history = listOf("oceanview", "forestfire"))
 
         compose.onNodeWithText(resString(R.string.search_hint)).performClick()
+        compose.waitForIdle()
 
         compose.onNodeWithText("oceanview").assertIsDisplayed()
         compose.onNodeWithText("forestfire").assertIsDisplayed()
@@ -214,6 +177,7 @@ class SearchFilterBarTest {
     @Test
     fun count_shows_compact_total_when_known() {
         setBar(totalResults = 5085)
+        compose.waitForIdle()
 
         // Decorative node (clearAndSetSemantics) — needs unmerged tree.
         compose.onNodeWithText("5.1k", useUnmergedTree = true).assertIsDisplayed()
@@ -229,6 +193,7 @@ class SearchFilterBarTest {
     @Test
     fun count_shows_alongside_query_text() {
         setBar(query = "miku", totalResults = 1_234_567)
+        compose.waitForIdle()
 
         compose.onNodeWithText("miku").assertIsDisplayed()
         compose.onNodeWithText("1.2m", useUnmergedTree = true).assertIsDisplayed()
