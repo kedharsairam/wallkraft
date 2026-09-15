@@ -50,6 +50,8 @@ import com.wallkraft.app.presentation.components.WallpaperCropDialog
 import com.wallkraft.app.util.WallpaperDownload
 import com.wallkraft.app.util.WallpaperSetter
 import com.wallkraft.app.util.WallpaperSharing
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -122,11 +124,14 @@ private fun DetailScreenImpl(
 
     // Adjacent preload — gated on dataSaverMode==false (mirror BrowseScreen.kt:138 prefetchFullRes).
     // Single-item detail (pager count 1) skips prefetch; prefetches populate cache cheaply, no cancel needed.
-    val appSettings by settingsRepository.settings.collectAsState(initial = AppSettings())
+    val dataSaverMode by settingsRepository.settings
+        .map { it.dataSaverMode }
+        .distinctUntilChanged()
+        .collectAsState(initial = AppSettings().dataSaverMode)
     var currentPage by remember { mutableIntStateOf(0) }
     val pagerWallpapers = remember(wallpaper) { listOfNotNull(wallpaper) }
-    LaunchedEffect(currentPage, pagerWallpapers.size, appSettings.dataSaverMode) {
-        if (appSettings.dataSaverMode) return@LaunchedEffect
+    LaunchedEffect(currentPage, pagerWallpapers.size, dataSaverMode) {
+        if (dataSaverMode) return@LaunchedEffect
         if (pagerWallpapers.size <= 1) return@LaunchedEffect
         val imageLoader = context.imageLoader
         listOf(currentPage - 1, currentPage + 1).forEach { idx ->
