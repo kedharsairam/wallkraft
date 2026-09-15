@@ -36,8 +36,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
@@ -62,7 +60,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -154,7 +151,6 @@ fun SearchFilterBar(
     val haptic = LocalHapticFeedback.current
     var isFocused by remember { mutableStateOf(false) }
     var showFilters by remember { mutableStateOf(false) }
-    var tipsExpanded by rememberSaveable { mutableStateOf(false) }
     var barHeight by remember { mutableIntStateOf(0) }
     val reduceMotion = rememberReduceMotion()
 
@@ -178,7 +174,6 @@ fun SearchFilterBar(
     androidx.compose.runtime.LaunchedEffect(showFilters) {
         if (showFilters) {
             draftFilters = filters
-            tipsExpanded = false
         }
     }
 
@@ -554,72 +549,6 @@ fun SearchFilterBar(
                         }
                     }
                 }
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = KraftSpacing.Spacing8),
-                    color = MaterialTheme.colorScheme.outline,
-                )
-                Spacer(Modifier.height(KraftSpacing.Spacing8))
-
-                // -- Search tips ------------------------------------------
-                HorizontalDivider(
-                    modifier = Modifier.padding(bottom = KraftSpacing.Spacing8),
-                    color = MaterialTheme.colorScheme.outline,
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { tipsExpanded = !tipsExpanded }
-                        .padding(vertical = KraftSpacing.Spacing4),
-                ) {
-                    Text(
-                        text = stringResource(R.string.search_tips),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        imageVector = if (tipsExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                AnimatedVisibility(
-                    visible = tipsExpanded,
-                    enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),
-                    exit = if (reduceMotion) fadeOut(tween(200)) else shrinkVertically(tween(200)) + fadeOut(tween(200)),
-                ) {
-                    Column {
-                        SearchTipRow(token = "tag", description = stringResource(R.string.search_tip_tag_desc)) {
-                            onQueryChange(query.trimEnd() + " tag")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "-tag", description = stringResource(R.string.search_tip_exclude_tag_desc)) {
-                            onQueryChange(query.trimEnd() + " -tag")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "+tag", description = stringResource(R.string.search_tip_require_tag_desc)) {
-                            onQueryChange(query.trimEnd() + " +tag")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "@user", description = stringResource(R.string.search_tip_user_desc)) {
-                            onQueryChange(query.trimEnd() + " @user")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "id:123", description = stringResource(R.string.search_tip_id_desc)) {
-                            onQueryChange(query.trimEnd() + " id:123")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "type:png", description = stringResource(R.string.search_tip_type_desc)) {
-                            onQueryChange(query.trimEnd() + " type:png")
-                            showFilters = false
-                        }
-                        SearchTipRow(token = "like:123", description = stringResource(R.string.search_tip_like_desc)) {
-                            onQueryChange(query.trimEnd() + " like:123")
-                            showFilters = false
-                        }
-                    }
-                }
 
                 // -- Actions --------------------------------------------
                 Row(
@@ -804,47 +733,6 @@ private fun SuggestionRow(
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-/** Single search tip row: monospace token chip + description, clickable to insert token. */
-@Composable
-private fun SearchTipRow(
-    token: String,
-    description: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = KraftSpacing.TouchTarget)
-            .clip(RoundedCornerShape(KraftRadius.Standard))
-            .clickable(onClick = onClick)
-            .padding(horizontal = KraftSpacing.Spacing8, vertical = KraftSpacing.Spacing8),
-    ) {
-        Surface(
-            shape = RoundedCornerShape(KraftRadius.Small),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-        ) {
-            Text(
-                text = token,
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = FontFamily.Monospace,
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(
-                    horizontal = KraftSpacing.Spacing8,
-                    vertical = KraftSpacing.Spacing4,
-                ),
-            )
-        }
-        Spacer(Modifier.width(KraftSpacing.Spacing12))
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
