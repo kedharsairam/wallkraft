@@ -80,8 +80,8 @@ fun GlassTabBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Black.copy(alpha = KraftConstants.GlassTabOuterAlpha), GlassShape)
-            .background(Color.White.copy(alpha = KraftConstants.GlassTabInnerAlpha), GlassShape)
+            .background(KraftColors.Background.copy(alpha = KraftConstants.GlassTabOuterAlpha), GlassShape)
+            .background(KraftColors.TextPrimary.copy(alpha = KraftConstants.GlassTabInnerAlpha), GlassShape)
             .background(KraftColors.SurfaceTertiary.copy(alpha = KraftConstants.GlassTabMidAlpha), GlassShape)
             .background(KraftColors.SurfaceSecondary.copy(alpha = KraftConstants.GlassTabHighlightAlpha), GlassShape)
             .padding(horizontal = KraftSpacing.Spacing4, vertical = KraftSpacing.Spacing4),
@@ -130,6 +130,7 @@ private fun GlassTabItem(
             .clip(RoundedCornerShape(KraftRadius.Pill))
             .background(
                 if (selected) KraftColors.Surface
+                // Transparent unselected tab shows frost through — technically required.
                 else Color.Transparent,
             )
             .clickable(

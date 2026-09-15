@@ -35,6 +35,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -70,6 +72,7 @@ fun CollectionStrip(
         )
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing12),
+            // Zero horizontal padding aligns strip to screen edge — technically required.
             contentPadding = PaddingValues(horizontal = 0.dp),
         ) {
             item(key = "new") {
@@ -120,8 +123,9 @@ fun CollectionStrip(
                             .size(KraftSpacing.CollectionCardSize)
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .border(
-                                width = if (active) 2.dp else 0.dp,
+                                width = if (active) KraftSpacing.Spacing2 else 0.dp,
                                 color = if (active) MaterialTheme.colorScheme.primary
+                                // Transparent border keeps layout stable when inactive — technically required.
                                 else Color.Transparent,
                                 shape = RoundedCornerShape(KraftRadius.Standard),
                             ),
@@ -143,13 +147,13 @@ fun CollectionStrip(
                                 .padding(KraftSpacing.Spacing4)
                                 .size(KraftSpacing.TouchTarget)
                                 .clip(CircleShape)
-                                .background(Color.Black.copy(alpha = 0.45f))
+                                .background(KraftColors.Background.copy(alpha = KraftConstants.OverlayCardMenuAlpha))
                                 .clickable { onMenu(entry.id) },
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = stringResource(R.string.collection_options),
-                                tint = Color.White,
+                                tint = KraftColors.TextPrimary,
                                 modifier = Modifier.size(KraftIconSize.Small),
                             )
                         }

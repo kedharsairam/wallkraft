@@ -79,6 +79,9 @@ object KraftColors {
     val PuritySketchyLabel = Color.White                        // white label on orange container
     val PurityNsfwContainer = AuroraRed.copy(alpha = 0.2f)    // subtle red tint
     val PurityNsfwLabel = Color.White                           // white label on red container
+
+    /** Glance widget background — near-black, slightly lifted from page for depth. */
+    val WidgetBackground = Color(0xFF1A1A1A)
 }
 
 object KraftSpacing {
@@ -134,6 +137,9 @@ object KraftSpacing {
 
     /** Collection card — 88dp square + label. */
     val CollectionCardSize = 88.dp
+
+    /** Drag handle width — 36dp per DESIGN Sheets spec (height uses Spacing6). */
+    val DragHandleWidth = 36.dp
 }
 
 object KraftRadius {
@@ -141,6 +147,7 @@ object KraftRadius {
     val Small = 8.dp       // Tight grid cards (spec 8)
     val Standard = 12.dp   // Cards, list items — spec 12 (was 10)
     val Large = 14.dp      // Large cards, search bars — keep 14 for search
+    val Medium = 16.dp     // Avatar clip, widget corners — 16dp spec
     val Hero = 20.dp       // Sheets, modals — spec 20 (was 22)
     val Modal = 28.dp      // Centered dialogs — was raw 28dp in CollectionDialogs
     val Pill = 50.dp       // Fully rounded — buttons, tags, filters
@@ -152,6 +159,7 @@ object KraftIconSize {
     val Tiny = 12.dp       // Badges, indicators
     val Small = 16.dp      // Inline icons, arrows
     val Medium = 20.dp     // Button icons, toolbar icons
+    val Compact = 22.dp    // Camera shortcut, progress — 22dp spec
     val Large = 24.dp      // Selection badges, prominent icons
     val XLarge = 40.dp     // Empty state, error icons
     val TabBar = 25.dp     // Tab bar icons — standard platform size
@@ -174,6 +182,8 @@ object KraftTypeScale {
     val Footnote = 13.sp     // .footnote
     val Caption1 = 12.sp     // .caption1
     val Caption2 = 11.sp     // .caption2
+    val Badge = 10.sp        // color-dot label — below caption scale
+    val WidgetBody = 14.sp   // Glance widget body — between footnote and subheadline
 
     /** Letter spacing for section headings and labels. */
     val LabelSpacing = 0.4.sp
@@ -252,6 +262,13 @@ object KraftConstants {
     // -- Deleted uploader --
     const val DeletedUploaderBgAlpha = 0.12f     // Deleted account avatar background
     const val DeletedUploaderTextAlpha = 0.5f    // Deleted account name + icon tint
+
+    // -- Overlay dims (migrated from raw literals) --
+    const val OverlayPickerDimAlpha = 0.5f       // Position picker dim overlay
+    const val OverlayCardMenuAlpha = 0.45f       // Collection overflow menu scrim
+    const val OverlayCameraAlpha = 0.15f         // Lockscreen camera pill + welcome hero tint
+    const val SkeletonPlaceholderAlpha = 0.1f    // Related-strip skeleton fill
+    const val NavHostGlowAlpha = 0.08f           // Nav host ambient glow tint
 
     // -- Tokens for previously magic literals (P1) --
     const val ApiKeyMaxLength = 64

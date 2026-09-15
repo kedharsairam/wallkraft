@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.prefs.CropStore
@@ -248,7 +249,8 @@ private fun DetailScreenImpl(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
-                    .padding(top = 68.dp, start = 16.dp, end = 16.dp),
+                    // 68dp top clears the floating back button — layout-specific offset.
+                    .padding(top = 68.dp, start = KraftSpacing.Spacing16, end = KraftSpacing.Spacing16),
             )
         }
     }
@@ -296,7 +298,7 @@ private fun DetailScreenImpl(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black),
+                            .background(KraftColors.Background),
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()

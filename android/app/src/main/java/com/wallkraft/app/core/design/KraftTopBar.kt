@@ -32,7 +32,8 @@ fun KraftTopBar(
     navigationIcon: (@Composable () -> Unit)? = null,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    // Stripped — outer GlassBox provides the single 4-layer frost
+    // Stripped — outer GlassBox provides the single 4-layer frost.
+    // Transparent base lets frost show through — technically required.
     Column(
         modifier = modifier.background(Color.Transparent),
     ) {

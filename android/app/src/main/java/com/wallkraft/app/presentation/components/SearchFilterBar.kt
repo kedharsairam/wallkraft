@@ -193,6 +193,7 @@ fun SearchFilterBar(
     Box(modifier = modifier) {
         // -- Main content ------------------------------------------------
         Column(
+            // Transparent container passes wallpaper through — technically required.
             modifier = Modifier
                 .background(Color.Transparent)
                 .onGloballyPositioned { coordinates ->
@@ -355,7 +356,7 @@ fun SearchFilterBar(
         // This is the standard pattern for dropdown menus and popover panels.
         // Max height is dynamic: screen height minus search bar and bottom bar.
         val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-        val panelMaxHeight = screenHeightDp - KraftSpacing.SearchBarHeight - 48.dp
+        val panelMaxHeight = screenHeightDp - KraftSpacing.SearchBarHeight - KraftSpacing.Spacing48
         AnimatedVisibility(
             visible = showFilters,
             enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),

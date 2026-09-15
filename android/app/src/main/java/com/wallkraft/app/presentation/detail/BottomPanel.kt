@@ -181,7 +181,7 @@ internal fun BottomPanel(
                             // content progressively — no content switching.
                             onExpandedChange(
                                 (panelHeight.value + dragOffsetPx) >
-                                    collapsedHeightPx + with(density) { 8.dp.toPx() },
+                                    collapsedHeightPx + with(density) { KraftSpacing.Spacing8.toPx() },
                             )
                         },
                         onDragEnd = {
@@ -193,7 +193,7 @@ internal fun BottomPanel(
                             // the range so it always sits below the expanded
                             // height for very short content.
                             val expandThresholdPx = collapsedHeightPx +
-                                min(with(density) { 40.dp.toPx() }, rangePx * 0.5f)
+                                min(with(density) { KraftSpacing.Spacing40.toPx() }, rangePx * 0.5f)
                             // Collapse needs a deliberate drag past the midpoint
                             // (or a downward flick) — a small downward drag on a
                             // tall panel shouldn't close it.
@@ -203,6 +203,7 @@ internal fun BottomPanel(
                             // pull up opens the panel regardless of content
                             // height, while collapsing needs a deliberate drag
                             // down past the midpoint.
+                            // 380dp/s flick velocity — physics threshold, not spacing scale.
                             val velocityThresholdPx = with(density) { 380.dp.toPx() }
                             val draggedUp = currentPx > dragStartPx
                             val settleExpanded = when {

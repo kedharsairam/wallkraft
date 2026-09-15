@@ -42,6 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
@@ -321,8 +322,9 @@ private fun WallKraftNavHostImpl(
                         scale = 0.12f,
                         centerDistortion = 0f,
                         shape = RoundedCornerShape(KraftRadius.Pill),
+                        // 8dp glass elevation + 0.08 white glow are fixed glass specs.
                         elevation = 8.dp,
-                        tint = Color.White.copy(alpha = 0.08f),
+                        tint = KraftColors.TextPrimary.copy(alpha = KraftConstants.NavHostGlowAlpha),
                         darkness = 0.10f,
                         warpEdges = 0.22f,
                     ) {

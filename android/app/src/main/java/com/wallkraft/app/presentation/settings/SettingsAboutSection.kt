@@ -24,9 +24,10 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.wallkraft.app.BuildConfig
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftIconSize
+import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 
@@ -60,7 +61,7 @@ fun SettingsAboutSection(
                 contentDescription = stringResource(R.string.about_developer),
                 modifier = Modifier
                     .size(KraftSpacing.AvatarSize)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(KraftRadius.Medium)),
             )
             Spacer(Modifier.width(KraftSpacing.Spacing12))
             Column {
@@ -87,14 +88,14 @@ fun SettingsAboutSection(
             trailing = {
                 when (updateState) {
                     is UpdateUiState.Checking -> androidx.compose.material3.CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(KraftIconSize.Compact),
+                        strokeWidth = KraftSpacing.SpinnerStroke,
                     )
                     is UpdateUiState.Available -> Box(
-                        modifier = Modifier.size(8.dp).clip(CircleShape)
+                        modifier = Modifier.size(KraftSpacing.Spacing8).clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary),
                     )
-                    else -> Spacer(modifier = Modifier.size(8.dp))
+                    else -> Spacer(modifier = Modifier.size(KraftSpacing.Spacing8))
                 }
             },
             onClick = {

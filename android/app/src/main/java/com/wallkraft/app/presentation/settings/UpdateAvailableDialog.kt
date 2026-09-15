@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
 import com.wallkraft.app.domain.model.AppUpdateInfo
@@ -93,7 +93,7 @@ fun UpdateAvailableDialog(
                 val downloading = downloadState is SettingsViewModel.DownloadUiState.Downloading
                 TextButton(onClick = onDownload, enabled = !downloading) {
                     if (downloading) {
-                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                        androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(KraftIconSize.Small))
                         Spacer(Modifier.width(KraftSpacing.Spacing8))
                     }
                     Text(stringResource(R.string.download))

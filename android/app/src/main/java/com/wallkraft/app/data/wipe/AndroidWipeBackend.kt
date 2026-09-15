@@ -31,7 +31,8 @@ import javax.inject.Singleton
  * - Encrypted prefs `wallkraft_secure_prefs` + plaintext-fallback
  *   `wallkraft_fallback_prefs`.
  * - Files: `filesDir/favorites` (offline favorite images); `cacheDir`
- *   subdirs `search_cache`, `coil`, `image_cache`, `crash`, `shared`, `update`.
+ *   subdirs `search_cache`, `coil`, `image_cache`, `crash`, `shared`,
+ *   `share_cache`, `update`.
  * - Coil memory + disk caches via [ImageCache] (injected singleton and the
  *   static fallback instance, which back different loaders pre/post-Hilt).
  *
@@ -108,6 +109,7 @@ class AndroidWipeBackend @Inject constructor(
             "image_cache",
             "crash",
             "shared",
+            "share_cache",
             "update",
         )
     }

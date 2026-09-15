@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
@@ -125,7 +124,7 @@ private fun HistoryItem(
             model = entity.thumbnail,
             contentDescription = null,
             modifier = Modifier
-                .size(64.dp)
+                .size(KraftSpacing.Spacing64)
                 .clip(RoundedCornerShape(KraftRadius.Standard)),
             contentScale = ContentScale.Crop,
         )
@@ -165,5 +164,7 @@ private fun HistoryItem(
 @Composable
 private fun rememberDateFormat(): SimpleDateFormat {
     val locale = Locale.getDefault()
-    return java.text.SimpleDateFormat("MMM d, yyyy 'at' h:mm a", locale)
+    // Cache per locale: SimpleDateFormat construction on every recomposition
+    // of every row wastes CPU on slow devices.
+    return remember(locale) { java.text.SimpleDateFormat("MMM d, yyyy 'at' h:mm a", locale) }
 }

@@ -53,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import com.wallkraft.app.core.utils.KraftHaptics
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
@@ -282,7 +283,7 @@ fun SettingsRotationSection(
                     }
                     rotateWorking -> CircularProgressIndicator(
                         modifier = Modifier.size(KraftIconSize.Small),
-                        strokeWidth = 2.dp,
+                        strokeWidth = KraftSpacing.SpinnerStroke,
                     )
                     else -> Text(stringResource(R.string.rotation_now))
                 }
@@ -297,7 +298,7 @@ fun SettingsRotationSection(
             onDismissRequest = { showSource = false },
             title = { Text(stringResource(R.string.rotation_source)) },
             text = {
-                LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
+                LazyColumn(modifier = Modifier.heightIn(max = KraftConstants.CropDialogMaxHeightDp.dp)) {
                     item(key = "all") {
                         SourceRow(
                             name = stringResource(R.string.rotation_all_favorites),

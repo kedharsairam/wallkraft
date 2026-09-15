@@ -122,6 +122,7 @@ fun BuyMeACoffeeButton(onClick: () -> Unit) {
             painter = androidx.compose.ui.res.painterResource(R.drawable.bmc_button),
             contentDescription = stringResource(R.string.buy_me_a_coffee_title),
             modifier = Modifier
+                // 182dp Buy-Me-a-Coffee asset width — fixed brand spec, not spacing scale.
                 .width(182.dp)
                 .graphicsLayer {
                     scaleX = scale
