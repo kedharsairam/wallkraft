@@ -51,35 +51,9 @@ class ScrollBenchmark {
         // Wait for content to load.
         Thread.sleep(2_000)
 
-        // Collect frame metrics from the activity's window.
-        val frameDurations = mutableListOf<Long>()
-        val latch = CountDownLatch(1)
-
-        val activity = InstrumentationRegistry.getInstrumentation()
-            .runOnMainSync {
-                val instrumentation = InstrumentationRegistry.getInstrumentation()
-                val activity = instrumentation.run {
-                    var found: android.app.Activity? = null
-                    runOnMainSync {
-                        // Retrieve the activity from the running task.
-                        val context = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
-                        val am = context.getSystemService(android.content.Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-                        @Suppress("DEPRECATION")
-                        val tasks = am.getRunningTasks(1)
-                        if (tasks.isNotEmpty()) {
-                            // We can't directly get the Activity from here in instrumentation,
-                            // but we can get the root activities.
-                        }
-                    }
-                    found
-                }
-                activity
-            }
-
-        // Use window-level frame metrics via shell dumpsys as a fallback.
-        // Alternatively, we attach a listener to whatever window we can access.
-        // For simplicity, use the approach of watching for frame completion via
-        // Choreographer-style timing in the instrumentation process.
+        // Frame metrics come from dumpsys gfxinfo below — no need to resolve
+        // the Activity here (the previous nested runOnMainSync block always
+        // returned null and crashed when called from the main thread).
         val deviceWidth = device.displayWidth
         val deviceHeight = device.displayHeight
 
