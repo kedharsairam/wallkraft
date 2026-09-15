@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -153,6 +154,10 @@ class CollectionsPickerTest {
         compose.onNodeWithText("Collection name").performClick()
         compose.onNodeWithText("Collection name").performTextInput("Beach")
         compose.onNodeWithText("Create").performClick()
+        // Verify creation landed before looking for checkboxes.
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodesWithText("Beach", substring = true).fetchSemanticsNodes().size >= 2
+        }
         // Wait for Room insert → picker list recompose with checkbox.
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodes(isToggleable()).fetchSemanticsNodes().isNotEmpty()
