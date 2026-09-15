@@ -9,6 +9,8 @@ import androidx.palette.graphics.Palette
 import com.wallkraft.app.core.errors.AppError
 import com.wallkraft.app.core.utils.Result
 import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.db.WallpaperHistoryDao
+import com.wallkraft.app.data.db.WallpaperHistoryEntity
 import com.wallkraft.app.data.prefs.CropStore
 import com.wallkraft.app.domain.model.Thumbs
 import com.wallkraft.app.domain.model.Wallpaper
@@ -66,6 +68,7 @@ class DetailViewModel @Inject constructor(
     val settingsRepository: SettingsRepository,
     val favoriteImageStore: OfflineImageStore,
     val rotationCropStore: CropStore,
+    private val wallpaperHistoryDao: WallpaperHistoryDao,
     private val errorMessage: @JvmSuppressWildcards (AppError) -> String,
     @ApplicationContext private val appContext: Context,
     savedStateHandle: SavedStateHandle,
@@ -86,6 +89,7 @@ class DetailViewModel @Inject constructor(
         settingsRepository: SettingsRepository,
         favoriteImageStore: OfflineImageStore,
         rotationCropStore: CropStore,
+        wallpaperHistoryDao: WallpaperHistoryDao,
         errorMessage: (AppError) -> String,
         previewThumb: String? = null,
         previewPath: String? = null,
@@ -95,6 +99,7 @@ class DetailViewModel @Inject constructor(
         settingsRepository = settingsRepository,
         favoriteImageStore = favoriteImageStore,
         rotationCropStore = rotationCropStore,
+        wallpaperHistoryDao = wallpaperHistoryDao,
         errorMessage = errorMessage,
         appContext = android.app.Application(),
         savedStateHandle = SavedStateHandle(
@@ -237,6 +242,20 @@ class DetailViewModel @Inject constructor(
             } catch (_: Exception) {
                 // Palette extraction is non-critical — silently ignore failures
             }
+        }
+    }
+
+    fun recordHistory(wallpaper: Wallpaper, source: String) {
+        viewModelScope.launch {
+            wallpaperHistoryDao.insert(
+                WallpaperHistoryEntity(
+                    wallpaperId = wallpaper.id,
+                    path = wallpaper.path,
+                    thumbnail = wallpaper.thumbnail.orEmpty(),
+                    setAt = System.currentTimeMillis(),
+                    source = source,
+                ),
+            )
         }
     }
 

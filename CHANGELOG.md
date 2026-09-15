@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.7.0] - 2026-09-15
+
+### Added
+- **Share preview card** — branded bitmap for social sharing (wallpaper + Aurora Blue bar + "WallKraft" text + rounded corners)
+- **Wallpaper history** — tracks recently set wallpapers with dates and source (auto/manual), 90-day retention, accessible from Settings
+- **Lockscreen preview** — mock lock screen overlay with clock, status bar, camera shortcut; slide-up to dismiss
+- **Home screen widget** — 2×2 Glance widget showing random favorite, auto-updates every 30 minutes, tap opens Favorites
+- **Muzei ContentProvider** — exposes favorites via `content://com.wallkraft.app.favorites/wallpapers` for third-party integration
+- **Glance dependencies** — `glance-appwidget:1.1.1` + `glance-material3` for widget rendering
+
 ## [2.6.0] - 2026-09-15
 
 ### Added

@@ -79,6 +79,10 @@ class FavoritesRepositoryImplTest {
             rows.remove(id)
             emit()
         }
+
+        override fun getAllBlocking(): List<FavoriteEntity> = rows.values.toList()
+
+        override fun getByIdBlocking(id: String): FavoriteEntity? = rows[id]
     }
 
     private class CountingOfflineImageStore : OfflineImageStore {

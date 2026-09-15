@@ -122,6 +122,7 @@ object AppModule {
             WallKraftDatabase.MIGRATION_2_3,
             WallKraftDatabase.MIGRATION_3_4,
             WallKraftDatabase.MIGRATION_4_5,
+            WallKraftDatabase.MIGRATION_5_6,
         )
         .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
         .build()
@@ -142,6 +143,11 @@ object AppModule {
     fun provideSavedSearchRepository(
         db: WallKraftDatabase,
     ): SavedSearchRepository = SavedSearchRepositoryImpl(db.savedSearchDao())
+
+    @Provides @Singleton
+    fun provideWallpaperHistoryDao(
+        db: WallKraftDatabase,
+    ): com.wallkraft.app.data.db.WallpaperHistoryDao = db.wallpaperHistoryDao()
 
     @Provides @Singleton
     fun provideFavoriteImageStore(

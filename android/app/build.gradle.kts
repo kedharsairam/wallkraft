@@ -41,8 +41,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 54
-        versionName = "2.6.0"
+        versionCode = 55
+        versionName = "2.7.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Required so on-device tests run under AndroidJUnitRunner (without
         // this the legacy InstrumentationTestRunner crashes the test process).
@@ -162,6 +162,10 @@ dependencies {
 
     // Palette
     implementation(libs.palette.ktx)
+
+    // Widget (Glance)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material3)
 
     // Hilt
     implementation(libs.hilt.android)

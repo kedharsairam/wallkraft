@@ -60,23 +60,28 @@ import com.wallkraft.app.presentation.components.defaultTabs
 import com.wallkraft.app.presentation.detail.DetailScreen
 import com.wallkraft.app.presentation.favorites.FavoritesScreen
 import com.wallkraft.app.presentation.favorites.FavoritesTopBarState
+import com.wallkraft.app.presentation.history.HistoryScreen
 import com.wallkraft.app.presentation.settings.SettingsScreen
 import com.wallkraft.app.navigation.Browse
 import com.wallkraft.app.navigation.Detail
 import com.wallkraft.app.navigation.Favorites
+import com.wallkraft.app.navigation.History
 import com.wallkraft.app.navigation.Settings
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun WallKraftNavHost() {
+fun WallKraftNavHost(initialDestination: String? = null) {
     val viewModel: NavHostViewModel = hiltViewModel()
-    WallKraftNavHostImpl(rotationStore = viewModel.rotationStore)
+    WallKraftNavHostImpl(rotationStore = viewModel.rotationStore, initialDestination = initialDestination)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
-private fun WallKraftNavHostImpl(rotationStore: RotationSettingsStore) {
+private fun WallKraftNavHostImpl(
+    rotationStore: RotationSettingsStore,
+    initialDestination: String? = null,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -121,9 +126,13 @@ private fun WallKraftNavHostImpl(rotationStore: RotationSettingsStore) {
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     val sharedTransitionScope = this
+                    val startDestination = when (initialDestination) {
+                        "favorites" -> Favorites
+                        else -> Browse()
+                    }
                     NavHost(
                 navController = navController,
-                startDestination = Browse(),
+                startDestination = startDestination,
                 modifier = Modifier.fillMaxSize(),
             ) {
                 composable<Browse>(
@@ -196,6 +205,23 @@ private fun WallKraftNavHostImpl(rotationStore: RotationSettingsStore) {
                     SettingsScreen(
                         navBarPadding = innerPadding.calculateBottomPadding(),
                         topInset = topInset,
+                        onHistoryClick = {
+                            navController.navigate(History)
+                        },
+                    )
+                }
+                composable<History>(
+                    enterTransition = {
+                        if (reduceMotion) androidx.compose.animation.EnterTransition.None
+                        else fadeIn(tween(220))
+                    },
+                    exitTransition = {
+                        if (reduceMotion) androidx.compose.animation.ExitTransition.None
+                        else fadeOut(tween(220))
+                    },
+                ) {
+                    HistoryScreen(
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable<Detail>(

@@ -1,5 +1,6 @@
 package com.wallkraft.app
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -38,8 +39,10 @@ class MainActivity : ComponentActivity() {
         // Dark mode always — paint window background black before content draws.
         window.decorView.setBackgroundColor(Color.BLACK)
 
+        val initialDestination = intent?.getStringExtra("destination")
+
         setContent {
-            WallKraftApp()
+            WallKraftApp(initialDestination = initialDestination)
         }
     }
 
@@ -51,6 +54,12 @@ class MainActivity : ComponentActivity() {
                 Handler(Looper.getMainLooper()),
             )
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle new intent from widget when activity is already running
+        setIntent(intent)
     }
 
     override fun onPause() {
