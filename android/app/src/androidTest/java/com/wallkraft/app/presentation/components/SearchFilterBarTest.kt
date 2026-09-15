@@ -140,8 +140,8 @@ class SearchFilterBarTest {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
 
-        compose.onNodeWithText("oceanview").assertIsDisplayed()
-        compose.onNodeWithText("forestfire").assertIsDisplayed()
+        compose.onNodeWithText("oceanview").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("forestfire").performScrollTo().assertIsDisplayed()
     }
 
     @Test
