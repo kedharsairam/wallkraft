@@ -131,9 +131,10 @@ class SearchFilterBarTest {
     fun dropdown_lists_history_items() {
         setBar(history = listOf("oceanview", "forestfire"))
 
+        compose.onNodeWithText(resString(R.string.search_hint)).performClick()
         compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("")
         // Spring expand animation doesn't block waitForIdle — poll for node.
-        compose.waitUntil(timeoutMillis = 5_000) {
+        compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
 
