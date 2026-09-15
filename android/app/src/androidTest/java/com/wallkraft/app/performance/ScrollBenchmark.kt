@@ -96,15 +96,15 @@ class ScrollBenchmark {
         }
 
         // Parse frame durations from dumpsys gfxinfo for accurate per-frame data.
-        val gfxOutput = device.executeShellCommand(
+        val gfxOutput: String = device.executeShellCommand(
             "dumpsys gfxinfo $LAUNCH_PACKAGE framestats",
         )
 
-        val reader = gfxOutput.bufferedReader()
+        val reader = gfxOutput.reader()
         var inTotalSection = false
         val durations = mutableListOf<Long>()
-        reader.useLines { lines ->
-            lines.forEach { line ->
+        reader.useLines { lines: Sequence<String> ->
+            lines.forEach { line: String ->
                 if (line.contains("Total frames rendered")) {
                     inTotalSection = true
                 }

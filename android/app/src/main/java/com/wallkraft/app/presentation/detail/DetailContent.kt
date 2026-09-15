@@ -6,8 +6,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -145,6 +147,20 @@ internal fun DetailContent(
         onDispose { isSharing = false }
     }
 
+    // Favorite toggle animation — scale bounce + color transition
+    var favoriteToggleKey by remember { mutableIntStateOf(0) }
+    val favoriteScale by animateFloatAsState(
+        targetValue = if (favoriteToggleKey % 2 == 1) 1.3f else 1f,
+        animationSpec = if (reduceMotion) snap() else spring(),
+        label = "favoriteScale",
+    )
+    val favoriteColor by animateColorAsState(
+        targetValue = if (isFavorite) KraftColors.AccentRed else Color.White,
+        animationSpec = if (reduceMotion) snap() else tween(200),
+        label = "favoriteColor",
+    )
+    LaunchedEffect(isFavorite) { favoriteToggleKey++ }
+
     var chromeVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { chromeVisible = true }
     val chromeAlpha by animateFloatAsState(
@@ -197,7 +213,7 @@ internal fun DetailContent(
     var expanded by remember(wallpaper.id) { mutableStateOf(false) }
 
     // ── Image + invisible measurement boxes (inside BoxWithConstraints) ──
-    BoxWithConstraints(modifier = modifier.background(Color.Black.copy(alpha = backgroundAlpha))) {
+    BoxWithConstraints(modifier = modifier.background(KraftColors.Background.copy(alpha = backgroundAlpha))) {
         constraintsMaxHeightDp = maxHeight
         val viewW = maxWidth.value
         val viewH = maxHeight.value
@@ -266,7 +282,7 @@ internal fun DetailContent(
         ) {
             Surface(
                 shape = RoundedCornerShape(KraftRadius.Small),
-                color = Color.Black.copy(alpha = KraftConstants.OverlayPillAlpha),
+                color = KraftColors.Background.copy(alpha = KraftConstants.OverlayPillAlpha),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -275,13 +291,13 @@ internal fun DetailContent(
                     CircularProgressIndicator(
                         modifier = Modifier.size(KraftIconSize.Small),
                         strokeWidth = KraftSpacing.SpinnerStroke,
-                        color = Color.White,
+                        color = KraftColors.TextPrimary,
                     )
                     Spacer(Modifier.width(KraftSpacing.Spacing8))
                     Text(
                         text = stringResource(R.string.loading_full_resolution),
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
+                        color = KraftColors.TextPrimary,
                     )
                 }
             }
@@ -436,7 +452,11 @@ internal fun DetailContent(
                     onClick = onToggleFavorite,
                     icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                     contentDescription = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
-                    iconTint = if (isFavorite) KraftColors.AccentRed else Color.White,
+                    iconTint = favoriteColor,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = favoriteScale
+                        scaleY = favoriteScale
+                    },
                 )
                 DetailCircleButton(
                     onClick = onDownload,

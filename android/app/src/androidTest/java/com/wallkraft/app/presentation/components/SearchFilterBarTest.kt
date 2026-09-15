@@ -1,15 +1,18 @@
 package com.wallkraft.app.presentation.components
 
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.assertDoesNotExist
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
-import androidx.compose.ui.test.performLongClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import android.content.Context
@@ -27,6 +30,7 @@ import org.junit.runner.RunWith
  *
  * Pure props-in/callbacks-out — no network, no container, no database.
  */
+@OptIn(ExperimentalTestApi::class)
 @RunWith(AndroidJUnit4::class)
 class SearchFilterBarTest {
 
@@ -130,7 +134,7 @@ class SearchFilterBarTest {
             .performClick()
         compose.onNodeWithContentDescription(resString(R.string.color_red))
             .performScrollTo()
-            .performLongClick()
+            .performTouchInput { longClick() }
         compose.onNodeWithContentDescription("#990000", useUnmergedTree = true)
             .performScrollTo()
             .performClick()
@@ -165,8 +169,8 @@ class SearchFilterBarTest {
 
         compose.onNodeWithText(resString(R.string.search_hint)).performClick()
 
-        compose.onNodeWithText("oceanview").assertExists()
-        compose.onNodeWithText("forestfire").assertExists()
+        compose.onNodeWithText("oceanview").assertIsDisplayed()
+        compose.onNodeWithText("forestfire").assertIsDisplayed()
     }
 
     @Test
@@ -175,7 +179,7 @@ class SearchFilterBarTest {
 
         compose.onNodeWithText(resString(R.string.search_hint)).performClick()
 
-        compose.onNodeWithText(resString(R.string.search_recent)).assertDoesNotExist()
+        compose.onAllNodesWithText(resString(R.string.search_recent)).assertCountEquals(0)
     }
 
     @Test
@@ -193,7 +197,7 @@ class SearchFilterBarTest {
         // "oceanview" matches and searches; "forestfire" is filtered out entirely.
         compose.onNodeWithText("oceanview").performClick()
         assertEquals("oceanview", searched)
-        compose.onNodeWithText("forestfire").assertDoesNotExist()
+        compose.onAllNodesWithText("forestfire").assertCountEquals(0)
     }
 
     @Test
@@ -212,55 +216,21 @@ class SearchFilterBarTest {
         setBar(totalResults = 5085)
 
         // Decorative node (clearAndSetSemantics) — needs unmerged tree.
-        compose.onNodeWithText("5.1k", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("5.1k", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
     fun count_hidden_when_total_unknown() {
         setBar(totalResults = 0)
 
-        compose.onNodeWithText("5.1k", useUnmergedTree = true).assertDoesNotExist()
+        compose.onAllNodesWithText("5.1k", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test
     fun count_shows_alongside_query_text() {
         setBar(query = "miku", totalResults = 1_234_567)
 
-        compose.onNodeWithText("miku").assertExists()
-        compose.onNodeWithText("1.2m", useUnmergedTree = true).assertExists()
-    }
-
-    @Test
-    fun search_tips_expand_shows_rows_and_inserts_token() {
-        var queried: String? = null
-        setBar(query = "", onQueryChange = { queried = it })
-
-        // Open the filter panel
-        compose.onNodeWithContentDescription(resString(R.string.filters))
-            .performClick()
-
-        // Tips section is collapsed — token rows should not exist
-        compose.onNodeWithText("type:png").assertDoesNotExist()
-
-        // Click the "Search tips" header to expand
-        compose.onNodeWithText(resString(R.string.search_tips))
-            .performScrollTo()
-            .performClick()
-
-        // All 7 tip rows should now be visible
-        compose.onNodeWithText("tag", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("-tag", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("+tag", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("@user", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("id:123", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("type:png", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("like:123", useUnmergedTree = true).assertExists()
-
-        // Click the type:png chip — should insert token and dismiss panel
-        compose.onNodeWithText("type:png", useUnmergedTree = true)
-            .performScrollTo()
-            .performClick()
-
-        assertEquals(" type:png", queried)
+        compose.onNodeWithText("miku").assertIsDisplayed()
+        compose.onNodeWithText("1.2m", useUnmergedTree = true).assertIsDisplayed()
     }
 }

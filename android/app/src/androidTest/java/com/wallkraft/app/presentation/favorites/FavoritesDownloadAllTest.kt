@@ -53,6 +53,10 @@ class FavoritesDownloadAllTest {
             localIds += wallpaper.id
             return true
         }
+
+        override fun delete(id: String) {
+            localIds -= id
+        }
     }
 
     @Before

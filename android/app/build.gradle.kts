@@ -1,6 +1,7 @@
 import java.util.Properties
 
 plugins {
+    id("jacoco")
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -111,6 +112,44 @@ android {
     }
 }
 
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    val fileFilter =
+        listOf(
+            "**/R.class",
+            "**/R\$*.class",
+            "**/BuildConfig.*",
+            "**/Manifest*.*",
+            "**/*Test*.*",
+            "**/di/*",
+            "**/*_Factory.*",
+            "**/*_MembersInjector.*",
+        )
+
+    val debugTree =
+        fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+            exclude(fileFilter)
+        }
+
+    sourceDirectories.setFrom(files("src/main/java"))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(fileTree("${layout.buildDirectory.get()}/jacoco/testDebugUnitTest.exec"))
+}
+
+tasks.register("coverageSummary") {
+    dependsOn("jacocoTestReport")
+    doLast {
+        val report = file("${layout.buildDirectory.get()}/reports/jacoco/jacocoTestReport/html/index.html")
+        println("Coverage report: ${report.absolutePath}")
+    }
+}
+
 // Fail CI builds that try to produce a release APK without a signing key.
 // This runs at execution time (not configuration time) so `test` and
 // `assembleDebug` are unaffected.
@@ -182,6 +221,7 @@ dependencies {
     androidTestImplementation(libs.room.testing)
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.uiautomator)
     kspAndroidTest(libs.hilt.compiler)
     debugImplementation(libs.compose.ui.test.manifest)
 }

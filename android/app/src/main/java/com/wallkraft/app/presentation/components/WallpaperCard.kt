@@ -1,5 +1,7 @@
 package com.wallkraft.app.presentation.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -20,11 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -38,6 +42,7 @@ import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.utils.KraftHaptics
+import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftIconSize
@@ -76,6 +81,14 @@ fun WallpaperCard(
 
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
+    val reduceMotion = rememberReduceMotion()
+    // Selection checkmark scale animation
+    val checkmarkScale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = if (reduceMotion) spring(dampingRatio = 1f, stiffness = 1000f) else spring(dampingRatio = 0.7f, stiffness = 500f),
+        label = "checkmarkScale",
+    )
+
     val gridImageLoader = remember(context) {
         GridImageLoader.get()
             ?: ImageLoader.Builder(context.applicationContext).build()
@@ -201,7 +214,12 @@ fun WallpaperCard(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = if (selected) stringResource(R.string.selected) else stringResource(R.string.not_selected),
                     tint = Color.White,
-                    modifier = Modifier.size(KraftIconSize.Medium),
+                    modifier = Modifier
+                        .size(KraftIconSize.Medium)
+                        .graphicsLayer {
+                            scaleX = checkmarkScale
+                            scaleY = checkmarkScale
+                        },
                 )
             }
         }
