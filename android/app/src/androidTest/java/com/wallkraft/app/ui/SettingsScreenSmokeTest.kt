@@ -2,6 +2,7 @@ package com.wallkraft.app.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
@@ -72,28 +73,39 @@ class SettingsScreenSmokeTest {
                 )
             }
         }
-        compose.waitForIdle()
+        // NOTE: No waitForIdle() — SettingsViewModel debounces API key text
+        // and fires a real network validation call. Compose auto-waits for
+        // initial composition; section headers render synchronously.
     }
 
     private fun resString(id: Int): String =
         ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
+    private fun awaitSection(textRes: Int) {
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText(resString(textRes), ignoreCase = true).fetchSemanticsNodes().isNotEmpty()
+        }
+    }
+
     @Test
     fun browsing_section_is_displayed() {
         testContent()
-        compose.onNodeWithText(resString(R.string.browsing_title)).assertIsDisplayed()
+        awaitSection(R.string.browsing_title)
+        compose.onNodeWithText(resString(R.string.browsing_title), ignoreCase = true).assertIsDisplayed()
     }
 
     @Test
     fun data_section_is_displayed() {
         testContent()
-        compose.onNodeWithText(resString(R.string.data_title)).assertIsDisplayed()
+        awaitSection(R.string.data_title)
+        compose.onAllNodesWithText(resString(R.string.data_title), ignoreCase = true)[0].assertIsDisplayed()
     }
 
     @Test
     fun about_section_is_displayed() {
         testContent()
-        compose.onNodeWithText(resString(R.string.about_title))
+        awaitSection(R.string.about_title)
+        compose.onNodeWithText(resString(R.string.about_title), ignoreCase = true)
             .performScrollTo()
             .assertIsDisplayed()
     }
