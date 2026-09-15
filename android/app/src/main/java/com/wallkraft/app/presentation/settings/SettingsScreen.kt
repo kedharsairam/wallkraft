@@ -65,8 +65,9 @@ fun SettingsScreen(
     topInset: Dp = 0.dp,
     onHistoryClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
+    dangerZoneViewModel: DangerZoneViewModel = hiltViewModel(),
 ) {
-    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset, onHistoryClick = onHistoryClick, viewModel = viewModel)
+    SettingsScreenImpl(navBarPadding = navBarPadding, topInset = topInset, onHistoryClick = onHistoryClick, viewModel = viewModel, dangerZoneViewModel = dangerZoneViewModel)
 }
 
 @Composable
@@ -75,6 +76,7 @@ private fun SettingsScreenImpl(
     topInset: Dp = 0.dp,
     onHistoryClick: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
+    dangerZoneViewModel: DangerZoneViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
     val apiKeyText by viewModel.apiKeyText.collectAsState()
@@ -239,7 +241,7 @@ private fun SettingsScreenImpl(
                 },
             )
 
-            SettingsDangerSection()
+            SettingsDangerSection(viewModel = dangerZoneViewModel)
 
             Spacer(Modifier.height(KraftSpacing.GlassBarReserve))
         }

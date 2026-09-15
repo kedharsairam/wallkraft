@@ -13,6 +13,9 @@ import com.wallkraft.app.data.api.RateLimitState
 import com.wallkraft.app.data.api.WallhavenApi
 import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.repository.SettingsRepository
+import com.wallkraft.app.domain.usecase.WipeAllDataUseCase
+import com.wallkraft.app.domain.usecase.WipeBackend
+import com.wallkraft.app.presentation.settings.DangerZoneViewModel
 import com.wallkraft.app.presentation.settings.SettingsScreen
 import com.wallkraft.app.presentation.settings.SettingsViewModel
 import kotlinx.coroutines.flow.Flow
@@ -41,6 +44,19 @@ class SettingsScreenSmokeTest {
         }
     }
 
+    private class FakeWipeBackend : WipeBackend {
+        override suspend fun cancelRotationWork() {}
+        override suspend fun clearDatabase() {}
+        override suspend fun clearSettings() {}
+        override suspend fun clearRotationSettings() {}
+        override suspend fun clearRotationCrops() {}
+        override suspend fun clearSearchHistory() {}
+        override suspend fun clearSecurePrefs() {}
+        override suspend fun wipeFiles() {}
+        override suspend fun evictImageCaches() {}
+        override suspend fun resetRotation() {}
+    }
+
     private fun testContent() {
         val repo = FakeSettingsRepository()
         compose.setContent {
@@ -52,6 +68,7 @@ class SettingsScreenSmokeTest {
                         GithubApi(OkHttpClient(), kotlinx.serialization.json.Json {}),
                         { "Error" },
                     ),
+                    dangerZoneViewModel = DangerZoneViewModel(WipeAllDataUseCase(FakeWipeBackend())),
                 )
             }
         }
