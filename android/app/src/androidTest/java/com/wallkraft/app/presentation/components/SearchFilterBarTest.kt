@@ -131,10 +131,11 @@ class SearchFilterBarTest {
     fun dropdown_lists_history_items() {
         setBar(history = listOf("oceanview", "forestfire"))
 
-        // performTextInput guarantees focus (performClick alone may not
-        // focus the field in test harness, hiding the dropdown).
         compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("")
-        compose.waitForIdle()
+        // Spring expand animation doesn't block waitForIdle — poll for node.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
+        }
 
         compose.onNodeWithText("oceanview").assertIsDisplayed()
         compose.onNodeWithText("forestfire").assertIsDisplayed()
