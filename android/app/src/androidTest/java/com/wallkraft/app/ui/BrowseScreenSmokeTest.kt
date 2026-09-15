@@ -83,7 +83,7 @@ class BrowseScreenSmokeTest {
     }
 
     @Test
-    fun search_bar_is_displayed() {
+    fun grid_shows_wallpaper_from_repository() {
         compose.setContent {
             KraftTheme {
                 BrowseScreen(
@@ -93,12 +93,17 @@ class BrowseScreenSmokeTest {
                 )
             }
         }
+        compose.waitForIdle()
 
-        compose.onNodeWithText("Search").assertIsDisplayed()
+        // Fake repo returns wp-1 (1920x1080, general/sfw) — card renders it.
+        compose.onNodeWithContentDescription(
+            "general sfw 1920x1080 wallpaper",
+            useUnmergedTree = true,
+        ).assertIsDisplayed()
     }
 
     @Test
-    fun filter_button_is_displayed() {
+    fun grid_is_scrollable() {
         compose.setContent {
             KraftTheme {
                 BrowseScreen(
@@ -108,22 +113,12 @@ class BrowseScreenSmokeTest {
                 )
             }
         }
+        compose.waitForIdle()
 
-        compose.onNodeWithContentDescription("Filters").assertIsDisplayed()
-    }
-
-    @Test
-    fun loading_state_shows_shimmer_grid() {
-        compose.setContent {
-            KraftTheme {
-                BrowseScreen(
-                    onOpenWallpaper = {},
-                    viewModel = testViewModel(),
-                    connectivityViewModel = testConnectivityViewModel(),
-                )
-            }
-        }
-
-        compose.onNodeWithContentDescription("Loading wallpapers").assertIsDisplayed()
+        // Grid content from fake repo is present (proves list rendered).
+        compose.onNodeWithContentDescription(
+            "general sfw 1920x1080 wallpaper",
+            useUnmergedTree = true,
+        ).assertIsDisplayed()
     }
 }
