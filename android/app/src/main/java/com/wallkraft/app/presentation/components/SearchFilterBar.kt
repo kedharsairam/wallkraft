@@ -374,7 +374,9 @@ fun SearchFilterBar(
                                 val event = awaitPointerEvent(PointerEventPass.Initial)
                                 val change = event.changes.firstOrNull() ?: break
                                 val dy = change.position.y - downY
-                                if (dy < -100f) {
+                                if (dy < -100f && scrollState.value == 0) {
+                                    // Only collapse when scrolled to top —
+                                    // otherwise let verticalScroll handle the gesture.
                                     draggedUp = true
                                     change.consume()
                                     break
