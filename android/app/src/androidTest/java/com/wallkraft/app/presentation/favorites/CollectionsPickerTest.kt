@@ -151,6 +151,10 @@ class CollectionsPickerTest {
         // exists on the strip card behind the dialog window.
         compose.onNodeWithText("Collection name").performTextInput("Beach")
         compose.onNodeWithText("Create").performClick()
+        // Wait for Room insert → picker list recompose with checkbox.
+        compose.waitUntil(timeoutMillis = 5_000) {
+            compose.onAllNodes(isToggleable()).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onAllNodes(isToggleable())[0].performClick()
         compose.onNodeWithText("Done").performClick()
 
