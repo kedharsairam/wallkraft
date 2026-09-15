@@ -65,6 +65,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
@@ -268,7 +269,9 @@ fun SearchFilterBar(
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
-                                    modifier = Modifier.clearAndSetSemantics {},
+                                    modifier = Modifier
+                                        .clearAndSetSemantics {}
+                                        .testTag("result_count"),
                                 )
                             }
                         }
