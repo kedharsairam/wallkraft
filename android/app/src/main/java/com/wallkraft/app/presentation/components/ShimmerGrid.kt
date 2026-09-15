@@ -27,9 +27,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.wallkraft.app.R
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
@@ -79,12 +81,13 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
     // Calculate viewport-appropriate item count based on actual screen height.
     val configuration = LocalConfiguration.current
     val viewportHeightDp = configuration.screenHeightDp.dp
-    val itemCount = maxOf(6, (viewportHeightDp / 280.dp).toInt()) // ~280dp avg tile height
+    val itemCount = maxOf(6, (viewportHeightDp / KraftConstants.ShimmerAvgTileHeightDp).toInt())
+    val loadingDescription = stringResource(R.string.loading_wallpapers)
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .semantics { contentDescription = "Loading wallpapers" }
+            .semantics { contentDescription = loadingDescription }
     ) {
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),

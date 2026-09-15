@@ -25,6 +25,7 @@ private val Context.wallKraftDataStore: DataStore<Preferences> by preferencesDat
     name = "wallkraft_settings",
 )
 
+/** DataStore-backed implementation of [SettingsRepository] for persisting app preferences. */
 class SettingsStore(private val context: Context) : SettingsRepository {
 
     private val encryptedKeyStore = EncryptedApiKeyStore(context)

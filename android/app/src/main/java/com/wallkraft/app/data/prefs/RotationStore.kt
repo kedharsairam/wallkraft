@@ -35,6 +35,7 @@ data class RotationSettings(
     val recentIds: List<String> = emptyList(),
 )
 
+/** Contract for reading and writing wallpaper rotation preferences. */
 interface RotationSettingsStore {
     val settings: Flow<RotationSettings>
     val timingWelcomeSeen: Flow<Boolean>

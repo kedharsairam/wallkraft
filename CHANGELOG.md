@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Testing & Quality
+- Added 107 new tests (355 total, up from 248)
+- Error path tests: 30 API parsing scenarios (4xx/5xx/malformed/empty/timeout)
+- Edge case tests: rapid tap, back navigation, error recovery, concurrent operations
+- Offline mode tests: search offline, favorites offline, stale indicators
+- Performance benchmarks: cold start, scroll profiling, memory audit
+- PRIVACY.md created
+
+### Performance
+- isZoomed per-frame recomposition fixed (derivedStateOf)
+- AppSettings targeted collection (only relevant fields)
+- GridImageLoader.init no longer runs per recomposition
+- Double downloadedIds load eliminated
+
+### Changed
+- WallKraftNavHost region comments + formatting
+- ProGuard rules audited (all 5 -dontwarn justified)
+
 ## [2.7.0] - 2026-09-15
 
 ### Added

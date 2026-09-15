@@ -10,6 +10,7 @@ import com.wallkraft.app.domain.model.WallpaperResponse
 import com.wallkraft.app.domain.repository.WallpaperRepository
 import kotlinx.coroutines.flow.Flow
 
+/** Production implementation of [WallpaperRepository] backed by the Wallhaven API and an in-memory cache. */
 class WallpaperRepositoryImpl(
     private val api: WallhavenApiSource,
     private val searchCache: SearchResponseCache,

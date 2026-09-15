@@ -38,6 +38,7 @@ sealed interface UpdateUiState {
     data class Error(val message: String) : UpdateUiState
 }
 
+/** ViewModel for the Settings screen — manages app settings, API key validation, and update checks. */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
