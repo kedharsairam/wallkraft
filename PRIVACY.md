@@ -1,36 +1,41 @@
-# Privacy Policy
+# WallKraft Privacy Policy
 
-**Last updated:** September 2026
+**Last updated:** 2026-09-15
 
-WallKraft is a privacy-first wallpaper browsing app. Here's what you need to know:
+WallKraft is an open-source wallpaper browser and manager for Android. This privacy policy explains how the app handles data.
 
-## What we DON'T collect
+## Data Collection
 
-- No personal data
-- No usage analytics
-- No device identifiers
-- No location data
-- No advertising IDs
+WallKraft does **not** collect, transmit, or share any personal data. There is:
 
-## What stays on your device
+- No analytics or tracking
+- No advertisements
+- No telemetry
+- No user accounts or sign-in
 
-- Your favorites and downloads are stored locally
-- API keys are stored in Android's secure Keystore
-- Cache files are temporary and can be cleared anytime
+## Network Usage
 
-## Network usage
+The app communicates exclusively with the [Wallhaven API](https://wallhaven.cc) to browse and search wallpapers. No other network requests are made.
 
-WallKraft connects only to the Wallhaven API to fetch wallpapers, and to api.github.com only when you tap Settings → About → Check for updates (version number only, no personal data). No data is sent to any other server.
+## Local Storage
 
-## Third-party services
+- **Favorites** are stored locally in an on-device Room database.
+- **Wallpaper images** are cached locally using Coil's disk cache.
 
-- **Wallhaven API** — Used to browse and search wallpapers. Subject to [Wallhaven's Terms](https://wallhaven.cc/terms).
-- **GitHub API** — Used only for manual update check (latest release tag + APK size). No token, no device id.
+No data is stored on external servers.
 
-## Changes
+## Permissions
 
-If this policy changes, the update will be published here and in the app's About section.
+| Permission | Purpose |
+|---|---|
+| `INTERNET` | Browse wallpapers via the Wallhaven API |
+| `SET_WALLPAPER` | Set wallpapers on home/lock screen |
+| `WRITE_EXTERNAL_STORAGE` | Download wallpapers to device (legacy Android only) |
+
+## Changes to This Policy
+
+Any changes to this privacy policy will be reflected in the app's source repository with an updated date.
 
 ## Contact
 
-For questions about this policy, open an issue on [GitHub](https://github.com/kedharsairam/wallkraft).
+If you have questions about this privacy policy, contact: **kedhartech@gmail.com**
