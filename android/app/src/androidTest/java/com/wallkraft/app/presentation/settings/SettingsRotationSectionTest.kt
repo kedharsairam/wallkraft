@@ -54,10 +54,30 @@ class SettingsRotationSectionTest {
         }
     }
 
+    private fun setSectionAndExpand(
+        onSchedule: (RotationSchedule) -> Unit = {},
+        onMode: (RotationMode) -> Unit = {},
+        onTarget: (RotationTarget) -> Unit = {},
+        onSource: (Long?) -> Unit = {},
+        onRotateNow: () -> Unit = {},
+    ) {
+        setSection(
+            onSchedule = onSchedule,
+            onMode = onMode,
+            onTarget = onTarget,
+            onSource = onSource,
+            onRotateNow = onRotateNow,
+        )
+        // Section starts collapsed — tap the summary header to expand.
+        // Summary contains "•" separators (schedule • mode • target • source).
+        compose.onNodeWithText("•", substring = true).performClick()
+        compose.waitForIdle()
+    }
+
     @Test
     fun schedule_chip_reports_choice() {
         var chosen: RotationSchedule? = null
-        setSection(onSchedule = { chosen = it })
+        setSectionAndExpand(onSchedule = { chosen = it })
 
         compose.onNodeWithText("Daily").performClick()
 
@@ -67,7 +87,7 @@ class SettingsRotationSectionTest {
     @Test
     fun mode_chip_reports_choice() {
         var chosen: RotationMode? = null
-        setSection(onMode = { chosen = it })
+        setSectionAndExpand(onMode = { chosen = it })
 
         compose.onNodeWithText("Atmosphere").performClick()
 
@@ -77,7 +97,7 @@ class SettingsRotationSectionTest {
     @Test
     fun rotate_now_calls_callback() {
         var calls = 0
-        setSection(onRotateNow = { calls++ })
+        setSectionAndExpand(onRotateNow = { calls++ })
 
         compose.onNodeWithText("Rotate now").performClick()
 
@@ -87,7 +107,7 @@ class SettingsRotationSectionTest {
     @Test
     fun source_dialog_selects_collection() {
         var chosen: Long?? = null
-        setSection(onSource = { chosen = it })
+        setSectionAndExpand(onSource = { chosen = it })
 
         // Open the source picker.
         compose.onNodeWithText("All favorites").performClick()
@@ -97,3 +117,5 @@ class SettingsRotationSectionTest {
         assertEquals(9L, chosen)
     }
 }
+
+
