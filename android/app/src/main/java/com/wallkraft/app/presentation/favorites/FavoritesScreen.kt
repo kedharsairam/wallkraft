@@ -80,8 +80,10 @@ fun FavoritesScreen(
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
     offlineRepair: FavoriteOfflineRepair? = null,
     autoRepairOffline: Boolean = false,
+    viewModel: FavoritesViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
+    collectionsVm: CollectionsViewModel = hiltViewModel(),
 ) {
-    val viewModel: FavoritesViewModel = hiltViewModel()
     FavoritesScreenImpl(
         settingsRepository = viewModel.settingsRepository,
         rotationStore = viewModel.rotationStore,
@@ -97,6 +99,9 @@ fun FavoritesScreen(
         topBarState = topBarState,
         offlineRepair = offlineRepair,
         autoRepairOffline = autoRepairOffline,
+        viewModel = viewModel,
+        connectivityViewModel = connectivityViewModel,
+        collectionsVm = collectionsVm,
     )
 }
 
@@ -117,12 +122,12 @@ private fun FavoritesScreenImpl(
     topBarState: FavoritesTopBarState = FavoritesTopBarState(),
     offlineRepair: FavoriteOfflineRepair? = null,
     autoRepairOffline: Boolean = false,
+    viewModel: FavoritesViewModel = hiltViewModel(),
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
+    collectionsVm: CollectionsViewModel = hiltViewModel(),
 ) {
-    val viewModel: FavoritesViewModel = hiltViewModel()
     val favorites by viewModel.favorites.collectAsState()
-    val connectivityViewModel: ConnectivityViewModel = hiltViewModel()
     val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
-    val collectionsVm: CollectionsViewModel = hiltViewModel()
     val collections by collectionsVm.collections.collectAsState()
     var activeCollectionId by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(collections) {
