@@ -432,7 +432,15 @@ fun CollectionNameDialog(
     var text by remember(current) { mutableStateOf(current) }
     val focusRequester = remember { FocusRequester() }
     val haptic = LocalHapticFeedback.current
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    // Best-effort focus (keyboard popup). Guarded: in tests or during
+    // rapid recomposition the node may not be placed yet.
+    LaunchedEffect(Unit) {
+        try {
+            focusRequester.requestFocus()
+        } catch (_: IllegalStateException) {
+            // Node not placed yet — user can tap the field manually.
+        }
+    }
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(KraftRadius.Modal),

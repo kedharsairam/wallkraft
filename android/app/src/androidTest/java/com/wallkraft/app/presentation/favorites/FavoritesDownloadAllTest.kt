@@ -6,40 +6,39 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
 import com.wallkraft.app.data.cache.OfflineImageStore
+import com.wallkraft.app.data.db.WallKraftDatabase
+import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
 import com.wallkraft.app.domain.model.Wallpaper
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
-import javax.inject.Inject
 import com.wallkraft.app.domain.repository.FavoritesRepository
 
 /**
  * Download-all flow with a fake offline store — no network, no real files.
  *
  * Auto-repair is disabled so the test fully controls the timeline.
+ * Uses in-memory Room (no Hilt — manual construction).
  */
-@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class FavoritesDownloadAllTest {
 
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
-
-    @get:Rule(order = 1)
+    @get:Rule
     val compose = createComposeRule()
 
-    @Inject lateinit var favoritesRepository: FavoritesRepository
+    private lateinit var favoritesRepository: FavoritesRepository
 
     private class FakeStore : OfflineImageStore {
         val localIds = mutableSetOf<String>()
@@ -61,7 +60,11 @@ class FavoritesDownloadAllTest {
 
     @Before
     fun setUp() {
-        hiltRule.inject()
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val db = Room.inMemoryDatabaseBuilder(context, WallKraftDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        favoritesRepository = FavoritesRepositoryImpl(db.favoriteDao(), Json {}, FakeStore())
     }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
