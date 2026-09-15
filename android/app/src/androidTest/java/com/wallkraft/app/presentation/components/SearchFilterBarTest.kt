@@ -139,6 +139,8 @@ class SearchFilterBarTest {
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
+        // Spring expand may still be animating — settle before asserting displayed.
+        Thread.sleep(1000)
 
         compose.onNodeWithText("oceanview").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("forestfire").performScrollTo().assertIsDisplayed()

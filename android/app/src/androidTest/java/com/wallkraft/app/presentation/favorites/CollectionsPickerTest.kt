@@ -153,6 +153,8 @@ class CollectionsPickerTest {
         // Click first to guarantee focus, then type.
         compose.onNodeWithText("Collection name").performClick()
         compose.onNodeWithText("Collection name").performTextInput("Beach")
+        // Verify text landed before clicking Create.
+        compose.onNodeWithText("Beach", substring = true).assertIsDisplayed()
         compose.onNodeWithText("Create").performClick()
         // Verify creation landed (strip card shows it) before checkboxes.
         compose.waitUntil(timeoutMillis = 10_000) {
