@@ -47,6 +47,15 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon
 
+      - name: Generate coverage report
+        run: ./gradlew jacocoTestReport --no-daemon
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: android/app/build/reports/jacoco/jacocoTestReport/html/
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon
 

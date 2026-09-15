@@ -1,6 +1,8 @@
 package com.wallkraft.app.presentation.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -65,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
@@ -153,6 +156,14 @@ fun SearchFilterBar(
     var showFilters by remember { mutableStateOf(false) }
     var barHeight by remember { mutableIntStateOf(0) }
     val reduceMotion = rememberReduceMotion()
+
+    // Filter applied pulse — triggers a brief scale pulse on the filter button
+    var filterPulseTrigger by remember { mutableIntStateOf(0) }
+    val filterButtonScale by animateFloatAsState(
+        targetValue = if (filterPulseTrigger % 2 == 1) 1.15f else 1f,
+        animationSpec = if (reduceMotion) spring(dampingRatio = 1f, stiffness = 1000f) else spring(dampingRatio = 0.6f, stiffness = 600f),
+        label = "filterButtonScale",
+    )
 
     // Dismiss filter panel when search bar loses focus (e.g. user taps
     // outside on the browse area). Only fires on focus LOSS � not on focus
@@ -302,6 +313,10 @@ fun SearchFilterBar(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(KraftSpacing.TouchTarget)
+                        .graphicsLayer {
+                            scaleX = filterButtonScale
+                            scaleY = filterButtonScale
+                        }
                         .clip(PillShape)
                         .background(
                             if (showFilters) MaterialTheme.colorScheme.primary
@@ -569,7 +584,10 @@ fun SearchFilterBar(
                     Button(
                         onClick = {
                             KraftHaptics.buttonPress(haptic)
-                            if (draftFilters != filters) onFiltersChange(draftFilters)
+                            if (draftFilters != filters) {
+                                onFiltersChange(draftFilters)
+                                filterPulseTrigger++
+                            }
                             showFilters = false
                         },
                         enabled = draftFilters != filters,

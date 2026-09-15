@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
@@ -45,8 +47,14 @@ fun FavoritesSelectionTopBar(
     }
     KraftTopBar(
         title = title,
-        navigationIcon = if (topBarState.selectionMode) {
-            {
+        navigationIcon = {
+            AnimatedVisibility(
+                visible = topBarState.selectionMode,
+                enter = if (reduceMotion) fadeIn(tween(220))
+                else slideInVertically(tween(220)) { -it / 2 } + fadeIn(tween(220)),
+                exit = if (reduceMotion) fadeOut(tween(180))
+                else slideOutVertically(tween(180)) { -it / 2 } + fadeOut(tween(180)),
+            ) {
                 IconButton(onClick = { topBarState.onCancelSelection() }) {
                     Icon(
                         imageVector = Icons.Outlined.Close,
@@ -54,7 +62,7 @@ fun FavoritesSelectionTopBar(
                     )
                 }
             }
-        } else null,
+        },
         actions = {
             AnimatedVisibility(
                 visible = topBarState.selectionMode,

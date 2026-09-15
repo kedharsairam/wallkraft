@@ -48,6 +48,7 @@ class CollectionsPickerTest {
     private class FakeStore : OfflineImageStore {
         override fun fileFor(id: String): File? = File(id)
         override suspend fun save(wallpaper: Wallpaper): Boolean = true
+        override fun delete(id: String) {}
     }
 
     @Before
