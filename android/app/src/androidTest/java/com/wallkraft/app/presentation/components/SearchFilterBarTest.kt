@@ -133,9 +133,9 @@ class SearchFilterBarTest {
     fun dropdown_lists_history_items() {
         setBar(history = listOf("oceanview", "forestfire"))
 
-        // Click the editable field directly (hint text node may not
-        // forward focus). Spring expand doesn't block waitForIdle — poll.
-        compose.onAllNodes(hasSetTextAction())[0].performClick()
+        // Type "o" to focus + filter (both history items contain "o").
+        // Spring expand doesn't block waitForIdle — poll for node.
+        compose.onAllNodes(hasSetTextAction())[0].performTextInput("o")
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
