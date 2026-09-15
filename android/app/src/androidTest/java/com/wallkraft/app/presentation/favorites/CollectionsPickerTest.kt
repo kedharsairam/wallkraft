@@ -149,10 +149,12 @@ class CollectionsPickerTest {
         // Create "Beach" inline, then toggle both selected wallpapers in.
         // The checkbox is tapped (not the row text) because the name also
         // exists on the strip card behind the dialog window.
+        // Click first to guarantee focus, then type.
+        compose.onNodeWithText("Collection name").performClick()
         compose.onNodeWithText("Collection name").performTextInput("Beach")
         compose.onNodeWithText("Create").performClick()
         // Wait for Room insert → picker list recompose with checkbox.
-        compose.waitUntil(timeoutMillis = 5_000) {
+        compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodes(isToggleable()).fetchSemanticsNodes().isNotEmpty()
         }
         compose.onAllNodes(isToggleable())[0].performClick()

@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -131,9 +132,12 @@ class SearchFilterBarTest {
     fun dropdown_lists_history_items() {
         setBar(history = listOf("oceanview", "forestfire"))
 
-        compose.onNodeWithText(resString(R.string.search_hint)).performClick()
+        // Focus via real typing then clear: click alone may hit the hint
+        // node without focusing the field. Type + clear guarantees focus
+        // with an empty query (dropdown shows history when query is empty).
         // Spring expand animation doesn't block waitForIdle — poll for node.
-        // (No performTextInput: typing resets focus state and can hide it.)
+        compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("x")
+        compose.onNodeWithText("x", substring = true).performTextReplacement("")
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
@@ -174,7 +178,11 @@ class SearchFilterBarTest {
         var clears = 0
         setBar(history = listOf("ocean"), onClearHistory = { clears++ })
 
-        compose.onNodeWithText(resString(R.string.search_hint)).performClick()
+        compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("x")
+        compose.onNodeWithText("x", substring = true).performTextReplacement("")
+        compose.waitUntil(timeoutMillis = 10_000) {
+            compose.onAllNodesWithText(resString(R.string.search_clear_history)).fetchSemanticsNodes().isNotEmpty()
+        }
         compose.onNodeWithText(resString(R.string.search_clear_history)).performClick()
 
         assertEquals(1, clears)
@@ -206,3 +214,4 @@ class SearchFilterBarTest {
         compose.onNodeWithTag("result_count", useUnmergedTree = true).assertIsDisplayed()
     }
 }
+
