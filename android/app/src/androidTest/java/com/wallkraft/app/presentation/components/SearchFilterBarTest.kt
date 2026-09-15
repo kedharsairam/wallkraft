@@ -186,14 +186,14 @@ class SearchFilterBarTest {
 
         // Count text has clearAndSetSemantics (decorative for a11y) —
         // assert via testTag instead of text.
-        compose.onNodeWithTag("result_count").assertIsDisplayed()
+        compose.onNodeWithTag("result_count", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
     fun count_hidden_when_total_unknown() {
         setBar(totalResults = 0)
 
-        compose.onAllNodesWithTag("result_count").assertCountEquals(0)
+        compose.onAllNodesWithTag("result_count", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test
@@ -202,6 +202,6 @@ class SearchFilterBarTest {
         compose.waitForIdle()
 
         compose.onNodeWithText("miku").assertIsDisplayed()
-        compose.onNodeWithTag("result_count").assertIsDisplayed()
+        compose.onNodeWithTag("result_count", useUnmergedTree = true).assertIsDisplayed()
     }
 }
