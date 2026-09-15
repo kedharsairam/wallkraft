@@ -3,6 +3,7 @@ package com.wallkraft.app.presentation.components
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -132,12 +133,9 @@ class SearchFilterBarTest {
     fun dropdown_lists_history_items() {
         setBar(history = listOf("oceanview", "forestfire"))
 
-        // Focus via real typing then clear: click alone may hit the hint
-        // node without focusing the field. Type + clear guarantees focus
-        // with an empty query (dropdown shows history when query is empty).
-        // Spring expand animation doesn't block waitForIdle — poll for node.
-        compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("x")
-        compose.onNodeWithText("x", substring = true).performTextReplacement("")
+        // Click the editable field directly (hint text node may not
+        // forward focus). Spring expand doesn't block waitForIdle — poll.
+        compose.onAllNodes(hasSetTextAction())[0].performClick()
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
@@ -178,8 +176,7 @@ class SearchFilterBarTest {
         var clears = 0
         setBar(history = listOf("ocean"), onClearHistory = { clears++ })
 
-        compose.onNodeWithText(resString(R.string.search_hint)).performTextInput("x")
-        compose.onNodeWithText("x", substring = true).performTextReplacement("")
+        compose.onAllNodes(hasSetTextAction())[0].performClick()
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText(resString(R.string.search_clear_history)).fetchSemanticsNodes().isNotEmpty()
         }
