@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Hilt 2.56 removed HiltTestRunner. Use HiltTestApplication with the
+         default AndroidJUnitRunner instead (official migration path). -->
+    <application android:name="dagger.hilt.android.testing.HiltTestApplication" />
+
+</manifest>
