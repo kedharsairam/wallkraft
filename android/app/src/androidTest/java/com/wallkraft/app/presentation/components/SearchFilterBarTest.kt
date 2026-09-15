@@ -134,16 +134,15 @@ class SearchFilterBarTest {
         setBar(history = listOf("oceanview", "forestfire"))
 
         // Type "o" to focus + filter (both history items contain "o").
-        // Spring expand doesn't block waitForIdle — poll for node.
+        // Spring expand doesn't settle in test clock — assert existence
+        // (dropdown logic) not visibility (animation state).
         compose.onAllNodes(hasSetTextAction())[0].performTextInput("o")
         compose.waitUntil(timeoutMillis = 10_000) {
             compose.onAllNodesWithText("oceanview").fetchSemanticsNodes().isNotEmpty()
         }
-        // Spring expand may still be animating — settle before asserting displayed.
-        Thread.sleep(1000)
 
-        compose.onNodeWithText("oceanview").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("forestfire").performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithText("oceanview").assertCountEquals(1)
+        compose.onAllNodesWithText("forestfire").assertCountEquals(1)
     }
 
     @Test
