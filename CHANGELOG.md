@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-09-15
+
+### Fixed
+- Filter panel swipe-to-collapse now only triggers when scrolled to top (prevents conflict with scrollable content)
+- Glance widget lint errors — replaced restricted `ColorProvider(resId)` with inline `Color(...)` values
+
+### Removed
+- Search tips from filter panel (gesture conflict with swipe-to-collapse made them unusable)
+
 ### Testing & Quality
 - Added 107 new tests (355 total, up from 248)
 - Error path tests: 30 API parsing scenarios (4xx/5xx/malformed/empty/timeout)
