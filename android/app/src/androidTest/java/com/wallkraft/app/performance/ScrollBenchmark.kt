@@ -39,9 +39,9 @@ class ScrollBenchmark {
     fun scroll_noFrameExceedsTargetFps() {
         val device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
 
-        // Force-stop and launch fresh.
-        device.executeShellCommand("am force-stop $LAUNCH_PACKAGE")
-        Thread.sleep(500)
+        // NOTE: Do NOT force-stop here — the test instrumentation shares the
+        // app process space, so `am force-stop` would kill the test runner.
+        // Launch (or re-launch) the activity directly instead.
 
         InstrumentationRegistry.getInstrumentation().uiAutomation
             .executeShellCommand(
