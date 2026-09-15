@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
@@ -104,6 +104,12 @@ private fun WallKraftNavHostImpl(
         .asPaddingValues(density)
         .calculateTopPadding() + KraftSpacing.Spacing8 +
         KraftSpacing.TopBarHeight + KraftSpacing.Spacing8
+    // Explicit inset read + floor: some OEM gesture nav reports 0 to
+    // navigationBarsPadding(); 8dp keeps the bar above any gesture hint.
+    val navBarBottom = maxOf(
+        WindowInsets.navigationBars.asPaddingValues(density).calculateBottomPadding(),
+        KraftSpacing.Spacing8,
+    )
 
     val timingSeen by rotationStore.timingWelcomeSeen.collectAsState(initial = true)
     val hostScope = rememberCoroutineScope()
@@ -314,7 +320,7 @@ private fun WallKraftNavHostImpl(
                     GlassBox(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .navigationBarsPadding()
+                            .padding(bottom = navBarBottom)
                             .padding(vertical = KraftSpacing.Spacing2)
                             .padding(horizontal = KraftSpacing.Spacing24)
                             .fillMaxWidth(),
