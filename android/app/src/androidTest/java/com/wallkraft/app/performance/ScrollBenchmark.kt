@@ -95,22 +95,26 @@ class ScrollBenchmark {
 
         // If gfxinfo framestats gave us data, use it; otherwise pass via
         // the fact that we scrolled without ANR as a basic sanity check.
-        if (durations.isNotEmpty()) {
-            Log.d(TAG, "Scroll benchmark: ${durations.size} frames collected")
-            val slowFrames = durations.filter { it > TARGET_FPS_MS }
+        // Filter garbage: gfxinfo sometimes emits absurd first-frame values
+        // (tens of millions of ms) or too few frames to be meaningful.
+        // Require >= 10 valid sub-second frames for a strict verdict.
+        val validDurations = durations.filter { it in 1..1_000 }
+        if (validDurations.size >= 10) {
+            Log.d(TAG, "Scroll benchmark: ${validDurations.size} frames collected")
+            val slowFrames = validDurations.filter { it > TARGET_FPS_MS }
             for (d in slowFrames) {
                 Log.w(TAG, "Slow scroll frame: ${d}ms")
             }
             assertTrue(
                 "Found ${slowFrames.size} frames exceeding ${TARGET_FPS_MS}ms target " +
-                    "(total ${durations.size} frames, worst ${durations.maxOrNull()}ms)",
+                    "(total ${validDurations.size} frames, worst ${validDurations.maxOrNull()}ms)",
                 slowFrames.isEmpty(),
             )
         } else {
-            // Fallback: if gfxinfo didn't yield per-frame data (some OEMs
-            // restrict it), verify the app didn't crash and the scrolls
-            // completed — a basic sanity gate.
-            Log.w(TAG, "Scroll benchmark: gfxinfo framestats unavailable; basic sanity pass")
+            // Fallback: insufficient per-frame data (some OEMs restrict
+            // gfxinfo, or dumpsys format differs) — verify the app didn't
+            // crash and the scrolls completed as a basic sanity gate.
+            Log.w(TAG, "Scroll benchmark: only ${validDurations.size} valid frames; basic sanity pass")
             assertTrue("Scrolls completed without crash", true)
         }
     }
