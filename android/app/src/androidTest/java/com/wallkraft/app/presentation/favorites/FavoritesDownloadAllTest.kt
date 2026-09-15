@@ -13,8 +13,22 @@ import com.wallkraft.app.core.design.KraftTheme
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.db.WallKraftDatabase
+import com.wallkraft.app.data.prefs.RotationSettings
+import com.wallkraft.app.data.prefs.RotationSettingsStore
+import com.wallkraft.app.domain.model.RotationMode
+import com.wallkraft.app.domain.model.RotationSchedule
+import com.wallkraft.app.domain.model.RotationTarget
 import com.wallkraft.app.data.repository.FavoritesRepositoryImpl
+import com.wallkraft.app.domain.model.AppSettings
 import com.wallkraft.app.domain.model.Wallpaper
+import com.wallkraft.app.domain.repository.CollectionsRepository
+import com.wallkraft.app.domain.repository.SettingsRepository
+import com.wallkraft.app.presentation.common.ConnectivityViewModel
+import com.wallkraft.app.presentation.favorites.CollectionsViewModel
+import com.wallkraft.app.presentation.favorites.FavoritesViewModel
+import com.wallkraft.app.util.ConnectivityObserver
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -39,6 +53,7 @@ class FavoritesDownloadAllTest {
     val compose = createComposeRule()
 
     private lateinit var favoritesRepository: FavoritesRepository
+    private lateinit var collectionsRepository: CollectionsRepository
 
     private class FakeStore : OfflineImageStore {
         val localIds = mutableSetOf<String>()
@@ -65,6 +80,36 @@ class FavoritesDownloadAllTest {
             .allowMainThreadQueries()
             .build()
         favoritesRepository = FavoritesRepositoryImpl(db.favoriteDao(), Json {}, FakeStore())
+        collectionsRepository = com.wallkraft.app.data.repository.CollectionsRepositoryImpl(db.collectionDao())
+    }
+
+    private class FakeSettingsRepository : SettingsRepository {
+        private val _settings = MutableStateFlow(AppSettings())
+        override val settings: Flow<AppSettings> = _settings
+        override suspend fun current(): AppSettings = _settings.value
+        override suspend fun update(transform: (AppSettings) -> AppSettings) {
+            _settings.value = transform(_settings.value)
+        }
+    }
+
+    private class FakeRotationStore : RotationSettingsStore {
+        private val _settings = MutableStateFlow(RotationSettings())
+        override val settings: Flow<RotationSettings> = _settings
+        override val timingWelcomeSeen: Flow<Boolean> = MutableStateFlow(true)
+        override suspend fun current() = _settings.value
+        override suspend fun setSchedule(schedule: RotationSchedule) {}
+        override suspend fun setMode(mode: RotationMode) {}
+        override suspend fun setTarget(target: RotationTarget) {}
+        override suspend fun setSourceCollection(id: Long?) {}
+        override suspend fun setLastIndex(index: Int) {}
+        override suspend fun setRecentIds(ids: List<String>) {}
+        override suspend fun appendRecentId(id: String, window: Int) {}
+        override suspend fun markTimingWelcomeSeen() {}
+    }
+
+    private fun testConnectivityViewModel(): ConnectivityViewModel {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        return ConnectivityViewModel(ConnectivityObserver(context))
     }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
@@ -87,6 +132,15 @@ class FavoritesDownloadAllTest {
                     gridState = rememberLazyStaggeredGridState(),
                     offlineRepair = FavoriteOfflineRepair(fake),
                     autoRepairOffline = false,
+                    viewModel = FavoritesViewModel(
+                        favoritesRepository = favoritesRepository,
+                        settingsRepository = FakeSettingsRepository(),
+                        rotationStore = FakeRotationStore(),
+                        collectionsRepository = collectionsRepository,
+                        favoriteImageStore = fake,
+                    ),
+                    connectivityViewModel = testConnectivityViewModel(),
+                    collectionsVm = CollectionsViewModel(collectionsRepository),
                 )
             }
         }
