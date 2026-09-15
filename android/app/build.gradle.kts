@@ -45,9 +45,9 @@ android {
         versionCode = 57
         versionName = "3.1.0"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
-        // Required so on-device tests run under AndroidJUnitRunner (without
-        // this the legacy InstrumentationTestRunner crashes the test process).
-        testInstrumentationRunner = "dagger.hilt.android.testing.HiltTestRunner"
+        // HiltTestRunner was removed in Hilt 2.56 — use AndroidJUnitRunner
+        // with HiltTestApplication declared in androidTest/AndroidManifest.xml.
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
