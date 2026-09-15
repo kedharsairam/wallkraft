@@ -50,7 +50,14 @@ class DetailScreenSmokeTest {
             forceRefresh: Boolean,
         ): Result<WallpaperResponse> = Result.Success(WallpaperResponse())
         override suspend fun wallpaper(id: String): Result<Wallpaper> =
-            Result.Success(Wallpaper(id = id, dimensionX = 1920, dimensionY = 1080))
+            Result.Success(
+                Wallpaper(
+                    id = id,
+                    dimensionX = 1920,
+                    dimensionY = 1080,
+                    path = "https://example.com/$id.jpg",
+                ),
+            )
         override fun observeRateLimited(): Flow<Boolean> = MutableStateFlow(false)
     }
 
