@@ -85,13 +85,14 @@ internal fun UploaderRow(
         Text(
             text = if (timeAgo != null) "$name • $timeAgo" else name,
             style = MaterialTheme.typography.titleSmall.copy(
-                color = Color.White,
+                color = KraftColors.TextPrimary,
                 fontWeight = FontWeight.SemiBold,
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             // Cap the width so a very long username ellipsizes instead of
             // overflowing the panel; the tap target stays compact.
+            // 260dp max line length — layout-specific, not spacing scale.
             modifier = Modifier.widthIn(max = 260.dp),
         )
     }
@@ -132,7 +133,7 @@ internal fun UploaderRowPlaceholder() {
             modifier = Modifier
                 .size(KraftSpacing.AvatarSize)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = pulse)),
+                .background(KraftColors.TextPrimary.copy(alpha = pulse)),
         )
         Spacer(Modifier.width(KraftSpacing.Spacing12))
         Box(
@@ -140,7 +141,7 @@ internal fun UploaderRowPlaceholder() {
                 .width(KraftSpacing.Spacing40 * 3)
                 .height(KraftSpacing.Spacing4)
                 .clip(RoundedCornerShape(KraftRadius.Small))
-                .background(Color.White.copy(alpha = pulse)),
+                .background(KraftColors.TextPrimary.copy(alpha = pulse)),
         )
     }
 }
@@ -185,7 +186,7 @@ internal fun InitialLetter(initial: String) {
     Text(
         text = initial,
         style = MaterialTheme.typography.labelMedium.copy(
-            color = Color.White,
+            color = KraftColors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
         ),
     )
@@ -208,12 +209,12 @@ internal fun DeletedUploaderRow() {
             modifier = Modifier
                 .size(KraftSpacing.AvatarSize)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = KraftConstants.DeletedUploaderBgAlpha)),
+                .background(KraftColors.TextPrimary.copy(alpha = KraftConstants.DeletedUploaderBgAlpha)),
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = "Deleted account",
-                tint = Color.White.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
+                tint = KraftColors.TextPrimary.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
                 modifier = Modifier.size(KraftIconSize.Small),
             )
         }
@@ -221,7 +222,7 @@ internal fun DeletedUploaderRow() {
         Text(
             text = stringResource(R.string.account_deleted),
             style = MaterialTheme.typography.titleSmall.copy(
-                color = Color.White.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
+                color = KraftColors.TextPrimary.copy(alpha = KraftConstants.DeletedUploaderTextAlpha),
             ),
         )
     }

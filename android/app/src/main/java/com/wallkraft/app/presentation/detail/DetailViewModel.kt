@@ -207,19 +207,22 @@ class DetailViewModel @Inject constructor(
         val url = wallpaper.path ?: return
         viewModelScope.launch {
             try {
+                // Single fetch: read the bytes once, then decode bounds + bitmap
+                // from memory. The old code opened the URL stream twice (two
+                // full downloads) — wasteful on slow/metered connections.
                 val bitmap = withContext(Dispatchers.IO) {
-                    // Decode with inSampleSize to downscale to ~112px max dimension
-                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    BitmapFactory.decodeStream(URL(url).openStream(), null, options)
-                    val width = options.outWidth
-                    val height = options.outHeight
+                    val bytes = URL(url).openStream().use { it.readBytes() }
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
                     var inSampleSize = 1
-                    while (width / inSampleSize > 112 || height / inSampleSize > 112) {
+                    while (bounds.outWidth / inSampleSize > 112 || bounds.outHeight / inSampleSize > 112) {
                         inSampleSize *= 2
                     }
-                    options.inJustDecodeBounds = false
-                    options.inSampleSize = inSampleSize
-                    BitmapFactory.decodeStream(URL(url).openStream(), null, options)
+                    val opts = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = false
+                        this.inSampleSize = inSampleSize
+                    }
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
                 }
                 if (bitmap != null && !bitmap.isRecycled) {
                     val palette = withContext(Dispatchers.Default) {

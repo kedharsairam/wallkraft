@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -48,6 +50,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.settings
+        .distinctUntilChanged()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -65,6 +68,28 @@ class SettingsViewModel @Inject constructor(
     /** True while an API key validation request is in flight. */
     private val _isValidating = MutableStateFlow(false)
     val isValidating: StateFlow<Boolean> = _isValidating.asStateFlow()
+
+    /**
+     * Combined API text-field state. [setApiKey] writes [_apiKeyText] and
+     * [_isValidating] back-to-back (two emissions → two whole-screen
+     * recompositions); collecting this single [combine]d flow instead emits
+     * once per keystroke. Displayed data is unchanged — same values, fewer
+     * emissions.
+     */
+    data class ApiFieldState(
+        val text: String = "",
+        val isValidating: Boolean = false,
+    )
+
+    val apiFieldState: StateFlow<ApiFieldState> = combine(_apiKeyText, _isValidating) { text, validating ->
+        ApiFieldState(text = text, isValidating = validating)
+    }
+        .distinctUntilChanged()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = ApiFieldState(),
+        )
 
     private var hasUserInput = false
 

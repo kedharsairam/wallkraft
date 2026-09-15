@@ -102,7 +102,8 @@ fun WallpaperCard(
     // element transition — without it, the overlay draws sharp corners until
     // the image lands back in the grid.
     // Purity border — orange for Sketchy, red for NSFW (matches Wallhaven).
-    // Subtle: 1dp with reduced alpha so it hints without dominating.
+    // Subtle: 1.5dp with reduced alpha so it hints without dominating.
+    // 1.5dp purity outline — layout-specific spec, not spacing scale.
     val purityBorder = when (wallpaper.purityEnum) {
         Purity.Sketchy -> BorderStroke(1.5.dp, KraftColors.AuroraOrange)
         Purity.NSFW -> BorderStroke(1.5.dp, KraftColors.AuroraRed)
@@ -190,7 +191,7 @@ fun WallpaperCard(
                 Icon(
                     imageVector = Icons.Filled.Download,
                     contentDescription = stringResource(R.string.favorites_downloaded),
-                    tint = Color.White,
+                    tint = KraftColors.TextPrimary,
                     modifier = Modifier.size(KraftIconSize.Tiny),
                 )
             }
@@ -206,14 +207,14 @@ fun WallpaperCard(
                     .clip(CircleShape)
                     .background(
                         if (selected) MaterialTheme.colorScheme.primary
-                        else Color.Black.copy(alpha = KraftConstants.SelectionOverlayAlpha),
+                        else KraftColors.Background.copy(alpha = KraftConstants.SelectionOverlayAlpha),
                     ),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = if (selected) stringResource(R.string.selected) else stringResource(R.string.not_selected),
-                    tint = Color.White,
+                    tint = KraftColors.TextPrimary,
                     modifier = Modifier
                         .size(KraftIconSize.Medium)
                         .graphicsLayer {

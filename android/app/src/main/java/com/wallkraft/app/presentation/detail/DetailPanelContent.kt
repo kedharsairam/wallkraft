@@ -109,10 +109,10 @@ internal fun DetailPanelContent(
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .size(width = 36.dp, height = 6.dp)
-                .shadow(4.dp, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
+                .size(width = KraftSpacing.DragHandleWidth, height = KraftSpacing.Spacing6)
+                .shadow(KraftSpacing.Spacing4, RoundedCornerShape(KraftRadius.DragHandle), clip = false)
                 .clip(RoundedCornerShape(KraftRadius.DragHandle))
-                .background(Color.White.copy(alpha = KraftConstants.OverlayDragHandleAlpha)),
+                .background(KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayDragHandleAlpha)),
         )
         Spacer(Modifier.height(KraftSpacing.Spacing16))
 
@@ -182,7 +182,7 @@ internal fun DetailPanelContent(
                 Text(
                     text = stringResource(R.string.more_details),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                        color = KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayHintAlpha),
                         letterSpacing = KraftTypeScale.LabelSpacing,
                     ),
                 )
@@ -190,7 +190,7 @@ internal fun DetailPanelContent(
                 Icon(
                     imageVector = Icons.Outlined.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                    tint = KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayHintAlpha),
                     modifier = Modifier.size(KraftIconSize.Tiny),
                 )
             }
@@ -236,7 +236,7 @@ internal fun DetailPanelContent(
                     Text(
                         text = stringResource(R.string.tags_heading),
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                            color = KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayHintAlpha),
                             letterSpacing = KraftTypeScale.LabelSpacing,
                         ),
                     )
@@ -265,7 +265,7 @@ internal fun DetailPanelContent(
                     Text(
                         text = stringResource(R.string.tags_heading).replace("Tags", "Palette"),
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                            color = KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayHintAlpha),
                             letterSpacing = KraftTypeScale.LabelSpacing,
                         ),
                     )
@@ -285,7 +285,7 @@ internal fun DetailPanelContent(
                     Text(
                         text = "Related",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White.copy(alpha = KraftConstants.OverlayHintAlpha),
+                            color = KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayHintAlpha),
                             letterSpacing = KraftTypeScale.LabelSpacing,
                         ),
                     )
@@ -319,10 +319,10 @@ private fun PaletteStrip(
         horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Dominant swatch — 28dp
+        // Dominant swatch — 28dp; secondary 20dp. Fixed palette spec, not spacing scale.
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(KraftIconSize.Large + KraftSpacing.Spacing4)
                 .clip(CircleShape)
                 .background(Color(dominant))
                 .clickable { onSwatchClick(dominant) },
@@ -331,7 +331,7 @@ private fun PaletteStrip(
         swatches.forEach { rgb ->
             Box(
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(KraftIconSize.Medium)
                     .clip(CircleShape)
                     .background(Color(rgb))
                     .clickable { onSwatchClick(rgb) },
@@ -358,9 +358,9 @@ private fun RelatedStrip(
             items(6) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(KraftSpacing.TouchTarget)
                         .clip(RoundedCornerShape(KraftRadius.Small))
-                        .background(Color.White.copy(alpha = 0.1f)),
+                        .background(KraftColors.TextPrimary.copy(alpha = KraftConstants.SkeletonPlaceholderAlpha)),
                 )
             }
         }
@@ -375,7 +375,7 @@ private fun RelatedStrip(
                     contentDescription = wallpaper.resolution,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(KraftSpacing.TouchTarget)
                         .clip(RoundedCornerShape(KraftRadius.Small))
                         .clickable { onClick(wallpaper) },
                 )

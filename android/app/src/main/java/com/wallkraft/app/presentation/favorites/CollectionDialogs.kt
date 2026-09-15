@@ -105,7 +105,7 @@ fun AddToCollectionDialog(
             Box(
                 modifier = Modifier
                     .padding(vertical = KraftSpacing.Spacing12)
-                    .size(width = 36.dp, height = 6.dp)
+                    .size(width = KraftSpacing.DragHandleWidth, height = KraftSpacing.Spacing6)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
             )
@@ -170,7 +170,7 @@ fun AddToCollectionDialog(
                                         Icons.Filled.Close,
                                         contentDescription = stringResource(R.string.search_clear),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp),
+                                        modifier = Modifier.size(KraftIconSize.Small),
                                     )
                                 }
                             }
@@ -274,7 +274,7 @@ fun AddToCollectionDialog(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(KraftSpacing.TouchTarget)
                             .clip(RoundedCornerShape(KraftRadius.Pill))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                             .padding(horizontal = KraftSpacing.Spacing12),
@@ -331,7 +331,7 @@ fun CollectionMenuDialog(
             Box(
                 modifier = Modifier
                     .padding(vertical = KraftSpacing.Spacing12)
-                    .size(width = 36.dp, height = 6.dp)
+                    .size(width = KraftSpacing.DragHandleWidth, height = KraftSpacing.Spacing6)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
             )
@@ -445,6 +445,7 @@ fun CollectionNameDialog(
         Surface(
             shape = RoundedCornerShape(KraftRadius.Modal),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            // Zero tonal elevation keeps dialog flat on OLED — technically required.
             tonalElevation = 0.dp,
             shadowElevation = KraftConstants.DialogElevation,
         ) {
@@ -459,7 +460,7 @@ fun CollectionNameDialog(
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(KraftSpacing.Spacing48)
                         .clip(RoundedCornerShape(KraftRadius.Pill))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                         .padding(horizontal = KraftSpacing.Spacing16)
@@ -488,7 +489,7 @@ fun CollectionNameDialog(
                                         Icons.Filled.Close,
                                         contentDescription = stringResource(R.string.search_clear),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp),
+                                        modifier = Modifier.size(KraftIconSize.Small),
                                     )
                                 }
                             }
@@ -563,7 +564,7 @@ fun DeleteCollectionDialog(
             Box(
                 modifier = Modifier
                     .padding(vertical = KraftSpacing.Spacing12)
-                    .size(width = 36.dp, height = 6.dp)
+                    .size(width = KraftSpacing.DragHandleWidth, height = KraftSpacing.Spacing6)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
             )

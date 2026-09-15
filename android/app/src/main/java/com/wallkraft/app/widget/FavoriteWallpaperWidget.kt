@@ -3,9 +3,6 @@ package com.wallkraft.app.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.action.clickable
@@ -24,6 +21,10 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.glance.appwidget.action.actionStartActivity
+import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftRadius
+import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.R
 import com.wallkraft.app.data.db.FavoriteEntity
 import com.wallkraft.app.data.db.WallKraftDatabase
@@ -83,8 +84,8 @@ private fun WidgetContent(
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .cornerRadius(16.dp)
-            .background(ColorProvider(Color(0xFF1A1A1A)))
+            .cornerRadius(KraftRadius.Medium)
+            .background(ColorProvider(KraftColors.WidgetBackground))
             .clickable(actionStartActivity(intent)),
         contentAlignment = Alignment.Center,
     ) {
@@ -110,22 +111,22 @@ private fun FavoriteContent(
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .padding(12.dp),
+                .padding(KraftSpacing.Spacing12),
             verticalAlignment = Alignment.Bottom,
         ) {
             Text(
                 text = resolution,
                 style = TextStyle(
-                    color = ColorProvider(Color.White),
-                    fontSize = 14.sp,
+                    color = ColorProvider(KraftColors.TextPrimary),
+                    fontSize = KraftTypeScale.WidgetBody,
                     fontWeight = FontWeight.Medium,
                 ),
             )
             Text(
                 text = favorite.category,
                 style = TextStyle(
-                    color = ColorProvider(Color.White),
-                    fontSize = 12.sp,
+                    color = ColorProvider(KraftColors.TextPrimary),
+                    fontSize = KraftTypeScale.Caption1,
                 ),
             )
         }
@@ -137,25 +138,25 @@ private fun EmptyContent() {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(KraftSpacing.Spacing16),
         verticalAlignment = Alignment.Vertical.CenterVertically,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "WallKraft",
             style = TextStyle(
-                color = ColorProvider(Color.White),
-                fontSize = 20.sp,
+                color = ColorProvider(KraftColors.TextPrimary),
+                fontSize = KraftTypeScale.Title3,
                 fontWeight = FontWeight.Bold,
             ),
         )
         Text(
             text = "Add favorites to use widget",
             style = TextStyle(
-                color = ColorProvider(Color.White),
-                fontSize = 14.sp,
+                color = ColorProvider(KraftColors.TextPrimary),
+                fontSize = KraftTypeScale.WidgetBody,
             ),
-            modifier = GlanceModifier.padding(top = 8.dp),
+            modifier = GlanceModifier.padding(top = KraftSpacing.Spacing8),
         )
     }
 }

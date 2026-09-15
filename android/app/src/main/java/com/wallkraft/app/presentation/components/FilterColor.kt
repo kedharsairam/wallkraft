@@ -36,11 +36,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftRadius
 import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
@@ -153,7 +152,7 @@ fun ColorFilterRow(
                     )
                     Text(
                         text = abbreviation,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = KraftTypeScale.Badge),
                         color = if (active) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -182,7 +181,7 @@ fun ColorFilterRow(
                         selected = shadeSelected,
                         modifier = Modifier.size(
                             width = KraftSpacing.Spacing40,
-                            height = 32.dp,
+                            height = KraftSpacing.Spacing32,
                         ),
                         onClick = {
                             KraftHaptics.selectionChanged(haptic)

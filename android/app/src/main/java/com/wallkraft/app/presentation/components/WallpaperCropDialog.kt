@@ -219,7 +219,7 @@ fun WallpaperCropDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black),
+                    .background(KraftColors.Background),
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -261,7 +261,7 @@ fun WallpaperCropDialog(
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .background(androidx.compose.ui.graphics.Color.Black),
+                .background(KraftColors.Background),
         ) {
             val frameW = maxWidth
             val frameH = maxHeight
@@ -364,7 +364,7 @@ fun WallpaperCropDialog(
                     Icon(
                         imageVector = Icons.Outlined.Check,
                         contentDescription = stringResource(R.string.set_as_wallpaper),
-                        tint = Color.White,
+                        tint = KraftColors.TextPrimary,
                         modifier = Modifier.size(KraftIconSize.Medium),
                     )
                 }
@@ -377,7 +377,7 @@ fun WallpaperCropDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(KraftColors.Background.copy(alpha = KraftConstants.OverlayPickerDimAlpha))
                         .clickable {
                             KraftHaptics.buttonPress(haptic)
                             showPositionPicker = false
@@ -399,7 +399,7 @@ fun WallpaperCropDialog(
                     Text(
                         text = stringResource(R.string.wallpaper_position_title),
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
+                        color = KraftColors.TextPrimary,
                     )
                     Spacer(Modifier.height(KraftSpacing.Spacing20))
 
@@ -431,7 +431,10 @@ fun WallpaperCropDialog(
                                     ).coerced(),
                                 )
                                 setResult = true
-                                delay(1200)
+                                // Brief success confirmation so the set-wallpaper
+                                // work reads as "done" instead of a dead pause.
+                                // Reduce-motion: dismiss immediately, no dwell.
+                                if (!reduceMotion) delay(800)
                                 onDismiss()
                             } else {
                                 applying = false
@@ -479,7 +482,7 @@ fun WallpaperCropDialog(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.back),
-                    tint = Color.White,
+                    tint = KraftColors.TextPrimary,
                     modifier = Modifier.size(KraftIconSize.Medium),
                 )
             }
@@ -489,20 +492,20 @@ fun WallpaperCropDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.4f)),
+                        .background(KraftColors.Background.copy(alpha = KraftConstants.OverlayCropScrimTop)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(KraftIconSize.XLarge),
                             strokeWidth = KraftSpacing.SpinnerStroke,
-                            color = Color.White,
+                            color = KraftColors.TextPrimary,
                         )
                         Spacer(Modifier.height(KraftSpacing.Spacing12))
                         Text(
                             text = stringResource(R.string.wallpaper_applying),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White,
+                            color = KraftColors.TextPrimary,
                         )
                     }
                 }
@@ -521,7 +524,7 @@ fun WallpaperCropDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = KraftConstants.SelectionOverlayAlpha)),
+                        .background(KraftColors.Background.copy(alpha = KraftConstants.SelectionOverlayAlpha)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(
@@ -531,14 +534,14 @@ fun WallpaperCropDialog(
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = stringResource(R.string.wallpaper_set),
-                            tint = Color.White,
+                            tint = KraftColors.TextPrimary,
                             modifier = Modifier.size(KraftIconSize.XLarge * 1.8f),
                         )
                         Spacer(Modifier.height(KraftSpacing.Spacing12))
                         Text(
                             text = stringResource(R.string.wallpaper_set),
                             style = MaterialTheme.typography.titleMedium,
-                            color = Color.White,
+                            color = KraftColors.TextPrimary,
                         )
                     }
                 }
@@ -567,7 +570,7 @@ private fun PositionOption(
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = Color.White,
+            color = KraftColors.TextPrimary,
         )
     }
 }

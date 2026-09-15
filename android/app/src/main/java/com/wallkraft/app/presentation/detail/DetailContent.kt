@@ -83,9 +83,12 @@ import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.SharePreview
 import com.wallkraft.app.util.WallpaperSharing
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.abs
 import kotlin.math.min
@@ -155,7 +158,7 @@ internal fun DetailContent(
         label = "favoriteScale",
     )
     val favoriteColor by animateColorAsState(
-        targetValue = if (isFavorite) KraftColors.AccentRed else Color.White,
+        targetValue = if (isFavorite) KraftColors.AccentRed else KraftColors.TextPrimary,
         animationSpec = if (reduceMotion) snap() else tween(200),
         label = "favoriteColor",
     )
@@ -268,6 +271,7 @@ internal fun DetailContent(
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(KraftSpacing.ProgressBarHeight),
                 color = KraftColors.AccentGreen,
+                // Transparent track lets the wallpaper show through — technically required.
                 trackColor = Color.Transparent,
             )
         }
@@ -384,16 +388,25 @@ internal fun DetailContent(
             Modifier.fillMaxSize()
         }
         Box(modifier = chromeModifier) {
-            // Top bar
-        if (!isZoomed) {
+            // Top bar — AnimatedVisibility with fade only (no slide) so the bar
+            // cross-fades smoothly instead of flickering/jumping as the isZoomed
+            // derived state flips mid-pinch.
+            AnimatedVisibility(
+                visible = !isZoomed,
+                enter = if (reduceMotion) androidx.compose.animation.fadeIn(tween(0))
+                    else androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
+                exit = if (reduceMotion) androidx.compose.animation.fadeOut(tween(0))
+                    else androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
+                modifier = Modifier.align(Alignment.TopCenter),
+            ) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Black.copy(alpha = KraftConstants.OverlayScrimAlpha),
+                                KraftColors.Glass,
+                                // Transparent end fades scrim into wallpaper — technically required.
                                 Color.Transparent,
                             ),
                         ),
@@ -423,7 +436,7 @@ internal fun DetailContent(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.back),
-                            tint = Color.White,
+                            tint = KraftColors.TextPrimary,
                             modifier = Modifier.size(KraftIconSize.Medium),
                         )
                     }
@@ -431,12 +444,19 @@ internal fun DetailContent(
             }
         }
 
-        // Action buttons
-        if (!isZoomed && !expanded) {
+        // Action buttons — same fade-only treatment as the top bar so zoom
+        // transitions don't flicker or jump as isZoomed flips mid-pinch.
+        AnimatedVisibility(
+            visible = !isZoomed && !expanded,
+            enter = if (reduceMotion) androidx.compose.animation.fadeIn(tween(0))
+                else androidx.compose.animation.fadeIn(animationSpec = SharedElementSpringFloat),
+            exit = if (reduceMotion) androidx.compose.animation.fadeOut(tween(0))
+                else androidx.compose.animation.fadeOut(animationSpec = SharedElementSpringFloat),
+            modifier = Modifier.align(Alignment.BottomCenter),
+        ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing8),
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
                     .padding(bottom = navBarPadding + with(density) { (collapsedHeightPx + KraftSpacing.Spacing16.toPx()).toDp() })
                     .padding(horizontal = KraftSpacing.Spacing16),
             ) {
@@ -483,7 +503,7 @@ internal fun DetailContent(
                         CircularProgressIndicator(
                             modifier = Modifier.size(KraftIconSize.Medium),
                             strokeWidth = KraftSpacing.SpinnerStroke,
-                            color = Color.White,
+                            color = KraftColors.TextPrimary,
                         )
                     }
                 } else {
@@ -497,7 +517,12 @@ internal fun DetailContent(
                                     val imageFile = localFile
                                         ?: WallpaperSharing.imageFile(context, wallpaper)
                                     val previewUri = if (imageFile != null) {
-                                        val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+                                        // Full-res files are decoded off Main and subsampled:
+                                        // the share preview is only 1080px wide, so a
+                                        // multi-MP source would otherwise spike ~100MB+.
+                                        val bitmap = withContext(Dispatchers.IO) {
+                                            decodeShareSource(imageFile)
+                                        }
                                         if (bitmap != null) {
                                             try {
                                                 SharePreview.generateSharePreview(context, wallpaper, bitmap)
@@ -574,4 +599,27 @@ internal fun DetailContent(
             )
         }
     }
+}
+
+/**
+ * Decodes [file] subsampled so the longest side is at most
+ * [SHARE_SOURCE_MAX_DIM] px. The share preview composites at 1080px wide, so
+ * full-res detail is downsampled away anyway — capping bounds the transient
+ * allocation to ~8MB instead of ~100MB+ for multi-MP sources on 2GB devices.
+ * Call off the Main thread (disk + decode).
+ */
+private const val SHARE_SOURCE_MAX_DIM = 1440
+
+private fun decodeShareSource(file: File): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(file.absolutePath, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    var sample = 1
+    while (bounds.outWidth / sample > SHARE_SOURCE_MAX_DIM ||
+        bounds.outHeight / sample > SHARE_SOURCE_MAX_DIM
+    ) {
+        sample *= 2
+    }
+    val opts = BitmapFactory.Options().apply { inSampleSize = sample }
+    return BitmapFactory.decodeFile(file.absolutePath, opts)
 }

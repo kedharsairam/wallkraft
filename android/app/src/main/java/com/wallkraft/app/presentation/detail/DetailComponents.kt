@@ -35,7 +35,7 @@ internal fun DetailCircleButton(
     icon: ImageVector? = null,
     contentDescription: String? = null,
     text: String? = null,
-    iconTint: Color = Color.White,
+    iconTint: Color = KraftColors.TextPrimary,
     borderColor: Color = KraftColors.GlassBorder,
     modifier: Modifier = Modifier,
 ) {
@@ -44,6 +44,7 @@ internal fun DetailCircleButton(
         modifier = modifier
             .then(
                 if (text != null) {
+                    // Min pill width keeps short labels tappable — layout-specific, not spacing scale.
                     Modifier.widthIn(min = 100.dp).height(KraftSpacing.TouchTarget)
                 } else {
                     Modifier.size(KraftSpacing.TouchTarget)
@@ -59,7 +60,7 @@ internal fun DetailCircleButton(
             androidx.compose.material3.Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.White,
+                color = KraftColors.TextPrimary,
             )
         } else if (icon != null) {
             androidx.compose.material3.Icon(
@@ -84,14 +85,14 @@ internal fun DetailTagChip(name: String, onClick: () -> Unit, clickable: Boolean
     Text(
         text = "#$name",
         style = MaterialTheme.typography.labelMedium,
-        color = Color.White,
+        color = KraftColors.TextPrimary,
         maxLines = 1,
         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
         modifier = Modifier
             .clip(shape)
             .background(KraftColors.AccentBlue.copy(alpha = KraftConstants.TagChipFillAlpha))
             .border(
-                border = androidx.compose.foundation.BorderStroke(1.dp, KraftColors.AccentBlue.copy(alpha = KraftConstants.TagChipBorderAlpha)),
+                border = androidx.compose.foundation.BorderStroke(KraftSpacing.BorderWidth, KraftColors.AccentBlue.copy(alpha = KraftConstants.TagChipBorderAlpha)),
                 shape = shape,
             )
             .then(if (clickable) Modifier.clickable(onClick = onClick) else Modifier)
@@ -114,12 +115,12 @@ internal fun StatItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White,
+            tint = KraftColors.TextPrimary,
             modifier = Modifier.size(KraftIconSize.Small),
         )
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White),
+            style = MaterialTheme.typography.bodyMedium.copy(color = KraftColors.TextPrimary),
         )
     }
 }

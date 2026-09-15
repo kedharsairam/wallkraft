@@ -62,7 +62,7 @@ private fun KraftSnackbar(data: SnackbarData) {
             Text(
                 text = data.visuals.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = KraftColors.TextPrimary,
                 modifier = Modifier.weight(1f, fill = false),
             )
             if (data.visuals.actionLabel != null) {

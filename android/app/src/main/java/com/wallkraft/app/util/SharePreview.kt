@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.math.max
 
 /**
  * Generates branded share-preview bitmaps for social sharing.
@@ -27,6 +26,12 @@ import kotlin.math.max
 object SharePreview {
 
     private const val MIN_WIDTH = 1080
+    // Output is a compressed share card, not the wallpaper itself: cap the
+    // width so a 4K source can't spike ~100MB+ transient bitmaps on 2GB
+    // devices. 1080x1620 (~7MB ARGB_8888) is plenty for a share preview.
+    private const val MAX_WIDTH = 1080
+    // Bounded cache: share previews are transient share-sheet inputs.
+    private const val MAX_CACHED_PREVIEWS = 20
     private const val QUALITY = 90
     private const val CORNER_RADIUS_DP = 16f
     private const val BAR_HEIGHT_RATIO = 0.3f
@@ -55,7 +60,7 @@ object SharePreview {
         bitmap: Bitmap,
     ): Uri? = withContext(Dispatchers.IO) {
         try {
-            val width = max(bitmap.width, MIN_WIDTH)
+            val width = bitmap.width.coerceIn(MIN_WIDTH, MAX_WIDTH)
             val height = (width * 1.5f).toInt() // 2:3 portrait-ish ratio
 
             val scaledBitmap = if (bitmap.width != width || bitmap.height != height) {
@@ -136,6 +141,7 @@ object SharePreview {
                 result.compress(Bitmap.CompressFormat.JPEG, QUALITY, out)
             }
             result.recycle()
+            pruneCache(dir)
 
             FileProvider.getUriForFile(
                 context,
@@ -144,6 +150,17 @@ object SharePreview {
             )
         } catch (_: Exception) {
             null
+        }
+    }
+
+    /** Evicts oldest previews beyond [MAX_CACHED_PREVIEWS]. Call on a worker thread. */
+    private fun pruneCache(dir: File) {
+        runCatching {
+            dir.listFiles()
+                ?.filter { it.isFile }
+                ?.sortedBy { it.lastModified() }
+                ?.dropLast(MAX_CACHED_PREVIEWS)
+                ?.forEach { it.delete() }
         }
     }
 }

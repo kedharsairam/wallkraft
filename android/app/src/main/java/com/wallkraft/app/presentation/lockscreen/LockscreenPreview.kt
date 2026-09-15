@@ -51,6 +51,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.wallkraft.app.R
+import com.wallkraft.app.core.design.KraftColors
+import com.wallkraft.app.core.design.KraftConstants
+import com.wallkraft.app.core.design.KraftIconSize
+import com.wallkraft.app.core.design.KraftSpacing
+import com.wallkraft.app.core.design.KraftTypeScale
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlin.math.roundToInt
 
@@ -124,7 +129,8 @@ fun LockscreenPreview(
                 modifier = Modifier.fillMaxSize(),
             )
 
-            // Top gradient scrim for status bar readability
+            // Top gradient scrim for status bar readability.
+            // 200dp scrim height + 60dp clock offset are mock layout specs, not spacing scale.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,7 +138,8 @@ fun LockscreenPreview(
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Black.copy(alpha = 0.4f),
+                                KraftColors.Background.copy(alpha = KraftConstants.OverlayCropScrimTop),
+                                // Transparent end fades scrim into wallpaper — technically required.
                                 Color.Transparent,
                             ),
                         ),
@@ -144,7 +151,7 @@ fun LockscreenPreview(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
-                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                    .padding(horizontal = KraftSpacing.Spacing24, vertical = KraftSpacing.Spacing12),
             )
 
             // Center clock
@@ -161,7 +168,7 @@ fun LockscreenPreview(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .padding(bottom = 48.dp),
+                    .padding(bottom = KraftSpacing.Spacing48),
             ) {
                 // Swipe up to unlock
                 SwipeUnlockHint(
@@ -173,16 +180,16 @@ fun LockscreenPreview(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .size(48.dp)
-                        .alpha(0.7f)
-                        .background(Color.White.copy(alpha = 0.15f), CircleShape)
+                        .size(KraftSpacing.Spacing48)
+                        .alpha(KraftConstants.ErrorIconAlpha)
+                        .background(KraftColors.TextPrimary.copy(alpha = KraftConstants.OverlayCameraAlpha), CircleShape)
                         .clickable { onDismiss() },
                 ) {
                     Icon(
                         imageVector = Icons.Filled.CameraAlt,
                         contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(22.dp),
+                        tint = KraftColors.TextPrimary,
+                        modifier = Modifier.size(KraftIconSize.Compact),
                     )
                 }
             }
@@ -200,14 +207,14 @@ private fun StatusBarMock(modifier: Modifier = Modifier) {
         // Time
         Text(
             text = "12:00",
-            color = Color.White,
-            fontSize = 15.sp,
+            color = KraftColors.TextPrimary,
+            fontSize = KraftTypeScale.Subheadline,
             fontWeight = FontWeight.SemiBold,
         )
 
         // Right icons: signal + wifi + battery
         Row(
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing6),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Signal bars (simplified)
@@ -222,34 +229,35 @@ private fun StatusBarMock(modifier: Modifier = Modifier) {
 
 @Composable
 private fun SignalBars(modifier: Modifier = Modifier) {
+    // Mock iOS signal bars — fixed 3dp-wide bars at staggered heights, not spacing scale.
     Row(
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(KraftSpacing.Spacing2),
         verticalAlignment = Alignment.Bottom,
         modifier = modifier,
     ) {
         Box(
             modifier = Modifier
                 .width(3.dp)
-                .height(6.dp)
-                .background(Color.White, CircleShape),
+                .height(KraftSpacing.Spacing6)
+                .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
                 .width(3.dp)
                 .height(9.dp)
-                .background(Color.White, CircleShape),
+                .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
                 .width(3.dp)
-                .height(12.dp)
-                .background(Color.White, CircleShape),
+                .height(KraftSpacing.Spacing12)
+                .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
                 .width(3.dp)
-                .height(14.dp)
-                .background(Color.White, CircleShape),
+                .height(14.dp) // tallest mock signal bar — fixed mock spec
+                .background(KraftColors.TextPrimary, CircleShape),
         )
     }
 }
@@ -261,49 +269,51 @@ private fun WifiIcon(modifier: Modifier = Modifier) {
         Icon(
             imageVector = Icons.Filled.KeyboardArrowUp,
             contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier.size(16.dp),
+            tint = KraftColors.TextPrimary,
+            modifier = Modifier.size(KraftIconSize.Small),
         )
     }
 }
 
 @Composable
 private fun BatteryIcon(modifier: Modifier = Modifier) {
+    // Mock battery — fixed 20x10 body + 2x5 nub, not spacing scale.
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier,
     ) {
         Box(
             modifier = Modifier
-                .width(20.dp)
+                .width(KraftIconSize.Medium)
                 .height(10.dp)
-                .background(Color.White, CircleShape),
+                .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
-                .width(2.dp)
+                .width(KraftSpacing.Spacing2)
                 .height(5.dp)
-                .background(Color.White, CircleShape),
+                .background(KraftColors.TextPrimary, CircleShape),
         )
     }
 }
 
 @Composable
 private fun LargeClock(modifier: Modifier = Modifier) {
+    // Mock lockscreen clock — 86sp oversized display + tight -2sp tracking, not type scale.
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier,
     ) {
         Text(
             text = "12",
-            color = Color.White,
+            color = KraftColors.TextPrimary,
             fontSize = 86.sp,
             fontWeight = FontWeight.Thin,
             letterSpacing = (-2).sp,
         )
         Text(
             text = "00",
-            color = Color.White,
+            color = KraftColors.TextPrimary,
             fontSize = 86.sp,
             fontWeight = FontWeight.Thin,
             letterSpacing = (-2).sp,
@@ -341,16 +351,16 @@ private fun SwipeUnlockHint(modifier: Modifier = Modifier) {
         Icon(
             imageVector = Icons.Filled.KeyboardArrowUp,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.7f),
+            tint = KraftColors.TextPrimary.copy(alpha = KraftConstants.ErrorIconAlpha),
             modifier = Modifier
-                .size(28.dp)
+                .size(KraftSpacing.Spacing24 + KraftSpacing.Spacing4)
                 .offset { IntOffset(0, chevronOffset.value.roundToInt()) },
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(KraftSpacing.Spacing4))
         Text(
             text = stringResource(R.string.lockscreen_swipe),
-            color = Color.White.copy(alpha = 0.7f),
-            fontSize = 13.sp,
+            color = KraftColors.TextPrimary.copy(alpha = KraftConstants.ErrorIconAlpha),
+            fontSize = KraftTypeScale.Footnote,
             fontWeight = FontWeight.Normal,
         )
     }

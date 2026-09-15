@@ -239,7 +239,8 @@ private class GlassScopeFallbackImpl(private val density: Density) : GlassScope 
         darkness: Float,
         warpEdges: Float,
     ): Modifier {
-        // Create a glass-like effect using available modifiers
+        // Create a glass-like effect using available modifiers.
+        // Transparent tint sentinel + computed fallbacks are shader internals, not design colors.
         val glassTint = if (tint == Color.Transparent) {
             Color.White.copy(alpha = 0.1f)
         } else {

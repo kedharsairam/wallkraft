@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 object KraftColorSchemes {
     // Light — DESIGN.md Light palette (systemGrouped #F2F2F7, surface #FFFFFF, accent #007AFF etc)
     // Keeps dark-first OLED default but satisfies DESIGN “Every color has Light and Dark” and CHECKLIST dark mode.
+    // Hexes here ARE the canonical Light source (not usages) — they stay raw by design.
     val Light = lightColorScheme(
         primary = Color(0xFF007AFF),
         onPrimary = Color.White,
@@ -58,6 +59,7 @@ object KraftColorSchemes {
 
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlue,
+        // Black label on bright accent for contrast — technically required, not a surface.
         onPrimary = Color.Black,
         primaryContainer = KraftColors.AccentBlue.copy(alpha = KraftConstants.ContainerAlpha),
         onPrimaryContainer = KraftColors.AccentBlue,
@@ -72,7 +74,7 @@ object KraftColorSchemes {
         errorContainer = KraftColors.AccentRed.copy(alpha = KraftConstants.ContainerAlpha),
         onErrorContainer = KraftColors.AccentRed,
         // Page background = #000000 (OLED true black)
-        background = Color.Black,
+        background = KraftColors.Background,
         onBackground = KraftColors.TextPrimary,
         // Surface = #1C1C1E (card surfaces — elevated above page)
         surface = KraftColors.Surface,
@@ -81,16 +83,18 @@ object KraftColorSchemes {
         surfaceVariant = KraftColors.SurfaceSecondary,
         onSurfaceVariant = KraftColors.TextSecondary,
         // Grouped layout: page is #000000, cards are #1C1C1E
-        surfaceContainerLowest = Color.Black,                         // #000000 — page background
+        surfaceContainerLowest = KraftColors.Background,                // #000000 — page background
         surfaceContainerLow = KraftColors.Surface,                    // #1C1C1E — card surface
-        surfaceContainer = Color.Black,                               // #000000 — page background
+        surfaceContainer = KraftColors.Background,                      // #000000 — page background
         surfaceContainerHigh = KraftColors.Surface,                   // #1C1C1E — elevated (search bar, chips)
         surfaceContainerHighest = KraftColors.SurfaceSecondary,       // #2C2C2E — highest elevation
-        surfaceDim = Color.Black,                                     // #000000 — dimmed = page
+        surfaceDim = KraftColors.Background,                            // #000000 — dimmed = page
         surfaceBright = KraftColors.Surface,                          // #1C1C1E — brightest = cards
         inverseSurface = KraftColors.TextPrimary,
+        // Black text on inverse white surface — technically required contrast.
         inverseOnSurface = Color.Black,
         inversePrimary = KraftColors.AccentBlue,
+        // System scrim — technically required.
         scrim = Color.Black,
         // Separator = outline color (~35% alpha of #545458)
         outline = KraftColors.Separator,
@@ -105,6 +109,9 @@ object KraftColorSchemes {
  * We use the system default font (Roboto on Android) with weights and sizes
  * that match the standard SF Pro scale. The visual difference is minimal; the hierarchy
  * and spacing are what matter.
+ *
+ * Font sizes use KraftTypeScale; lineHeights and 0.2sp label tracking are paired
+ * typography specs per style — not font-size tokens, so they stay raw.
  */
 object KraftTypography {
     val Typography = Typography(

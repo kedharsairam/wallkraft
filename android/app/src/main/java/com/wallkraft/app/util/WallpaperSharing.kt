@@ -25,6 +25,9 @@ object WallpaperSharing {
 
     private const val TAG = "WallpaperSharing"
 
+    /** Bounded share staging dir: copies here are transient share-sheet inputs. */
+    private const val MAX_STAGED_FILES = 20
+
     fun openInBrowser(context: Context, wallpaper: Wallpaper): Boolean {
         return try {
             context.startActivity(
@@ -92,11 +95,11 @@ object WallpaperSharing {
         context: Context,
         wallpaper: Wallpaper,
         localFile: File?,
-    ): File? {
+    ): File? = withContext(Dispatchers.IO) {
         val ext = extensionFor(wallpaper)
         val local = localFile?.takeIf { it.exists() && it.length() > 0 }
         if (local != null) {
-            if (local.name.contains('.')) return local
+            if (local.name.contains('.')) return@withContext local
             val dir = File(context.cacheDir, "shared").apply { mkdirs() }
             val named = File(dir, "${wallpaper.id}.$ext")
             if (!named.exists() || named.length() == 0L) {
@@ -107,11 +110,12 @@ object WallpaperSharing {
                         Log.w(TAG, "Failed to copy local file for sharing", e)
                     }
                 }
+                pruneStaged(dir)
             }
-            return named.takeIf { it.exists() && it.length() > 0 } ?: local
+            return@withContext named.takeIf { it.exists() && it.length() > 0 } ?: local
         }
-        coilCachedFile(context, wallpaper)?.let { return it }
-        return coilFetchToCache(context, wallpaper)
+        coilCachedFile(context, wallpaper)?.let { return@withContext it }
+        return@withContext coilFetchToCache(context, wallpaper)
     }
 
     /**
@@ -136,6 +140,7 @@ object WallpaperSharing {
                     val file = File(dir, "${wallpaper.id}.${extensionFor(wallpaper)}")
                     if (!file.exists() || file.length() == 0L) {
                         data.copyTo(file, overwrite = true)
+                        pruneStaged(dir)
                     }
                     file.takeIf { it.exists() && it.length() > 0 }
                 }
@@ -150,6 +155,17 @@ object WallpaperSharing {
     /** The file extension for [wallpaper]'s image, from its URL (defaults to jpg). */
     private fun extensionFor(wallpaper: Wallpaper): String =
         wallpaper.path.toUri().lastPathSegment?.substringAfterLast('.', "jpg") ?: "jpg"
+
+    /** Evicts oldest staged copies beyond [MAX_STAGED_FILES]. Call off Main. */
+    private fun pruneStaged(dir: File) {
+        runCatching {
+            dir.listFiles()
+                ?.filter { it.isFile }
+                ?.sortedBy { it.lastModified() }
+                ?.dropLast(MAX_STAGED_FILES)
+                ?.forEach { it.delete() }
+        }
+    }
 
     /**
      * Ensures [wallpaper]'s full-res image is in Coil's disk cache, then returns

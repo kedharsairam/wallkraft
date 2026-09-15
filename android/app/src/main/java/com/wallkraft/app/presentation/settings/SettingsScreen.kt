@@ -79,8 +79,12 @@ private fun SettingsScreenImpl(
     dangerZoneViewModel: DangerZoneViewModel = hiltViewModel(),
 ) {
     val settings by viewModel.settings.collectAsState()
-    val apiKeyText by viewModel.apiKeyText.collectAsState()
-    val isValidating by viewModel.isValidating.collectAsState()
+    // Single combined collection for the API row: setApiKey() writes text +
+    // validating back-to-back, which used to recompose the whole screen twice
+    // per keystroke. Same displayed data, one emission.
+    val apiField by viewModel.apiFieldState.collectAsState()
+    val apiKeyText = apiField.text
+    val isValidating = apiField.isValidating
     val updateState by viewModel.updateState.collectAsState()
 
     val context = LocalContext.current
@@ -103,7 +107,8 @@ private fun SettingsScreenImpl(
             listOf(searchCache, coilCache, File(cacheDir, "image_cache")).forEach { dir ->
                 if (dir.exists()) total += dir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
             }
-            cacheSizeText = formatBytes(total)
+            val text = formatBytes(total)
+            withContext(Dispatchers.Main) { cacheSizeText = text }
         }
     }
     LaunchedEffect(Unit) { refreshCacheSize() }

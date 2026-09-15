@@ -160,7 +160,8 @@ private fun BrowseScreenImpl(
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         prefetchFullRes = !settingsRepository.current().dataSaverMode
-        val ids = DownloadedFiles.downloadedIds(context)
+        // MediaStore query does binder + disk I/O — never on Main on slow devices.
+        val ids = withContext(Dispatchers.IO) { DownloadedFiles.downloadedIds(context) }
         downloadedIds = ids
         downloadedIdsLoaded = true
     }
