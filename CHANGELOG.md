@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-09-15
+
+### Fixed
+- Bottom navigation bar spacing — explicit `WindowInsets.navigationBars` read with 8dp floor for OEM gesture nav (some devices reported 0 inset via `navigationBarsPadding()`)
+
 ## [3.2.0] - 2026-09-15
 
 ### Added
