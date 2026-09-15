@@ -37,15 +37,6 @@
     <string name="filter_reset">Reset</string>
     <string name="filter_apply">Apply</string>
 
-    <!-- Search tips -->
-    <string name="search_tips" translatable="false">Search tips</string>
-    <string name="search_tip_tag_desc" translatable="false">Include tag</string>
-    <string name="search_tip_exclude_tag_desc" translatable="false">Exclude tag</string>
-    <string name="search_tip_require_tag_desc" translatable="false">Require tag</string>
-    <string name="search_tip_user_desc" translatable="false">By user</string>
-    <string name="search_tip_id_desc" translatable="false">By wallpaper ID</string>
-    <string name="search_tip_type_desc" translatable="false">By file type</string>
-    <string name="search_tip_like_desc" translatable="false">Similar to ID</string>
     <string name="filter_all">All</string>
     <string name="sorting_relevance">Relevance</string>
     <string name="sorting_random">Random</string>
