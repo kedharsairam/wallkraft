@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
 package com.wallkraft.app.data.repository
 
 import com.wallkraft.app.data.db.ORIENTATION_BOTH

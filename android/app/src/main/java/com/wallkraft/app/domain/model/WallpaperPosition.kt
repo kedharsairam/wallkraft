@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
 package com.wallkraft.app.domain.model
 
 /** Which screen(s) to apply a wallpaper to. Pure domain — no Android dependency. */

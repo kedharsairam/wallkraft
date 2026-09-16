@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
 package com.wallkraft.app.presentation.settings
 
 import android.content.Context

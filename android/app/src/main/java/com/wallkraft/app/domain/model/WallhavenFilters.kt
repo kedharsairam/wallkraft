@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
 package com.wallkraft.app.domain.model
 
 /** Wallhaven search categories. Bit values follow the API's category mask. */
