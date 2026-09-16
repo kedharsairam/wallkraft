@@ -120,7 +120,7 @@ jobs:
             - Staggered masonry grid with infinite scroll and first-load skeletons
             - Detail view: zoom, pan, copy URL, similar wallpapers
             - Set as wallpaper (crop & position), favorites, downloads, share
-            - Data saver, offline-first caching, dark / light / system theme
+            - Data saver, smart caching, dark / light / system theme
             - Fullscreen viewer, pull-to-refresh
 
             ### Notes

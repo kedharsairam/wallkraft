@@ -1,6 +1,6 @@
 WallKraft — Private wallpapers, crafted.
 
-A fast, offline-first wallpaper app for Android powered by Wallhaven. No ads. No analytics. No trackers. Your data never leaves your device.
+A fast wallpaper app for Android powered by Wallhaven. No ads. No analytics. No trackers. Your data never leaves your device.
 
 BROWSE
 Masonry grid with adaptive columns, pull-to-refresh, skeleton loading, and prefetch. Shared-element hero transitions from tile to detail. Browse thousands of high-quality wallpapers from Wallhaven.
@@ -15,7 +15,7 @@ SET WALLPAPER
 Crop and zoom with frame preview. Set to Home screen, Lock screen, or Both. Remembered framing for quick reapply. Showcase and Atmosphere blur previews.
 
 FAVORITES
-Save full-res offline copies. Organize into custom collections with covers and counts. Multi-select and batch remove. Offline re-validation ensures favorites always work.
+Save full-res local copies. Organize into custom collections with covers and counts. Multi-select and batch remove. Re-validation ensures favorites always work.
 
 ROTATION
 Auto-rotate favorites or any collection on a schedule (Hourly, Daily, Weekly). Manual rotate now. Showcase blur during transitions.
@@ -24,7 +24,7 @@ PRIVACY
 No accounts required. Your Wallhaven API key (optional) lives in the Android Keystore and never leaves the device. Excluded from cloud backup. Sent only as X-API-Key header to Wallhaven. Favorites and downloads are stored locally with atomic writes. Never uploaded.
 
 RELIABLE
-Offline-first architecture. Search cache with 30-minute TTL and stale fallback. Favorites stored on disk with atomic writes. WorkManager chain for background tasks — no polling, boundary-aligned, battery-conscious. Every network call returns a Result type — no blank screens, no silent failures.
+Smart caching. Search cache with 30-minute TTL and stale fallback. Favorites stored on disk with atomic writes. WorkManager chain for background tasks — no polling, boundary-aligned, battery-conscious. Every network call returns a Result type — no blank screens, no silent failures.
 
 OPEN SOURCE
 Released under the MIT license. Build it yourself, audit the code, contribute.

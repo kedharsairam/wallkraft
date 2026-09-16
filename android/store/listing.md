@@ -22,7 +22,7 @@ wallpaper library.
   open-on-wallhaven
 - Crop and position the wallpaper before applying it
 - Immersive fullscreen viewer with pinch-to-zoom and pan
-- Add wallpapers to your local Favorites collection (viewable offline)
+- Add wallpapers to your local Favorites collection
 - Manage your downloads, including batch select and delete
 
 **Private by default**

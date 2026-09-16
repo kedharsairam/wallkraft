@@ -10,9 +10,9 @@ IssueTracker: https://github.com/kedharsairam/wallkraft/issues
 Changelog: https://github.com/kedharsairam/wallkraft/releases
 Donate: https://buymeacoffee.com/kedhartech
 
-Summary: Private wallpapers, crafted. Offline-first, no ads.
+Summary: Private wallpapers, crafted. No ads.
 Description: |-
-  WallKraft is a fast, offline-first wallpaper app for Android powered by
+  WallKraft is a fast wallpaper app for Android powered by
   Wallhaven. No ads. No analytics. No trackers. Your data never leaves
   your device.
 
@@ -22,7 +22,7 @@ Description: |-
   * Search with history, filter by category, purity, orientation, color
   * Full-bleed detail view with pinch-to-zoom
   * Set wallpaper to Home, Lock, or Both with crop/zoom
-  * Save favorites offline with custom collections
+  * Save favorites locally with custom collections
   * Auto-rotate wallpapers on a schedule (Hourly/Daily/Weekly)
   * Quick Settings tile for instant shuffle
   * Glance widget for home screen
