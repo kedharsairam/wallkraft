@@ -42,8 +42,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 59
-        versionName = "3.2.1"
+        versionCode = 60
+        versionName = "3.2.2"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Instrumented tests construct ViewModels manually with fakes
         // (screens accept ViewModels as params) — no Hilt test runner needed.
@@ -157,6 +157,16 @@ tasks.register("coverageSummary") {
 gradle.taskGraph.whenReady {
     if (System.getenv("GITHUB_ACTIONS") != null && !hasReleaseKey && hasTask(":app:assembleRelease")) {
         error("Release signing key not found in CI. Check GitHub Secrets.")
+    }
+}
+
+// Disable ArtProfile baseline.prof generation for reproducible builds.
+// AGP's ArtProfile task emits non-deterministic baseline.prof/baseline.profm
+// files, breaking byte-for-byte reproducibility with F-Droid's build server.
+// See: https://gitlab.com/fdroid/fdroiddata/-/merge_requests/44724
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
     }
 }
 
