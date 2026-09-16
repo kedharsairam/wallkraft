@@ -1,0 +1,52 @@
+Categories:
+  - Multimedia
+  - Theming
+
+License: MIT
+
+AuthorName: Kedhar Sairam
+SourceCode: https://github.com/kedharsairam/wallkraft
+IssueTracker: https://github.com/kedharsairam/wallkraft/issues
+Changelog: https://github.com/kedharsairam/wallkraft/releases
+Donate: https://buymeacoffee.com/kedhartech
+
+Summary: Private wallpapers, crafted. Offline-first, no ads.
+Description: |-
+  WallKraft is a fast, offline-first wallpaper app for Android powered by
+  Wallhaven. No ads. No analytics. No trackers. Your data never leaves
+  your device.
+
+  Features:
+
+  * Browse thousands of high-quality wallpapers in a masonry grid
+  * Search with history, filter by category, purity, orientation, color
+  * Full-bleed detail view with pinch-to-zoom
+  * Set wallpaper to Home, Lock, or Both with crop/zoom
+  * Save favorites offline with custom collections
+  * Auto-rotate wallpapers on a schedule (Hourly/Daily/Weekly)
+  * Quick Settings tile for instant shuffle
+  * Glance widget for home screen
+  * Muzei-style content provider for other launchers
+
+  Privacy:
+
+  * No accounts required
+  * API key lives in Android Keystore, never leaves device
+  * Favorites stored locally with atomic writes
+  * Never uploaded to any server
+
+RepoType: git
+Repo: https://github.com/kedharsairam/wallkraft.git
+
+Builds:
+  - versionName: '3.2.1'
+    versionCode: 59
+    commit: v3.2.1
+    subdir: android
+    gradle:
+      - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags
+CurrentVersion: '3.2.1'
+CurrentVersionCode: 59

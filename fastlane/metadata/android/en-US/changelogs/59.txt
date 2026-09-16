@@ -1,0 +1,20 @@
+v3.2.1
+
+- Fix: Bottom bar gap on OEM gesture navigation (Realme, etc.)
+- Fix: Explicit navigation bar inset read with 8dp floor
+
+v3.2.0
+
+- 11 new design tokens, ~120 literals migrated
+- Share decode capped at 1440px on IO thread
+- Bitmap memory clamped to 1080px max
+- MediaStore query wrapped in IO dispatcher
+- File copy moved to IO thread
+- Share directory auto-pruning (100 file limit)
+- Palette extraction single-download optimization
+- Cache text IO moved to background thread
+- Settings flow combined with distinctUntilChanged
+- Crop success confirmation feedback
+- Detail top-bar animated fade
+- Zoomable container gesture consume fix
+- CI coverage upload, PRIVACY.md, JaCoCo reporting
