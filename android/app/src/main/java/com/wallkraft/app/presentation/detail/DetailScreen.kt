@@ -132,10 +132,12 @@ private fun DetailScreenImpl(
 
     // Adjacent preload — gated on dataSaverMode==false (mirror BrowseScreen.kt:138 prefetchFullRes).
     // Single-item detail (pager count 1) skips prefetch; prefetches populate cache cheaply, no cancel needed.
-    val dataSaverMode by settingsRepository.settings
-        .map { it.dataSaverMode }
-        .distinctUntilChanged()
-        .collectAsState(initial = AppSettings().dataSaverMode)
+    val dataSaverFlow = remember(settingsRepository) {
+        settingsRepository.settings
+            .map { it.dataSaverMode }
+            .distinctUntilChanged()
+    }
+    val dataSaverMode by dataSaverFlow.collectAsState(initial = AppSettings().dataSaverMode)
     var currentPage by remember { mutableIntStateOf(0) }
     val pagerWallpapers = remember(wallpaper) { listOfNotNull(wallpaper) }
     LaunchedEffect(currentPage, pagerWallpapers.size, dataSaverMode) {
