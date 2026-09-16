@@ -56,13 +56,32 @@ Offline-first. Search cache (30-min TTL, 100 entries, stale fallback), favorites
 </details>
 
 <details>
-<summary><strong>Build</strong></summary>
+<summary><strong>Build from Source</strong></summary>
+
+**Prerequisites:**
+- JDK 17+
+- Android SDK (API 35)
+- Git
 
 ```bash
-cd android
-./gradlew assembleDebug      # → android/app/build/outputs/apk/debug/app-debug.apk
-./gradlew test               # unit
-./gradlew connectedAndroidTest # instrumented (pixel_6)
+# Clone
+git clone https://github.com/kedharsairam/wallkraft.git
+cd wallkraft/android
+
+# Debug build
+./gradlew assembleDebug
+# Output: app/build/outputs/apk/debug/app-debug.apk
+
+# Release build (requires signing config in gradle.properties)
+./gradlew assembleRelease
+
+# Tests
+./gradlew test                    # unit tests
+./gradlew connectedAndroidTest    # instrumented tests (device required)
+
+# Lint & formatting
+./gradlew spotlessCheck           # check formatting
+./gradlew spotlessApply           # auto-fix formatting
 ```
 
 </details>
