@@ -141,10 +141,12 @@ private fun BrowseScreenImpl(
     }
     searchState.filters = uiState.filters
     searchState.totalResults = uiState.totalResults
-    val apiKeyValid by settingsRepository.settings
-        .map { it.apiKeyValid }
-        .distinctUntilChanged()
-        .collectAsState(initial = com.wallkraft.app.domain.model.AppSettings().apiKeyValid)
+    val apiKeyFlow = remember(settingsRepository) {
+        settingsRepository.settings
+            .map { it.apiKeyValid }
+            .distinctUntilChanged()
+    }
+    val apiKeyValid by apiKeyFlow.collectAsState(initial = com.wallkraft.app.domain.model.AppSettings().apiKeyValid)
     searchState.hasApiKey = apiKeyValid
     val history by searchHistoryStore.history.collectAsState(initial = emptyList())
     searchState.history = history
