@@ -34,6 +34,14 @@ android {
     namespace = "com.wallkraft.app"
     compileSdk = 36
 
+    // Disable AGP dependency metadata signing block for F-Droid.
+    // AGP embeds an extra signing block (ID 0x504B4453) with dependency hashes
+    // encrypted by a Google Play key. F-Droid's scanner rejects it.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
@@ -42,8 +50,8 @@ android {
         applicationId = "com.wallkraft.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 60
-        versionName = "3.2.2"
+        versionCode = 61
+        versionName = "3.2.3"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
         // Instrumented tests construct ViewModels manually with fakes
         // (screens accept ViewModels as params) — no Hilt test runner needed.
