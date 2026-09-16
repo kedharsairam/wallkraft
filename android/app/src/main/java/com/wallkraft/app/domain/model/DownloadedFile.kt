@@ -1,3 +1,7 @@
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
 package com.wallkraft.app.domain.model
 
 /** A wallpaper file the app has downloaded into the public Downloads folder. Pure domain — no Android dependency. */

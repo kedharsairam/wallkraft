@@ -1,4 +1,8 @@
-ï»¿package com.wallkraft.app.presentation.components
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
+package com.wallkraft.app.presentation.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
@@ -85,7 +89,7 @@ fun ZoomableImage(
     val scope = rememberCoroutineScope()
     var animJob by remember { mutableStateOf<Job?>(null) }
     // Gate gestures until layout is ready and the shared-element fly-in (220ms)
-    // has settled â€” prevents the rare overshoot when you scroll fast, open, and
+    // has settled — prevents the rare overshoot when you scroll fast, open, and
     // double-tap on the very first frame while viewport/elementSize are still 0
     // or the container-transform is still driving bounds.
     var gesturesReady by remember { mutableStateOf(false) }
@@ -127,9 +131,9 @@ fun ZoomableImage(
             val cy = (viewportSize.height - scaledInnerH) / 2f
             return Offset(cx, cy)
         }
-        // Covering: keep displayed image over the viewport (no bars) â€” at exactly
+        // Covering: keep displayed image over the viewport (no bars) — at exactly
         // fill one axis is exactly 0 range (e.g. wide panorama height fills).
-        // Keep it hard-locked, no elastic wiggle â€” only the overflowing axis pans.
+        // Keep it hard-locked, no elastic wiggle — only the overflowing axis pans.
         val lowerX = viewportSize.width - (scaledInnerW + displayedW) / 2f
         val upperX = -(scaledInnerW - displayedW) / 2f
         val lowerY = viewportSize.height - (scaledInnerH + displayedH) / 2f
@@ -164,7 +168,7 @@ fun ZoomableImage(
         }
     }
 
-    // External reset (e.g. back while zoomed) â€” animate scale/offset â†’ fit
+    // External reset (e.g. back while zoomed) — animate scale/offset ? fit
     // so the shared-element exit can carry a single smooth motion instead of
     // snap-then-shrink. Same 220ms spec as bounds animation.
     LaunchedEffect(resetZoomSignal) {
@@ -181,9 +185,9 @@ fun ZoomableImage(
         animationSpec = tween(durationMillis = 220),
         label = "thumbAlpha",
     )
-    // Decode at 4K max â€” razor-sharp at any phone zoom level (phone screens
-    // are 1080-1440 px, so 4096 provides 3-4Ã— headroom). Decoding the full
-    // 4800Ã—2700 original at view time is wasteful and risks OOM; the full-res
+    // Decode at 4K max — razor-sharp at any phone zoom level (phone screens
+    // are 1080-1440 px, so 4096 provides 3-4× headroom). Decoding the full
+    // 4800×2700 original at view time is wasteful and risks OOM; the full-res
     // is only needed for wallpaper-setting, which has its own decode pipeline.
     val fullRequest = remember(model) {
         ImageRequest.Builder(context)
@@ -199,10 +203,10 @@ fun ZoomableImage(
             .onSizeChanged { viewportSize = it },
         contentAlignment = Alignment.Center,
     ) {
-        // sharedElement MUST come before graphicsLayer â€” Compose docs require
+        // sharedElement MUST come before graphicsLayer — Compose docs require
         // coordinate-changing modifiers (graphicsLayer, offset, alpha) to be
         // placed AFTER sharedElement so the bounds animation isn't overridden.
-        // Clip morphs 12dpâ†’0dp in sync with backgroundAlpha so corners don't pop.
+        // Clip morphs 12dp?0dp in sync with backgroundAlpha so corners don't pop.
         Box(
             modifier = Modifier
                 .then(sharedElementModifier)
@@ -243,11 +247,11 @@ fun ZoomableImage(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(gesturesReady, viewportSize, elementSize) {
-                    // Pinch/pan â€” ignore until layout ready and fly-in done.
+                    // Pinch/pan — ignore until layout ready and fly-in done.
                     if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@pointerInput
                     awaitEachGesture {
                         awaitFirstDown(requireUnconsumed = false)
-                        // Re-check after down â€” a fast open may still be settling.
+                        // Re-check after down — a fast open may still be settling.
                         if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@awaitEachGesture
                         animJob?.cancel()
                         do {
@@ -281,7 +285,7 @@ fun ZoomableImage(
                         onDoubleTap = { tapped ->
                             // Ignore until layout is valid and fly-in has settled.
                             if (!gesturesReady || viewportSize == IntSize.Zero || elementSize == IntSize.Zero) return@detectTapGestures
-                            // Cycle through zoom levels: fit â†’ fill â†’ native â†’ fit.
+                            // Cycle through zoom levels: fit ? fill ? native ? fit.
                             // Find the current level and advance to the next.
                             val currentLevel = zoomLevels.indexOfFirst {
                                 kotlin.math.abs(scale - it) < 0.05f
@@ -290,7 +294,7 @@ fun ZoomableImage(
                                 (currentLevel + 1) % zoomLevels.size
                             } else {
                                 // Not at any defined level (e.g. pinch-zoomed to
-                                // an in-between scale) â€” start from the first.
+                                // an in-between scale) — start from the first.
                                 0
                             }
                             val targetScale = zoomLevels[nextIndex]

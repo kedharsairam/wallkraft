@@ -1,4 +1,8 @@
-ï»¿package com.wallkraft.app.presentation.settings
+/*
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 Kedhar Sairam
+ */
+package com.wallkraft.app.presentation.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,7 +60,7 @@ import java.util.UUID
  *
  * Previously a 780-line god object; now each section lives in its own file
  * (Browsing, Data, Support, Advanced, About) plus shared components and
- * dialogs. This file owns ViewModel wiring, dialog state, and layout only â€”
+ * dialogs. This file owns ViewModel wiring, dialog state, and layout only —
  * no section UI.
  */
 @Composable
@@ -95,7 +99,7 @@ private fun SettingsScreenImpl(
     var showApiDialog by remember { mutableStateOf(false) }
     var showClearCacheDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
-    var cacheSizeText by remember { mutableStateOf("â€”") }
+    var cacheSizeText by remember { mutableStateOf("—") }
     val githubUrl = stringResource(R.string.github_url)
 
     fun refreshCacheSize() {
@@ -146,7 +150,7 @@ private fun SettingsScreenImpl(
             else -> Unit
         }
     }
-    // When download finishes, launch system installer â€” this IS the update.
+    // When download finishes, launch system installer — this IS the update.
     LaunchedEffect(downloadState) {
         val d = downloadState
         if (d is SettingsViewModel.DownloadUiState.Downloaded) {
