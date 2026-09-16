@@ -150,11 +150,12 @@ tasks.register("coverageSummary") {
     }
 }
 
-// Fail CI builds that try to produce a release APK without a signing key.
+// Fail GitHub Actions builds that try to produce a release APK without a signing key.
+// Uses GITHUB_ACTIONS (not CI) so F-Droid's build server can use the debug key fallback.
 // This runs at execution time (not configuration time) so `test` and
 // `assembleDebug` are unaffected.
 gradle.taskGraph.whenReady {
-    if (System.getenv("CI") != null && !hasReleaseKey && hasTask(":app:assembleRelease")) {
+    if (System.getenv("GITHUB_ACTIONS") != null && !hasReleaseKey && hasTask(":app:assembleRelease")) {
         error("Release signing key not found in CI. Check GitHub Secrets.")
     }
 }
