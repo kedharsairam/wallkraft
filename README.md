@@ -1,6 +1,6 @@
 # WallKraft
 
-Private wallpapers, crafted. A fast, offline-first wallpaper app for Android — powered by Wallhaven.
+Private wallpapers, crafted. A fast wallpaper app for Android — powered by Wallhaven.
 
 No ads. No analytics. No trackers. Your data never leaves your device.
 
@@ -20,7 +20,7 @@ No accounts. No ads. No analytics. Your Wallhaven API key (optional) lives in th
 
 ### Reliable
 
-Offline-first. Search cache (30-min TTL, 100 entries, stale fallback), favorites disk (atomic tmp→rename, LRU 100MB), WorkManager chain (no polling, boundary-aligned, battery-not-low). Every network call returns `Result<AppError>` — no blank screens, no silent failures.
+Smart caching. Search cache (30-min TTL, 100 entries, stale fallback), favorites disk (atomic tmp→rename, LRU 100MB), WorkManager chain (no polling, boundary-aligned, battery-not-low). Every network call returns `Result<AppError>` — no blank screens, no silent failures.
 
 ---
 
@@ -34,7 +34,7 @@ Offline-first. Search cache (30-min TTL, 100 entries, stale fallback), favorites
 
 **Set** — Frame with crop/zoom, Home/Lock/Both, remembered framing. Showcase/Atmosphere blur.
 
-**Favorites** — Full-res offline copies, custom collections (many-to-many, covers, counts), multi-select, batch remove, offline re-validation. Horizontal strip to filter.
+**Favorites** — Full-res local copies, custom collections (many-to-many, covers, counts), multi-select, batch remove, re-validation. Horizontal strip to filter.
 
 **Rotation** — Auto-rotate favorites or one collection (Hourly/Daily/Weekly, exactly on :00/midnight/Monday), manual Rotate now, showcase blur.
 

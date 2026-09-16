@@ -171,8 +171,8 @@
     </plurals>
     <string name="favorites_download_all">Download all</string>
     <plurals name="favorites_offline_summary">
-        <item quantity="one">%1$d of %2$d saved offline</item>
-        <item quantity="other">%1$d of %2$d saved offline</item>
+        <item quantity="one">%1$d of %2$d saved locally</item>
+        <item quantity="other">%1$d of %2$d saved locally</item>
     </plurals>
     <plurals name="favorites_repair_done">
         <item quantity="one">Saved %1$d wallpaper</item>
@@ -215,7 +215,7 @@
     <string name="wallpaper_load_failed">Couldn\'t load this wallpaper</string>
     <string name="add_to_favorites">Add to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
-    <string name="favorite_save_failed">Failed to save for offline. Check your connection.</string>
+    <string name="favorite_save_failed">Failed to save. Check your connection.</string>
     <string name="selected">Selected</string>
     <string name="not_selected">Not selected</string>
     <string name="download">Download</string>
@@ -281,7 +281,7 @@
     <string name="rate_limit_hint">Wallhaven\'s API limit has been reached. Wait a minute and try again.</string>
     <string name="purity_fallback_banner" translatable="false">No results for your filters — showing broader results</string>
     <string name="purity_fallback_show_original" translatable="false">Show original</string>
-    <string name="offline_banner" translatable="false">You\'re offline — showing saved content.</string>
+    <string name="offline_banner" translatable="false">No connection — showing saved content.</string>
     <string name="browse_updated_ago" translatable="false">Updated %1$s — tap to refresh</string>
     <string name="buy_me_a_coffee_title">Support</string>
     <string name="buy_me_a_coffee_description">If you enjoy WallKraft, buy me a coffee:</string>
@@ -297,7 +297,7 @@
     <string name="welcome_title_browse" translatable="false">Browse Wallhaven</string>
     <string name="welcome_body_browse" translatable="false">Infinite wallpapers, filters, colors and sorting — all private, no trackers.</string>
     <string name="welcome_title_organize" translatable="false">Organize &amp; Rotate</string>
-    <string name="welcome_body_organize" translatable="false">Save favorites offline, make collections, auto-rotate on schedule.</string>
+    <string name="welcome_body_organize" translatable="false">Save favorites locally, make collections, auto-rotate on schedule.</string>
     <string name="welcome_title_private" translatable="false">Private by default</string>
     <string name="welcome_body_private" translatable="false">No accounts, no analytics. Your API key and favorites stay on your device.</string>
     <string name="next" translatable="false">Next</string>

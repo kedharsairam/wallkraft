@@ -29,7 +29,7 @@ No data is stored on external servers.
 | Permission | Purpose |
 |---|---|
 | `INTERNET` | Browse wallpapers via the Wallhaven API |
-| `ACCESS_NETWORK_STATE` | Check connectivity for offline mode |
+| `ACCESS_NETWORK_STATE` | Check connectivity before network requests |
 | `SET_WALLPAPER` | Set wallpapers on home/lock screen |
 | `POST_NOTIFICATIONS` | Wallpaper rotation completion notifications |
 | `WRITE_EXTERNAL_STORAGE` | Download wallpapers to device (legacy Android only, Android 9 and below) |
