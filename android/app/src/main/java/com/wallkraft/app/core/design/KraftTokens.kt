@@ -47,6 +47,14 @@ object KraftColors {
     /** Search bar background — slightly lighter than page for depth. */
     val SearchBar = Color(0xFF1C1C1E)
 
+    /**
+     * Stepped container scale for nested depth: cards sit on Low (= Surface),
+     * in-card fields/chips/dialog fills lift to High. High must stay visibly
+     * above Low — collapsing them erases lifted elements into their parents.
+     */
+    val SurfaceContainer = Color(0xFF242428)
+    val SurfaceHigh = Color(0xFF2E2E33)
+
     // ─── Text — Dark Mode ──────────────────────────────────────────────
     // Labels use #EBEBF5 base (cool gray-white, not pure white).
     val TextPrimary = Color(0xFFFFFFFF)       // label — 100% opacity

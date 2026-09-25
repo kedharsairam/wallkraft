@@ -63,8 +63,10 @@ object KraftColorSchemes {
 
     val Dark = darkColorScheme(
         primary = KraftColors.AccentBlue,
-        // Black label on bright accent for contrast — technically required, not a surface.
-        onPrimary = Color.Black,
+        // White label on the blue accent (Apple convention; 3.65:1, AA-large).
+        // All onPrimary usages pair with primary fills (search/filter buttons,
+        // switch thumbs) — white is correct on all of them.
+        onPrimary = Color.White,
         primaryContainer = KraftColors.AccentBlue.copy(alpha = KraftConstants.ContainerAlpha),
         onPrimaryContainer = KraftColors.AccentBlue,
         secondary = KraftColors.AccentTeal,
@@ -89,8 +91,8 @@ object KraftColorSchemes {
         // Grouped layout: page is #000000, cards are #1C1C1E
         surfaceContainerLowest = KraftColors.Background,                // #000000 — page background
         surfaceContainerLow = KraftColors.Surface,                    // #1C1C1E — card surface
-        surfaceContainer = KraftColors.Background,                      // #000000 — page background
-        surfaceContainerHigh = KraftColors.Surface,                   // #1C1C1E — elevated (search bar, chips)
+        surfaceContainer = KraftColors.SurfaceContainer,              // #242428 — mid step
+        surfaceContainerHigh = KraftColors.SurfaceHigh,               // #2E2E33 — elevated (search bar, chips, dialogs)
         surfaceContainerHighest = KraftColors.SurfaceSecondary,       // #2C2C2E — highest elevation
         surfaceDim = KraftColors.Background,                            // #000000 — dimmed = page
         surfaceBright = KraftColors.Surface,                          // #1C1C1E — brightest = cards
