@@ -1,45 +1,69 @@
 # WallKraft
 
-Private wallpapers, crafted. A fast wallpaper app for Android — powered by Wallhaven.
+Private wallpapers, crafted. A fast wallpaper browser for Wallhaven — browse, search, favourite, and set, with the timetables and cache doing the work.
 
-No ads. No analytics. No trackers. Your data never leaves your device.
+No accounts. No ads. No analytics. No trackers. Your data never leaves your device.
 
 <p align="center">
   <a href="https://github.com/kedharsairam/wallkraft/releases/latest"><img src="https://img.shields.io/badge/Download-APK-blue?style=for-the-badge" alt="Download APK"></a>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT License">
 </p>
 
 ---
 
-### Crafted
+## Crafted
 
-Every pixel has a reason. True-black OLED, Aurora palette, 8px rhythm, 12/20 radii, Liquid Glass tab bar with 4-layer frost. Light and dark, both first-class. 60fps, 44dp touch targets, haptics that mean something, ReduceMotion respected.
+True-black OLED, an Aurora palette, an 8px spacing rhythm, 12/20 corner radii, and a Liquid Glass tab bar with four layers of frost. Light and dark, both first-class rather than one being the other with the colours inverted. 60fps, 44dp touch targets, haptics that mean something, and ReduceMotion respected.
 
-### Private
+## Private
 
-No accounts. No ads. No analytics. Your Wallhaven API key (optional) lives in the Android Keystore and never leaves the device — excluded from cloud backup, sent only as `X-API-Key` to Wallhaven. Favorites and downloads are local, atomic writes, never uploaded.
+Your Wallhaven API key is optional. It lives in the Android Keystore, is excluded from cloud backup, and is sent only as an `X-API-Key` header to Wallhaven. Favourites and downloads are local, written atomically, and never uploaded.
 
-### Reliable
+## Reliable
 
-Smart caching. Search cache (30-min TTL, 100 entries, stale fallback), favorites disk (atomic tmp→rename, LRU 100MB), WorkManager chain (no polling, boundary-aligned, battery-not-low). Every network call returns `Result<AppError>` — no blank screens, no silent failures.
+Search cache with a 30-minute TTL over 100 entries and a stale fallback. Favourites on disk via atomic write-then-rename, capped at 100MB by LRU. A WorkManager chain instead of polling, aligned to boundaries and gated on battery-not-low. Every network call returns a `Result<AppError>`, so there are no blank screens and no silent failures.
+
+## Permissions
+
+| Permission | Why |
+| --- | --- |
+| `INTERNET` | Wallhaven. There is no other destination. |
+| `ACCESS_NETWORK_STATE` | To show an offline state instead of an empty grid |
+| `SET_WALLPAPER` | The entire point of the app |
+| `POST_NOTIFICATIONS` | Download and set confirmations |
+| `WRITE_EXTERNAL_STORAGE` | Saving to shared storage — declared with `maxSdkVersion="28"`, so it is never requested on a modern device |
+| `BIND_QUICK_SETTINGS_TILE` | The optional tile for setting a wallpaper without opening the app |
+
+No camera. No location. No microphone. No contacts.
 
 ---
 
 ## Features
 
-**Browse** — Masonry grid, adaptive columns, pull-to-refresh (below top bar, `500ms` hold, light haptic), skeleton sweep, prefetch, shared-element hero (tile → detail).
+**Browse** — Masonry grid, adaptive columns, pull-to-refresh below the top bar with a 500ms hold and a light haptic, skeleton sweep, prefetch, and a shared-element hero from tile to detail.
 
-**Search & Filter** — Text search with history/suggestions; categories, purity (SFW/Sketchy/NSFW gated), orientation, Wallhaven color pills (29→8 families), sorting `relevance→hot` + toplist time range. Filters persist.
+**Search and filter** — Text search with history and suggestions; categories, purity (SFW/Sketchy/NSFW gated), orientation, Wallhaven colour pills folded from 29 into 8 families, and sorting across `relevance → hot` with a toplist time range. Filters persist.
 
-**Detail** — Full-bleed, edge-to-edge behind status bar. Pinch + 3-step double-tap (fit→fill→native, hard-lock at fill), tags, uploader, stats. Share via FileProvider.
+**Detail** — Full-bleed, edge-to-edge behind the status bar. Pinch plus a three-step double-tap (fit → fill → native, hard-locked at fill), tags, uploader and stats. Share through a FileProvider.
 
-**Set** — Frame with crop/zoom, Home/Lock/Both, remembered framing. Showcase/Atmosphere blur.
+**Set** — Frame with crop and zoom, Home/Lock/Both, remembered framing, and showcase or atmosphere blur.
 
-**Favorites** — Full-res local copies, custom collections (many-to-many, covers, counts), multi-select, batch remove, re-validation. Horizontal strip to filter.
+**Favourites** — Full-resolution local copies, custom collections with covers and counts, multi-select, batch removal, and re-validation. A horizontal strip doubles as a filter.
 
-**Rotation** — Auto-rotate favorites or one collection (Hourly/Daily/Weekly, exactly on :00/midnight/Monday), manual Rotate now, showcase blur.
+**Rotation** — Auto-rotate favourites or a single collection hourly, daily or weekly, firing exactly on the hour, midnight and Monday. Manual *Rotate now* as well, with showcase blur.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/browse.png" width="250" alt="Browse"> &nbsp;&nbsp;
+  <img src="docs/screenshots/detail.png" width="250" alt="Detail"> &nbsp;&nbsp;
+  <img src="docs/screenshots/favorites.png" width="250" alt="Favourites">
+</p>
+
+---
 
 <details>
-<summary><strong>Tech Stack</strong></summary>
+<summary><strong>Tech stack</strong></summary>
 
 | Layer | Technology |
 |---|---|
@@ -51,43 +75,33 @@ Smart caching. Search cache (30-min TTL, 100 entries, stale fallback), favorites
 | Database | Room 2.6 (v4), DataStore |
 | Security | EncryptedSharedPreferences AES256-GCM |
 | Architecture | MVVM + Repository, `Result<AppError>` |
-| Tests | 414 unit + 76 instrumented |
+| Tests | 372 unit + 72 instrumented |
 
 </details>
 
 <details>
-<summary><strong>Build from Source</strong></summary>
+<summary><strong>Build from source</strong></summary>
 
-**Prerequisites:**
-- JDK 17+
-- Android SDK (API 35)
-- Git
+**Prerequisites:** JDK 17, Android SDK, Git.
 
 ```bash
-# Clone
 git clone https://github.com/kedharsairam/wallkraft.git
 cd wallkraft/android
 
-# Debug build
-./gradlew assembleDebug
-# Output: app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleDebug      # app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleRelease    # requires a signing config in gradle.properties
 
-# Release build (requires signing config in gradle.properties)
-./gradlew assembleRelease
+./gradlew test                    # 372 unit tests
+./gradlew connectedAndroidTest    # 72 instrumented, device required
 
-# Tests
-./gradlew test                    # unit tests
-./gradlew connectedAndroidTest    # instrumented tests (device required)
-
-# Lint & formatting
 ./gradlew spotlessCheck           # check formatting
-./gradlew spotlessApply           # auto-fix formatting
+./gradlew spotlessApply           # auto-fix
 ```
 
 </details>
 
 <details>
-<summary><strong>Project Structure</strong></summary>
+<summary><strong>Project structure</strong></summary>
 
 ```
 android/app/src/main/java/com/wallkraft/app/
@@ -101,14 +115,6 @@ android/app/src/main/java/com/wallkraft/app/
 ```
 
 </details>
-
-## Screenshots
-
-<p align="center">
-  <img src="docs/screenshots/browse.png" width="250" alt="Browse"> &nbsp;&nbsp;
-  <img src="docs/screenshots/detail.png" width="250" alt="Detail"> &nbsp;&nbsp;
-  <img src="docs/screenshots/favorites.png" width="250" alt="Favorites">
-</p>
 
 ## Privacy
 
