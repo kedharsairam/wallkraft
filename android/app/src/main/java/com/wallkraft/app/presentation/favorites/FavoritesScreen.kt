@@ -56,7 +56,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.cache.FavoriteOfflineRepair
 import com.wallkraft.app.data.prefs.RotationSettingsStore

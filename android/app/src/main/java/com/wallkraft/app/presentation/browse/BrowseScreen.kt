@@ -62,8 +62,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.presentation.components.EmptyState
 import com.wallkraft.app.presentation.components.GridAppendFooter

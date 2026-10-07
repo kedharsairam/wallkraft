@@ -41,9 +41,9 @@ import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.domain.model.Collection
 
 /**
@@ -67,7 +67,7 @@ fun CollectionStrip(
     Column(modifier = modifier) {
         Text(
             text = stringResource(R.string.collections_title).uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = com.wallkraft.app.core.design.KraftTypeScale.LabelSpacing),
+            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = com.kraft.ui.tokens.KraftTypeScale.LabelSpacing),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(
                 start = KraftSpacing.Spacing12,
@@ -83,13 +83,13 @@ fun CollectionStrip(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .width(KraftSpacing.CollectionCardSize)
+                        .width(KraftConstants.CollectionCardSize)
                         .combinedClickable(onClick = onNew),
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .size(KraftSpacing.CollectionCardSize)
+                            .size(KraftConstants.CollectionCardSize)
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                     ) {
@@ -116,7 +116,7 @@ fun CollectionStrip(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .width(KraftSpacing.CollectionCardSize)
+                        .width(KraftConstants.CollectionCardSize)
                         .combinedClickable(
                             onClick = { onSelect(if (active) null else entry.id) },
                             onLongClick = { onMenu(entry.id) },
@@ -124,7 +124,7 @@ fun CollectionStrip(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(KraftSpacing.CollectionCardSize)
+                            .size(KraftConstants.CollectionCardSize)
                             .clip(RoundedCornerShape(KraftRadius.Standard))
                             .border(
                                 width = if (active) KraftSpacing.Spacing2 else 0.dp,

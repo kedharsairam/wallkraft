@@ -66,9 +66,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 
 /**
@@ -139,7 +139,7 @@ fun AddToCollectionDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(KraftSpacing.SearchBarHeight)
+                        .height(KraftSpacing.TouchTarget)
                         .clip(RoundedCornerShape(KraftRadius.Pill))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
                         .padding(horizontal = KraftSpacing.Spacing16),

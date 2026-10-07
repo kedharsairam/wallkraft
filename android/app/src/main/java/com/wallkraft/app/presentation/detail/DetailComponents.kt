@@ -28,9 +28,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 
 /** Circular action button for the detail screen — 44dp, glass background for contrast on any wallpaper. Pass [text] for a wider pill button with label. Pass neither icon nor text for an empty button. */
 @Composable
@@ -49,7 +49,7 @@ internal fun DetailCircleButton(
             .then(
                 if (text != null) {
                     // Min pill width keeps short labels tappable — layout-specific, not spacing scale.
-                    Modifier.widthIn(min = 100.dp).height(KraftSpacing.TouchTarget)
+                    Modifier.widthIn(min = KraftConstants.PillMinWidth).height(KraftSpacing.TouchTarget)
                 } else {
                     Modifier.size(KraftSpacing.TouchTarget)
                 }

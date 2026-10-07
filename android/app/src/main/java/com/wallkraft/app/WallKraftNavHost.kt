@@ -47,8 +47,8 @@ import androidx.navigation.toRoute
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.design.KraftTopBar
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.data.prefs.RotationSettingsStore
@@ -107,7 +107,7 @@ private fun WallKraftNavHostImpl(
     val topInset = WindowInsets.statusBars
         .asPaddingValues(density)
         .calculateTopPadding() + KraftSpacing.Spacing8 +
-        KraftSpacing.TopBarHeight + KraftSpacing.Spacing8
+        KraftSpacing.TouchTarget + KraftSpacing.Spacing8
     // Explicit inset read + floor: some OEM gesture nav reports 0 to
     // navigationBarsPadding(); 8dp keeps the bar above any gesture hint.
     val navBarBottom = maxOf(
@@ -333,7 +333,7 @@ private fun WallKraftNavHostImpl(
                         centerDistortion = 0f,
                         shape = RoundedCornerShape(KraftRadius.Pill),
                         // 8dp glass elevation + 0.08 white glow are fixed glass specs.
-                        elevation = 8.dp,
+                        elevation = KraftSpacing.Spacing8,
                         tint = KraftColors.TextPrimary.copy(alpha = KraftConstants.NavHostGlowAlpha),
                         darkness = 0.10f,
                         warpEdges = 0.22f,

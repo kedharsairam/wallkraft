@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.kraft.ui.tokens.KraftTypeScale
 
 /**
  * Color scheme — dark only, OLED-optimized.

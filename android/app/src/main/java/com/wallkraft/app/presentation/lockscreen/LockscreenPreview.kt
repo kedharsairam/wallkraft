@@ -57,9 +57,9 @@ import coil3.compose.AsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.core.design.KraftTypeScale
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftSpacing
+import com.kraft.ui.tokens.KraftTypeScale
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlin.math.roundToInt
 
@@ -138,7 +138,7 @@ fun LockscreenPreview(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(KraftConstants.CropScrimHeight)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
@@ -241,26 +241,26 @@ private fun SignalBars(modifier: Modifier = Modifier) {
     ) {
         Box(
             modifier = Modifier
-                .width(3.dp)
+                .width(KraftSpacing.Spacing4)
                 .height(KraftSpacing.Spacing6)
                 .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
-                .width(3.dp)
-                .height(9.dp)
+                .width(KraftSpacing.Spacing4)
+                .height(KraftSpacing.Spacing8)
                 .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
-                .width(3.dp)
+                .width(KraftSpacing.Spacing4)
                 .height(KraftSpacing.Spacing12)
                 .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
-                .width(3.dp)
-                .height(14.dp) // tallest mock signal bar — fixed mock spec
+                .width(KraftSpacing.Spacing4)
+                .height(KraftSpacing.Spacing16) // tallest mock signal bar
                 .background(KraftColors.TextPrimary, CircleShape),
         )
     }
@@ -289,13 +289,13 @@ private fun BatteryIcon(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .width(KraftIconSize.Medium)
-                .height(10.dp)
+                .height(KraftSpacing.Spacing8)
                 .background(KraftColors.TextPrimary, CircleShape),
         )
         Box(
             modifier = Modifier
                 .width(KraftSpacing.Spacing2)
-                .height(5.dp)
+                .height(KraftSpacing.Spacing4)
                 .background(KraftColors.TextPrimary, CircleShape),
         )
     }
@@ -311,16 +311,16 @@ private fun LargeClock(modifier: Modifier = Modifier) {
         Text(
             text = "12",
             color = KraftColors.TextPrimary,
-            fontSize = 86.sp,
+            fontSize = 86.sp, // @kraft-lint-ignore type.no-raw-sp — mock lockscreen clock face, not app type
             fontWeight = FontWeight.Thin,
-            letterSpacing = (-2).sp,
+            letterSpacing = (-2).sp, // @kraft-lint-ignore type.no-raw-sp — mock clock tracking
         )
         Text(
             text = "00",
             color = KraftColors.TextPrimary,
-            fontSize = 86.sp,
+            fontSize = 86.sp, // @kraft-lint-ignore type.no-raw-sp — mock lockscreen clock face, not app type
             fontWeight = FontWeight.Thin,
-            letterSpacing = (-2).sp,
+            letterSpacing = (-2).sp, // @kraft-lint-ignore type.no-raw-sp — mock clock tracking
         )
     }
 }

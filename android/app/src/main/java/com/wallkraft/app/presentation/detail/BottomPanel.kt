@@ -36,8 +36,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.launch
@@ -140,8 +140,8 @@ internal fun BottomPanel(
                 .zIndex(2f)
                 .graphicsLayer { alpha = chromeAlpha * (if (isZoomed) 0f else 1f) }
                 .height(with(density) { currentHeightPx.toDp() })
-                .shadow(KraftConstants.DialogElevation, RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
-                .clip(RoundedCornerShape(topStart = KraftRadius.Large, topEnd = KraftRadius.Large))
+                .shadow(KraftConstants.DialogElevation, RoundedCornerShape(topStart = KraftRadius.Medium, topEnd = KraftRadius.Medium))
+                .clip(RoundedCornerShape(topStart = KraftRadius.Medium, topEnd = KraftRadius.Medium))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .pointerInput(wallpaper.id, collapsedHeightPx, maxPanelHeightPx) {
                     // Settled height where the drag started. Read at release to

@@ -16,7 +16,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 
 /**
  * Support section — Buy Me a Coffee.

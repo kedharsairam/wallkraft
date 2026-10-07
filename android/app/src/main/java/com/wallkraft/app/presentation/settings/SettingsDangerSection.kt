@@ -34,7 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.domain.usecase.WipeAllDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

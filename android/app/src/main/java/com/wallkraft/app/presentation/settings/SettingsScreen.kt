@@ -44,7 +44,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.data.prefs.RotationSettings
 import com.wallkraft.app.data.rotation.RotationScheduler

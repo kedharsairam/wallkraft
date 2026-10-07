@@ -80,9 +80,9 @@ import com.wallkraft.app.R
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import com.wallkraft.app.presentation.components.ZoomableImage
 import com.wallkraft.app.util.SharePreview

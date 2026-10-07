@@ -96,111 +96,6 @@ object KraftColors {
     val WidgetBackground = Color(0xFF1A1A1A)
 }
 
-object KraftSpacing {
-    /** 8px rhythm — standard spacing scale. */
-    val Spacing2 = 2.dp
-    val Spacing4 = 4.dp
-    val Spacing6 = 6.dp
-    val Spacing8 = 8.dp
-    val Spacing12 = 12.dp
-    val Spacing16 = 16.dp
-    val Spacing20 = 20.dp
-    val Spacing24 = 24.dp
-    val Spacing32 = 32.dp
-    val Spacing40 = 40.dp
-    val Spacing48 = 48.dp
-    val Spacing56 = 56.dp
-    val Spacing64 = 64.dp
-
-    /** Screen edge padding — 16dp on standard phones. */
-    val ScreenEdge = Spacing16
-
-    /** Minimum tile width for adaptive grid columns. */
-    val GridTileMin = 150.dp
-
-    /** Standard touch target — 44dp (accessibility minimum). */
-    val TouchTarget = 44.dp
-
-    /** Search bar height — matches TouchTarget for visual consistency. */
-    val SearchBarHeight = TouchTarget
-
-    /** Top bar height. */
-    val TopBarHeight = TouchTarget
-
-    /**
-     * End clearance above the floating glass tab capsule: pill (~66dp) +
-     * vertical margins (16dp) + gesture nav area (~38dp budget). Grids and
-     * the settings column reserve this at their END so the last items scroll
-     * clear of the pill — content still flows full-bleed behind it mid-scroll.
-     */
-    val GlassBarReserve = 120.dp
-
-    /** Standard border width — 1dp hairline. */
-    val BorderWidth = 1.dp
-
-    /** Progress bar / loading indicator height. */
-    val ProgressBarHeight = 2.dp
-
-    /** Spinner stroke width. */
-    val SpinnerStroke = 2.dp
-
-    /** Avatar size — 32dp circular. */
-    val AvatarSize = 32.dp
-
-    /** Collection card — 88dp square + label. */
-    val CollectionCardSize = 88.dp
-
-    /** Drag handle width — 36dp per DESIGN Sheets spec (height uses Spacing6). */
-    val DragHandleWidth = 36.dp
-}
-
-object KraftRadius {
-    /** Standard corner radii — system-wide consistency per DESIGN.md. */
-    val Small = 8.dp       // Tight grid cards (spec 8)
-    val Standard = 12.dp   // Cards, list items — spec 12 (was 10)
-    val Large = 14.dp      // Large cards, search bars — keep 14 for search
-    val Medium = 16.dp     // Avatar clip, widget corners — 16dp spec
-    val Hero = 20.dp       // Sheets, modals — spec 20 (was 22)
-    val Modal = 28.dp      // Centered dialogs — was raw 28dp in CollectionDialogs
-    val Pill = 50.dp       // Fully rounded — buttons, tags, filters
-    val DragHandle = 2.5.dp // Drag handle radius
-}
-
-object KraftIconSize {
-    /** Standard icon sizes — consistent across all screens. */
-    val Tiny = 12.dp       // Badges, indicators
-    val Small = 16.dp      // Inline icons, arrows
-    val Medium = 20.dp     // Button icons, toolbar icons
-    val Compact = 22.dp    // Camera shortcut, progress — 22dp spec
-    val Large = 24.dp      // Selection badges, prominent icons
-    val XLarge = 40.dp     // Empty state, error icons
-    val TabBar = 25.dp     // Tab bar icons — standard platform size
-}
-
-object KraftTypeScale {
-    /**
-     * Type scale — maps to SF Pro sizes.
-     * Android system font (Roboto) is close enough; the scale and weights
-     * matter more than the exact typeface.
-     */
-    val LargeTitle = 34.sp   // .largeTitle
-    val Title1 = 28.sp       // .title1
-    val Title2 = 22.sp       // .title2
-    val Title3 = 20.sp       // .title3
-    val Headline = 17.sp     // .headline
-    val Body = 17.sp         // .body
-    val Callout = 16.sp      // .callout
-    val Subheadline = 15.sp  // .subheadline
-    val Footnote = 13.sp     // .footnote
-    val Caption1 = 12.sp     // .caption1
-    val Caption2 = 11.sp     // .caption2
-    val Badge = 10.sp        // color-dot label — below caption scale
-    val WidgetBody = 14.sp   // Glance widget body — between footnote and subheadline
-
-    /** Letter spacing for section headings and labels. */
-    val LabelSpacing = 0.4.sp
-}
-
 /** Centralized tuning constants — every magic number lives here. */
 object KraftConstants {
     // -- Caching --
@@ -261,6 +156,40 @@ object KraftConstants {
     const val SkeletonAlphaMax = 0.5f
     const val ShimmerGradientAlpha = 0.5f
     val ShimmerAvgTileHeightDp = 280.dp
+
+    // Smallest tile a grid will lay out. Two screens share it so a phone and a tablet
+    // agree on when tiles reflow; declared once because two literal 150s were two chances
+    // to type 150 differently.
+    val GridTileMin = 150.dp
+
+    // Onboarding fixed specs. The button area is sized so Get Started never jumps when Next
+    // turns into it: both buttons the same size, centered, with an invisible Skip reserve on
+    // the last page balancing the TextButton height. Each value was a literal with its reason
+    // in WelcomeScreen; declared once because three literals were three chances to drift.
+    val OnboardingButtonWidth = 260.dp
+    val OnboardingAreaHeight = 88.dp
+    val SkipReserve = 36.dp
+    val OnboardingHeroCircle = 80.dp
+
+    // Min pill width keeps short labels tappable; back-button clearance offsets content below
+    // the floating button; username cap keeps long names from overflowing a panel. Each
+    // carried a "layout-specific, not spacing scale" comment at its site — which is exactly
+    // what makes it an app metric rather than a spacing value.
+    val PillMinWidth = 100.dp
+    val BackButtonClearance = 68.dp
+    val UsernameMaxWidth = 260.dp
+
+    // Buy-Me-a-Coffee asset width — fixed brand spec. Same 182 as two sibling apps' sponsor
+    // buttons, separately declared because sharing a brand asset's dimensions across apps
+    // would couple unrelated products to one image file.
+    val SponsorButtonWidth = 182.dp
+
+    // Lockscreen preview scrim height behind the mock clock.
+    val CropScrimHeight = 200.dp
+
+    // Collection cards in the favorites strip. Fixed at 88dp so a strip of cards has a
+    // uniform rhythm regardless of image aspect — the image crops, the card does not move.
+    val CollectionCardSize = 88.dp
 
     // -- Badges --
     const val BadgeAlpha = 0.85f                 // Downloaded badge

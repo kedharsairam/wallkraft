@@ -37,12 +37,13 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.core.design.KraftTypeScale
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
+import com.kraft.ui.tokens.KraftTypeScale
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import kotlin.math.roundToInt
+import com.wallkraft.app.core.design.KraftConstants
 
 /**
  * Shared building blocks for the Settings screen.
@@ -127,7 +128,7 @@ fun BuyMeACoffeeButton(onClick: () -> Unit) {
             contentDescription = stringResource(R.string.buy_me_a_coffee_title),
             modifier = Modifier
                 // 182dp Buy-Me-a-Coffee asset width — fixed brand spec, not spacing scale.
-                .width(182.dp)
+                .width(KraftConstants.SponsorButtonWidth)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale

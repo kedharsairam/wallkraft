@@ -103,10 +103,10 @@ import com.wallkraft.app.R
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.design.KraftConstants
 import com.wallkraft.app.core.design.KraftColors
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.core.design.KraftTypeScale
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
+import com.kraft.ui.tokens.KraftTypeScale
 import com.wallkraft.app.domain.model.Category
 import com.wallkraft.app.domain.model.Orientation
 import com.wallkraft.app.domain.model.Purity
@@ -117,7 +117,7 @@ import com.wallkraft.app.util.displayName
 import com.wallkraft.app.util.formatCount
 
 private val PillShape = RoundedCornerShape(KraftRadius.Pill)
-private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Large, bottomEnd = KraftRadius.Large)
+private val PanelShape = RoundedCornerShape(bottomStart = KraftRadius.Medium, bottomEnd = KraftRadius.Medium)
 
 /**
  * Clean search + filter bar.
@@ -233,7 +233,7 @@ fun SearchFilterBar(
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .weight(1f)
-                        .height(KraftSpacing.SearchBarHeight)
+                        .height(KraftSpacing.TouchTarget)
                         .onFocusChanged { isFocused = it.isFocused },
                     decorationBox = { innerTextField ->
                         Row(
@@ -360,7 +360,7 @@ fun SearchFilterBar(
         // This is the standard pattern for dropdown menus and popover panels.
         // Max height is dynamic: screen height minus search bar and bottom bar.
         val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
-        val panelMaxHeight = screenHeightDp - KraftSpacing.SearchBarHeight - KraftSpacing.Spacing48
+        val panelMaxHeight = screenHeightDp - KraftSpacing.TouchTarget - KraftSpacing.Spacing48
         AnimatedVisibility(
             visible = showFilters,
             enter = if (reduceMotion) fadeIn(tween(250)) else expandVertically(tween(250)) + fadeIn(tween(250)),

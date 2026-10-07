@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kraft.ui.tokens.KraftSpacing
 
 /**
  * Unified top bar matching Browse's SearchFilterBar height.
@@ -47,7 +48,7 @@ fun KraftTopBar(
                 .fillMaxWidth()
                 .statusBarsPadding()
                 .padding(horizontal = KraftSpacing.Spacing16, vertical = KraftSpacing.Spacing8)
-                .height(KraftSpacing.TopBarHeight),
+                .height(KraftSpacing.TouchTarget),
         ) {
             if (navigationIcon != null) {
                 navigationIcon()

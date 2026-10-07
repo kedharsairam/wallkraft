@@ -50,9 +50,9 @@ import coil3.compose.SubcomposeAsyncImage
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 
 /** The uploader row's three visual states, crossfaded as the detail loads. */
@@ -97,7 +97,7 @@ internal fun UploaderRow(
             // Cap the width so a very long username ellipsizes instead of
             // overflowing the panel; the tap target stays compact.
             // 260dp max line length — layout-specific, not spacing scale.
-            modifier = Modifier.widthIn(max = 260.dp),
+            modifier = Modifier.widthIn(max = KraftConstants.UsernameMaxWidth),
         )
     }
 }

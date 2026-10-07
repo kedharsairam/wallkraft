@@ -41,9 +41,9 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import com.wallkraft.app.R
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
-import com.wallkraft.app.core.design.KraftTypeScale
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
+import com.kraft.ui.tokens.KraftTypeScale
 import com.wallkraft.app.core.utils.KraftHaptics
 
 /**

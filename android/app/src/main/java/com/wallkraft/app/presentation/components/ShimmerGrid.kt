@@ -40,8 +40,8 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.rememberReduceMotion
 
 // Precomputed heights — deterministic pattern, no Random allocation per recomposition.
@@ -94,7 +94,7 @@ fun ShimmerGrid(modifier: Modifier = Modifier) {
             .semantics { contentDescription = loadingDescription }
     ) {
         LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
+            columns = StaggeredGridCells.Adaptive(KraftConstants.GridTileMin),
             contentPadding = PaddingValues(
                 // Must match WallpaperGrid edges or content jumps on load.
                 // Bottom reserves the glass pill like the grid (same reason).

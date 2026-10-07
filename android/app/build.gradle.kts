@@ -3,7 +3,6 @@ import java.util.Properties
 plugins {
     id("jacoco")
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -32,7 +31,7 @@ val hasReleaseKey = keystoreProperties.isNotEmpty()
 
 android {
     namespace = "com.wallkraft.app"
-    compileSdk = 36
+    compileSdk = 37
 
     // Disable AGP dependency metadata signing block for F-Droid.
     // AGP embeds an extra signing block (ID 0x504B4453) with dependency hashes
@@ -49,7 +48,7 @@ android {
     defaultConfig {
         applicationId = "com.wallkraft.app"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 61
         versionName = "3.2.3"
         resourceConfigurations += setOf("en", "es", "hi", "ja", "pt")
@@ -94,8 +93,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     packaging {
@@ -196,6 +197,10 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.navigation.compose)
     implementation(libs.splashscreen)
+
+    // Kraft Foundation — composite build, substituted in settings.gradle.kts.
+    implementation("com.kraft:kraft-ui")
+    implementation("com.kraft:kraft-core")
 
     // Networking
     implementation(libs.okhttp)

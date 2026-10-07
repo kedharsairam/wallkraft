@@ -42,7 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftColors
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.data.cache.OfflineImageStore
 import com.wallkraft.app.data.prefs.CropStore
@@ -175,7 +175,7 @@ private fun DetailScreenImpl(
                     val sharedElementModifier: Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                         with(sharedTransitionScope) {
                             Modifier.sharedElement(
-                                state = rememberSharedContentState(key = wallpaper.id),
+                                sharedContentState = rememberSharedContentState(key = wallpaper.id),
                                 animatedVisibilityScope = animatedVisibilityScope,
                                 boundsTransform = { _, _ -> SharedElementSpring },
                             )
@@ -256,7 +256,7 @@ private fun DetailScreenImpl(
                     .align(Alignment.TopCenter)
                     .statusBarsPadding()
                     // 68dp top clears the floating back button — layout-specific offset.
-                    .padding(top = 68.dp, start = KraftSpacing.Spacing16, end = KraftSpacing.Spacing16),
+                    .padding(top = KraftConstants.BackButtonClearance, start = KraftSpacing.Spacing16, end = KraftSpacing.Spacing16),
             )
         }
     }

@@ -45,8 +45,8 @@ import coil3.request.ImageRequest
 import com.wallkraft.app.R
 import com.wallkraft.app.core.cache.GridImageLoader
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.domain.model.Wallpaper
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -138,7 +138,7 @@ fun WallpaperGrid(
     }
 
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(KraftSpacing.GridTileMin),
+        columns = StaggeredGridCells.Adaptive(KraftConstants.GridTileMin),
         state = gridState,
         contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(horizontalSpacing),
@@ -154,7 +154,7 @@ fun WallpaperGrid(
             val sharedElementModifier: Modifier = if (sharedTransitionScope != null && animatedVisibilityScope != null) {
                 with(sharedTransitionScope) {
                     Modifier.sharedElement(
-                        state = rememberSharedContentState(key = wallpaper.id),
+                        sharedContentState = rememberSharedContentState(key = wallpaper.id),
                         animatedVisibilityScope = animatedVisibilityScope,
                         boundsTransform = { _, _ -> tween(220) },
                     )

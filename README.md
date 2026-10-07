@@ -120,6 +120,25 @@ android/app/src/main/java/com/wallkraft/app/
 
 Private by default. See [PRIVACY.md](PRIVACY.md).
 
+## Design
+
+Spacing, type, radius, motion and touch targets come from
+[kraft-foundation](https://github.com/kedharsairam/kraft-foundation), which is also where the
+standard this app is built to is written down. It targets **standard 1.0.0**, and
+`kraft-lint` in that repository is what checks it.
+
+This app previously carried its own copies of all four token objects under the same names —
+`KraftSpacing`, `KraftRadius`, `KraftIconSize`, `KraftTypeScale` — with identical values.
+They are deleted; the imports now point at the foundation. What stays local is what would
+be wrong anywhere else: the Aurora palette (eight system accents plus measured surfaces),
+the three-way light/dark/AMOLED theme, `KraftConstants` (cache TTLs, rate limits, and the
+app's own dimensions like `GridTileMin` and `CollectionCardSize`), and the lockscreen mock
+clock face.
+
+WallKraft is the fifth of nine apps to move. Its toolchain moved with it: Gradle 8.11.1 →
+9.7.1, AGP 8.9.1 → 9.3.1, Kotlin 2.1.0 → 2.2.10, Hilt 2.56 → 2.60 (2.56 cannot see AGP 9's
+APIs), SDK 36 → 37.
+
 ## Support
 
 If you enjoy WallKraft, buy me a coffee:

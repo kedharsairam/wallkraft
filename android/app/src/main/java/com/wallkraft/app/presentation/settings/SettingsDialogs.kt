@@ -31,7 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftSpacing
 
 /**
  * Dialogs shown from the Settings screen.

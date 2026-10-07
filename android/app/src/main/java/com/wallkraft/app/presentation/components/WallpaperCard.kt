@@ -49,9 +49,9 @@ import com.wallkraft.app.core.utils.KraftHaptics
 import com.wallkraft.app.core.utils.rememberReduceMotion
 import com.wallkraft.app.core.design.KraftColors
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import com.wallkraft.app.domain.model.Purity
 import com.wallkraft.app.domain.model.Wallpaper
 
@@ -108,9 +108,13 @@ fun WallpaperCard(
     // Purity border — orange for Sketchy, red for NSFW (matches Wallhaven).
     // Subtle: 1.5dp with reduced alpha so it hints without dominating.
     // 1.5dp purity outline — layout-specific spec, not spacing scale.
+    // 1.5dp purity outline. The shared scales have no 1.5 and no half steps; rounding to
+    // 1 or 2 would change the very subtlety the design specifies ("hints without
+    // dominating"). Named once so both branches share it.
+    val purityBorderWidth = 1.5.dp // @kraft-lint-ignore spacing.no-raw-dp, spacing.rhythm — specified subtlety, no 1.5 token
     val purityBorder = when (wallpaper.purityEnum) {
-        Purity.Sketchy -> BorderStroke(1.5.dp, KraftColors.AuroraOrange)
-        Purity.NSFW -> BorderStroke(1.5.dp, KraftColors.AuroraRed)
+        Purity.Sketchy -> BorderStroke(purityBorderWidth, KraftColors.AuroraOrange)
+        Purity.NSFW -> BorderStroke(purityBorderWidth, KraftColors.AuroraRed)
         else -> null
     }
 

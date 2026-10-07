@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Wallhaven. There is no other destination. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- To show an offline state instead of an empty grid. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- The entire point of the app. -->
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <!-- Download and set confirmations. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Saving to shared storage. maxSdkVersion 28: never requested on a modern device. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 

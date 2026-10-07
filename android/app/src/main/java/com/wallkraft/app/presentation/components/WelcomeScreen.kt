@@ -44,9 +44,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wallkraft.app.R
 import com.wallkraft.app.core.design.KraftConstants
-import com.wallkraft.app.core.design.KraftIconSize
-import com.wallkraft.app.core.design.KraftRadius
-import com.wallkraft.app.core.design.KraftSpacing
+import com.kraft.ui.tokens.KraftIconSize
+import com.kraft.ui.tokens.KraftRadius
+import com.kraft.ui.tokens.KraftSpacing
 import kotlinx.coroutines.launch
 
 /**
@@ -122,7 +122,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
             // 88dp area height, 260dp button width, 36dp skip reserve are fixed onboarding specs.
             Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth().height(88.dp),
+                modifier = Modifier.fillMaxWidth().height(KraftConstants.OnboardingAreaHeight),
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(
@@ -130,7 +130,7 @@ fun WelcomeScreen(onDone: () -> Unit) {
                             if (pagerState.currentPage < 2) scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                             else onDone()
                         },
-                        modifier = Modifier.width(260.dp).height(KraftSpacing.TouchTarget),
+                        modifier = Modifier.width(KraftConstants.OnboardingButtonWidth).height(KraftSpacing.TouchTarget),
                         shape = RoundedCornerShape(KraftRadius.Standard),
                     ) { Text(if (pagerState.currentPage < 2) stringResource(R.string.next) else stringResource(R.string.get_started)) }
                     Spacer(Modifier.height(KraftSpacing.Spacing8))
@@ -138,11 +138,11 @@ fun WelcomeScreen(onDone: () -> Unit) {
                     if (pagerState.currentPage < 2) {
                         TextButton(
                             onClick = onDone,
-                            modifier = Modifier.width(260.dp),
+                            modifier = Modifier.width(KraftConstants.OnboardingButtonWidth),
                         ) { Text(stringResource(R.string.skip)) }
                     } else {
                         // 36dp skip reserve balances the TextButton height — fixed onboarding spec.
-                        Spacer(Modifier.height(36.dp))
+                        Spacer(Modifier.height(KraftConstants.SkipReserve))
                     }
                 }
             }
@@ -160,7 +160,7 @@ private fun WelcomePage(icon: ImageVector, title: String, body: String) {
         Box(
             contentAlignment = Alignment.Center,
             // 80dp hero circle + 0.15 primary tint are fixed onboarding specs.
-            modifier = Modifier.size(80.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = KraftConstants.OverlayCameraAlpha)),
+            modifier = Modifier.size(KraftConstants.OnboardingHeroCircle).clip(CircleShape).background(MaterialTheme.colorScheme.primary.copy(alpha = KraftConstants.OverlayCameraAlpha)),
         ) {
             Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(KraftIconSize.XLarge))
         }
