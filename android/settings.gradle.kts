@@ -23,7 +23,7 @@ include(":app")
 //
 // The fifth app to move. Spacing, type, radius, motion and touch targets come from here;
 // the accent, the Aurora palette, and the app's own constants stay local.
-includeBuild("../../kraft-foundation") {
+includeBuild("../kraft-foundation") {
     dependencySubstitution {
         substitute(module("com.kraft:kraft-ui")).using(project(":kraft-ui"))
         substitute(module("com.kraft:kraft-core")).using(project(":kraft-core"))

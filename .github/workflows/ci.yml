@@ -18,10 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         # kraft-foundation is public, so no credentials are needed. It sits beside the
-        # repository root because the Gradle root is android/ and settings.gradle.kts
-        # addresses it as ../../kraft-foundation. The gate path below is relative to
-        # working-directory (android/), hence ../.. - stated rather than implied, after
-        # two attempts at this pattern in sibling apps got a path wrong each time.
+        # repository root. Both settings.gradle.kts (inside android/) and the gate below
+        # (run with working-directory android/) address it as ../kraft-foundation.
+        # An earlier version said ../../, which escapes the repository and only worked
+        # locally by accident. CI proved it wrong: dependabot runs failed with
+        # MODULE_NOT_FOUND while local runs passed, which is the worst kind of green.
       - name: Checkout kraft-foundation (composite-build sibling)
         uses: actions/checkout@v4
         with:
@@ -57,7 +58,7 @@ jobs:
 
       # `quality.ci-runs-the-gate` fails if this step is removed.
       - name: Quality gate
-        run: node ../../kraft-foundation/tools/kraft-lint/kraft-lint.js . --format github
+        run: node ../kraft-foundation/tools/kraft-lint/kraft-lint.js . --format github
 
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --no-daemon

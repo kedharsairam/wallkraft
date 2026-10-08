@@ -32,3 +32,8 @@ verify_out.txt
 
 # Built APKs (hand-copied release artifacts)
 **/dist/
+
+# Local foundation checkout for the composite build. CI checks this out
+# beside the repo root; developers clone it here so ../kraft-foundation
+# resolves identically in both places.
+kraft-foundation/
