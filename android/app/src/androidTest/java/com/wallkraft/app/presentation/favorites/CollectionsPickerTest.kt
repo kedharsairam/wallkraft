@@ -115,6 +115,14 @@ class CollectionsPickerTest {
             favoritesRepository.add(Wallpaper(id = "t2"))
         }
         val topBarState = FavoritesTopBarState()
+        val favoritesVm = FavoritesViewModel(
+            favoritesRepository = favoritesRepository,
+            settingsRepository = FakeSettingsRepository(),
+            rotationStore = FakeRotationStore(),
+            collectionsRepository = collectionsRepository,
+            favoriteImageStore = FakeStore(),
+        )
+        val collectionsVm = CollectionsViewModel(collectionsRepository)
 
         compose.setContent {
             KraftTheme {
@@ -124,15 +132,9 @@ class CollectionsPickerTest {
                     offlineRepair = FavoriteOfflineRepair(FakeStore()),
                     autoRepairOffline = false,
                     topBarState = topBarState,
-                    viewModel = FavoritesViewModel(
-                        favoritesRepository = favoritesRepository,
-                        settingsRepository = FakeSettingsRepository(),
-                        rotationStore = FakeRotationStore(),
-                        collectionsRepository = collectionsRepository,
-                        favoriteImageStore = FakeStore(),
-                    ),
+                    viewModel = favoritesVm,
                     connectivityViewModel = testConnectivityViewModel(),
-                    collectionsVm = CollectionsViewModel(collectionsRepository),
+                    collectionsVm = collectionsVm,
                 )
             }
         }

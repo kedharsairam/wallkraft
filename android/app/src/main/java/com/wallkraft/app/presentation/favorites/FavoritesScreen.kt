@@ -173,6 +173,9 @@ private fun FavoritesScreenImpl(
     var rotateRequestId by rememberSaveable { mutableStateOf<String?>(null) }
     var rotateSucceeded by rememberSaveable { mutableStateOf(false) }
     val rotationFailedMsg = stringResource(R.string.rotation_failed)
+    val collectionNameExistsMsg = stringResource(R.string.collection_name_exists)
+    val collectionDeletedMsg = stringResource(R.string.collection_deleted)
+    val undoLabel = stringResource(R.string.undo)
     LaunchedEffect(rotateRequestId) {
         val idString = rotateRequestId ?: return@LaunchedEffect
         val id = runCatching { java.util.UUID.fromString(idString) }.getOrNull()
@@ -614,7 +617,7 @@ private fun FavoritesScreenImpl(
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar(
-                                context.getString(R.string.collection_name_exists),
+                                collectionNameExistsMsg,
                             )
                         }
                     }
@@ -638,8 +641,8 @@ private fun FavoritesScreenImpl(
                 deleteCollectionId = null
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
-                        message = context.getString(R.string.collection_deleted),
-                        actionLabel = context.getString(R.string.undo),
+                        message = collectionDeletedMsg,
+                        actionLabel = undoLabel,
                     )
                     if (result == SnackbarResult.ActionPerformed) {
                         collectionsVm.restore(restoreName, restoreMembers)

@@ -124,6 +124,8 @@ private fun DetailScreenImpl(
     var setWallpaperTarget by remember { mutableStateOf<Wallpaper?>(null) }
 
     val wallpaperSetFailedMsg = stringResource(R.string.wallpaper_set_failed)
+    val favoriteSaveFailedMsg = stringResource(R.string.favorite_save_failed)
+    val downloadFailedMsg = stringResource(R.string.download_failed)
 
     val backgroundAlpha = remember { androidx.compose.animation.core.Animatable(0f) }
     LaunchedEffect(Unit) {
@@ -165,6 +167,7 @@ private fun DetailScreenImpl(
                 modifier = Modifier.fillMaxSize(),
             )
             wallpaper != null -> {
+                val downloadingMsg = stringResource(R.string.downloading, wallpaper.resolution)
                 if (wallpaper.path.isBlank()) {
                     ErrorState(
                         message = stringResource(R.string.wallpaper_load_failed),
@@ -202,7 +205,7 @@ private fun DetailScreenImpl(
                                     val saved = favoriteImageStore.save(wallpaper)
                                     if (!saved) {
                                         snackbarHostState.showSnackbar(
-                                            context.getString(R.string.favorite_save_failed),
+                                            favoriteSaveFailedMsg,
                                         )
                                     }
                                 }
@@ -214,11 +217,11 @@ private fun DetailScreenImpl(
                             scope.launch {
                                 if (downloadId >= 0) {
                                     snackbarHostState.showSnackbar(
-                                        context.getString(R.string.downloading, wallpaper.resolution),
+                                        downloadingMsg,
                                     )
                                 } else {
                                     snackbarHostState.showSnackbar(
-                                        context.getString(R.string.download_failed),
+                                        downloadFailedMsg,
                                     )
                                 }
                             }

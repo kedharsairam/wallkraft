@@ -124,6 +124,14 @@ class FavoritesDownloadAllTest {
             )
         }
         val fake = FakeStore()
+        val favoritesVm = FavoritesViewModel(
+            favoritesRepository = favoritesRepository,
+            settingsRepository = FakeSettingsRepository(),
+            rotationStore = FakeRotationStore(),
+            collectionsRepository = collectionsRepository,
+            favoriteImageStore = fake,
+        )
+        val collectionsVm = CollectionsViewModel(collectionsRepository)
 
         compose.setContent {
             KraftTheme {
@@ -132,15 +140,9 @@ class FavoritesDownloadAllTest {
                     gridState = rememberLazyStaggeredGridState(),
                     offlineRepair = FavoriteOfflineRepair(fake),
                     autoRepairOffline = false,
-                    viewModel = FavoritesViewModel(
-                        favoritesRepository = favoritesRepository,
-                        settingsRepository = FakeSettingsRepository(),
-                        rotationStore = FakeRotationStore(),
-                        collectionsRepository = collectionsRepository,
-                        favoriteImageStore = fake,
-                    ),
+                    viewModel = favoritesVm,
                     connectivityViewModel = testConnectivityViewModel(),
-                    collectionsVm = CollectionsViewModel(collectionsRepository),
+                    collectionsVm = collectionsVm,
                 )
             }
         }

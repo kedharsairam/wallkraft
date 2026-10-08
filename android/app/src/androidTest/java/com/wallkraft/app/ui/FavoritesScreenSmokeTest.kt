@@ -93,20 +93,23 @@ class FavoritesScreenSmokeTest {
 
     private fun testContent() {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val favoritesVm = FavoritesViewModel(
+            favoritesRepository = FakeFavoritesRepository(),
+            settingsRepository = FakeSettingsRepository(),
+            rotationStore = FakeRotationStore(),
+            collectionsRepository = FakeCollectionsRepository(),
+            favoriteImageStore = FakeOfflineImageStore(),
+        )
+        val connectivityVm = ConnectivityViewModel(ConnectivityObserver(context))
+        val collectionsVm = CollectionsViewModel(FakeCollectionsRepository())
         compose.setContent {
             KraftTheme {
                 FavoritesScreen(
                     onOpenWallpaper = {},
                     gridState = rememberLazyStaggeredGridState(),
-                    viewModel = FavoritesViewModel(
-                        favoritesRepository = FakeFavoritesRepository(),
-                        settingsRepository = FakeSettingsRepository(),
-                        rotationStore = FakeRotationStore(),
-                        collectionsRepository = FakeCollectionsRepository(),
-                        favoriteImageStore = FakeOfflineImageStore(),
-                    ),
-                    connectivityViewModel = ConnectivityViewModel(ConnectivityObserver(context)),
-                    collectionsVm = CollectionsViewModel(FakeCollectionsRepository()),
+                    viewModel = favoritesVm,
+                    connectivityViewModel = connectivityVm,
+                    collectionsVm = collectionsVm,
                 )
             }
         }

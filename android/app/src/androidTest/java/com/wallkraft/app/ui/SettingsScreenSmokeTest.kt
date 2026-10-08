@@ -60,16 +60,18 @@ class SettingsScreenSmokeTest {
 
     private fun testContent() {
         val repo = FakeSettingsRepository()
+        val settingsVm = SettingsViewModel(
+            repo,
+            WallhavenApi(OkHttpClient(), kotlinx.serialization.json.Json {}, repo, RateLimitState()),
+            GithubApi(OkHttpClient(), kotlinx.serialization.json.Json {}),
+            { "Error" },
+        )
+        val dangerZoneVm = DangerZoneViewModel(WipeAllDataUseCase(FakeWipeBackend()))
         compose.setContent {
             KraftTheme {
                 SettingsScreen(
-                    viewModel = SettingsViewModel(
-                        repo,
-                        WallhavenApi(OkHttpClient(), kotlinx.serialization.json.Json {}, repo, RateLimitState()),
-                        GithubApi(OkHttpClient(), kotlinx.serialization.json.Json {}),
-                        { "Error" },
-                    ),
-                    dangerZoneViewModel = DangerZoneViewModel(WipeAllDataUseCase(FakeWipeBackend())),
+                    viewModel = settingsVm,
+                    dangerZoneViewModel = dangerZoneVm,
                 )
             }
         }
