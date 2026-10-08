@@ -48,6 +48,7 @@ import com.wallkraft.app.data.db.WallpaperHistoryEntity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.annotation.SuppressLint
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,6 +166,12 @@ private fun HistoryItem(
     }
 }
 
+// NonObservableLocale is suppressed here rather than "fixed" because the lint is wrong
+// about this call site: MainActivity does not handle locale in configChanges, so a locale
+// change recreates the activity and this composition runs fresh with the new locale. The
+// remember(locale) below is belt and braces for recompositions within one configuration.
+// Surfaced by the AGP 9.3 toolchain upgrade; the code predates it.
+@SuppressLint("NonObservableLocale")
 @Composable
 private fun rememberDateFormat(): SimpleDateFormat {
     val locale = Locale.getDefault()
